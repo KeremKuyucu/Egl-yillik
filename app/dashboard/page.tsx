@@ -48,16 +48,17 @@ export default async function DashboardPage() {
     .neq("id", user.id)
 
   const { data: texts, error: textsError } = await supabase
-    .from("texts")
-    .select(`
-      *,
-      recipient_profile:recipient_id (
-        first_name,
-        last_name,
-        class
-      )
-    `)
-    .order("updated_at", { ascending: false })
+  .from("texts")
+  .select(`
+    *,
+    recipient_profile:recipient_id (
+      first_name,
+      last_name,
+      class
+    )
+  `)
+  .eq("author_id", user.id) // KRİTİK EKLEME: Sadece kendi yazdıklarını filtreler
+  .order("updated_at", { ascending: false })
 
   const writtenRecipientIds = texts?.map((t) => t.recipient_id) || []
   const classmateIds = classmates?.map((c) => c.id) || []
