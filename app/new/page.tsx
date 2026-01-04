@@ -17,31 +17,64 @@ export default async function NewTextPage() {
 
   const {
     data: { user },
-    error,
+    error: authError,
   } = await supabase.auth.getUser()
 
-  if (error || !user) {
+  if (authError || !user) {
     redirect("/login")
   }
 
-  const { data: userProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  // Kullanıcının profili
+  const { data: userProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
 
-  const { data: allProfiles } = await supabase
+  if (profileError || !userProfile) {
+    redirect("/login")
+  }
+
+  // Diğer tüm profiller
+  const { data: allProfiles, error: profilesError } = await supabase
     .from("profiles")
     .select("*")
     .neq("id", user.id)
-    .order("class")
-    .order("first_name")
+    .order("class", { ascending: true })
+    .order("first_name", { ascending: true })
 
-  const { data: existingTexts } = await supabase.from("texts").select("recipient_id")
+  if (profilesError) {
+    console.error("Profiles error:", profilesError)
+  }
 
-  const writtenRecipientIds = existingTexts?.map((t) => t.recipient_id) || []
+  // Kullanıcının daha önce yazdığı metinler
+  const { data: existingTexts, error: textsError } = await supabase
+    .from("texts")
+    .select("recipient_id")
+    .eq("author_id", user.id)
 
+  if (textsError) {
+    console.error("Texts error:", textsError)
+  }
+
+  const writtenRecipientIds =
+    existingTexts?.map((t) => t.recipient_id) ?? []
+
+  // Aynı sınıf (zorunlu)
   const classmates =
-    allProfiles?.filter((p: Profile) => p.class === userProfile?.class && !writtenRecipientIds.includes(p.id)) || []
+    allProfiles?.filter(
+      (p: Profile) =>
+        p.class === userProfile.class &&
+        !writtenRecipientIds.includes(p.id)
+    ) ?? []
 
+  // Diğer sınıflar (isteğe bağlı)
   const others =
-    allProfiles?.filter((p: Profile) => p.class !== userProfile?.class && !writtenRecipientIds.includes(p.id)) || []
+    allProfiles?.filter(
+      (p: Profile) =>
+        p.class !== userProfile.class &&
+        !writtenRecipientIds.includes(p.id)
+    ) ?? []
 
   return (
     <div className="min-h-svh bg-background">
@@ -63,11 +96,19 @@ export default async function NewTextPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-2xl">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold tracking-tight">Yeni Metin Yaz</h2>
-            <p className="text-muted-foreground">Arkadaşlarından birine anlamlı bir mesaj yaz</p>
+            <h2 className="text-3xl font-bold tracking-tight">
+              Yeni Metin Yaz
+            </h2>
+            <p className="text-muted-foreground">
+              Arkadaşlarından birine anlamlı bir mesaj yaz
+            </p>
           </div>
 
-          <NewTextForm classmates={classmates} others={others} userClass={userProfile?.class || ""} />
+          <NewTextForm
+            classmates={classmates}
+            others={others}
+            userClass={userProfile.class}
+          />
         </div>
       </main>
     </div>
