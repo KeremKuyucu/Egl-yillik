@@ -16,36 +16,48 @@ export default async function AdminPage() {
     redirect("/login")
   }
 
-  // Check if user is admin
+  // Admin kontrolü
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
 
   if (!profile || profile.role !== "admin") {
     redirect("/dashboard")
   }
 
-  // Fetch all texts with author and recipient information
-  const { data: texts } = await supabase
+  // Verileri çekme
+  // NOT: author ve recipient aynı tabloya (profiles) baktığı için açık foreign key isimlendirmesi kullanıyoruz.
+  const { data: texts, error } = await supabase
     .from("texts")
     .select(
       `
       id,
       content,
       created_at,
-      author:author_id (
+      author:profiles!texts_author_id_fkey (
         first_name,
         last_name,
         school_number,
         class
       ),
-      recipient:recipient_id (
+      recipient:profiles!texts_recipient_id_fkey (
         first_name,
         last_name,
         school_number,
         class
       )
-    `,
+    `
     )
     .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Veri çekme hatası:", error)
+    // Hata durumunda basit bir UI gösterilebilir veya loglanabilir
+  }
+
+  // Tip güvenliği için basit bir yardımcı fonksiyon (optional)
+  const formatName = (person: any) => {
+    if (!person) return "Bilinmiyor"
+    return `${person.first_name} ${person.last_name}`
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -84,31 +96,42 @@ export default async function AdminPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {texts.map((text) => (
+                    {texts.map((text: any) => (
                       <TableRow key={text.id}>
+                        {/* GÖNDEREN BİLGİLERİ */}
                         <TableCell className="font-medium">
-                          {text.author?.first_name} {text.author?.last_name}
+                          {formatName(text.author)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{text.author?.school_number}</Badge>
+                          <Badge variant="outline">{text.author?.school_number || "-"}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{text.author?.class}</Badge>
+                          <Badge variant="secondary">{text.author?.class || "-"}</Badge>
                         </TableCell>
+
+                        {/* ALICI BİLGİLERİ */}
                         <TableCell className="font-medium">
-                          {text.recipient?.first_name} {text.recipient?.last_name}
+                          {formatName(text.recipient)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{text.recipient?.school_number}</Badge>
+                          <Badge variant="outline">{text.recipient?.school_number || "-"}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{text.recipient?.class}</Badge>
+                          <Badge variant="secondary">{text.recipient?.class || "-"}</Badge>
                         </TableCell>
+
+                        {/* METİN İÇERİĞİ */}
                         <TableCell className="max-w-md">
                           <p className="line-clamp-2 text-sm text-muted-foreground">{text.content}</p>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(text.created_at).toLocaleDateString("tr-TR")}
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                          {new Date(text.created_at).toLocaleDateString("tr-TR", {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -116,7 +139,7 @@ export default async function AdminPage() {
                 </Table>
               </div>
             ) : (
-              <p className="text-center text-muted-foreground">Henüz yazılmış metin yok</p>
+              <p className="text-center text-muted-foreground py-8">Henüz yazılmış metin yok.</p>
             )}
           </CardContent>
         </Card>
