@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { FileText, Plus, LogOut, Edit, Users, CheckCircle } from "lucide-react"
+import { FileText, Plus, LogOut, Edit, Users, CheckCircle, ShieldAlert } from "lucide-react"
 
 interface Text {
   id: string
@@ -17,14 +17,6 @@ interface Text {
     last_name: string
     class: string
   }
-}
-
-interface Profile {
-  id: string
-  first_name: string
-  last_name: string
-  school_number: string
-  class: string
 }
 
 export default async function DashboardPage() {
@@ -48,17 +40,17 @@ export default async function DashboardPage() {
     .neq("id", user.id)
 
   const { data: texts, error: textsError } = await supabase
-  .from("texts")
-  .select(`
-    *,
-    recipient_profile:recipient_id (
-      first_name,
-      last_name,
-      class
-    )
-  `)
-  .eq("author_id", user.id) // KRİTİK EKLEME: Sadece kendi yazdıklarını filtreler
-  .order("updated_at", { ascending: false })
+    .from("texts")
+    .select(`
+      *,
+      recipient_profile:recipient_id (
+        first_name,
+        last_name,
+        class
+      )
+    `)
+    .eq("author_id", user.id)
+    .order("updated_at", { ascending: false })
 
   const writtenRecipientIds = texts?.map((t) => t.recipient_id) || []
   const classmateIds = classmates?.map((c) => c.id) || []
@@ -75,20 +67,36 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-svh bg-background">
-      <header className="border-b">
+      <header className="border-b bg-white/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            <h1 className="text-lg font-semibold">Okul Yıllığı</h1>
+            <FileText className="h-5 w-5 text-primary" />
+            <h1 className="text-lg font-bold tracking-tight text-slate-800 font-serif">EGL Yıllık</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {userProfile?.first_name} {userProfile?.last_name} ({userProfile?.class})
-            </span>
+          
+          <div className="flex items-center gap-3">
+            {/* ADMIN ÖZEL BUTONU */}
+            {userProfile?.role === "admin" && (
+              <Link href="/admin">
+                <Button variant="secondary" size="sm" className="hidden md:flex bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Admin Paneli
+                </Button>
+              </Link>
+            )}
+
+            <div className="flex flex-col items-end mr-2">
+              <span className="text-sm font-medium leading-none">
+                {userProfile?.first_name} {userProfile?.last_name}
+              </span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                {userProfile?.class}
+              </span>
+            </div>
+
             <form action={handleSignOut}>
-              <Button variant="ghost" size="sm" type="submit">
-                <LogOut className="h-4 w-4 mr-2" />
-                Çıkış
+              <Button variant="ghost" size="icon" type="submit" className="text-muted-foreground hover:text-destructive">
+                <LogOut className="h-5 w-5" />
               </Button>
             </form>
           </div>
@@ -96,34 +104,39 @@ export default async function DashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Card className="mb-6">
-          <CardHeader>
+        {/* Sınıf İlerlemesi Kartı */}
+        <Card className="mb-8 border-none shadow-sm bg-slate-50/50">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Sınıf Arkadaşlarına Yazma İlerlemesi
+                <CardTitle className="flex items-center gap-2 text-xl font-serif">
+                  <Users className="h-5 w-5 text-primary" />
+                  Sınıf Arkadaşların
                 </CardTitle>
                 <CardDescription>
-                  {userProfile?.class} sınıfındaki tüm arkadaşlarınıza yazmanız zorunludur
+                  {userProfile?.class} sınıfındaki herkese anı bırakmayı unutma.
                 </CardDescription>
               </div>
-              {isRequiredComplete && <CheckCircle className="h-8 w-8 text-green-500" />}
+              {isRequiredComplete && (
+                <div className="bg-green-100 p-2 rounded-full">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Tamamlanan: {requiredWritten} / {requiredTotal}
+                <span className="font-medium">
+                  İlerleme: %{requiredTotal > 0 ? Math.round((requiredWritten / requiredTotal) * 100) : 0}
                 </span>
-                <Badge variant={isRequiredComplete ? "default" : "secondary"}>
-                  {isRequiredComplete ? "Tamamlandı" : "Devam Ediyor"}
+                <Badge variant={isRequiredComplete ? "default" : "outline"} className={isRequiredComplete ? "bg-green-600" : ""}>
+                  {requiredWritten} / {requiredTotal} Kişi
                 </Badge>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
-                  className="h-full bg-primary transition-all"
+                  className={`h-full transition-all duration-500 ${isRequiredComplete ? "bg-green-500" : "bg-primary"}`}
                   style={{ width: `${requiredTotal > 0 ? (requiredWritten / requiredTotal) * 100 : 0}%` }}
                 />
               </div>
@@ -131,60 +144,67 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="mb-8 flex items-center justify-between">
+        {/* Yazdıklarım Başlık ve Ekleme */}
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Yazdıklarım</h2>
-            <p className="text-muted-foreground">Yazdığın mesajları görüntüle ve düzenle</p>
+            <h2 className="text-2xl font-bold font-serif text-slate-900">Yazdıklarım</h2>
+            <p className="text-sm text-muted-foreground">Şu ana kadar eklediğin hatıralar</p>
           </div>
           <Link href="/new">
-            <Button>
+            <Button className="shadow-md hover:shadow-lg transition-shadow">
               <Plus className="mr-2 h-4 w-4" />
-              Yeni Metin
+              Yeni Anı Ekle
             </Button>
           </Link>
         </div>
 
         {textsError && (
-          <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            Hata: {textsError.message}
+          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive border border-destructive/20 mb-6">
+            Hata oluştu: {textsError.message}
           </div>
         )}
 
-        {texts && texts.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">Henüz metin yazmadın</h3>
-              <p className="mb-4 text-sm text-muted-foreground text-center">Sınıf arkadaşlarına yazarak başla</p>
+        {/* Metin Listesi */}
+        {texts && texts.length === 0 ? (
+          <Card className="border-dashed border-2 bg-transparent">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="bg-slate-100 p-4 rounded-full mb-4">
+                <FileText className="h-10 w-10 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-700">Henüz bir şey yazmadın</h3>
+              <p className="text-sm text-muted-foreground mb-6 text-center max-w-[250px]">
+                Ertuğrulgazi Lisesi hatıralarını biriktirmeye başla!
+              </p>
               <Link href="/new">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  İlk Metni Yaz
-                </Button>
+                <Button variant="outline">İlk Metni Yaz</Button>
               </Link>
             </CardContent>
           </Card>
-        )}
-
-        {texts && texts.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {texts.map((text: Text) => (
-              <Card key={text.id} className="hover:bg-accent/50 transition-colors">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {text.recipient_profile.first_name} {text.recipient_profile.last_name}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {text.recipient_profile.class}
-                    </Badge>
-                    <span className="text-xs">{new Date(text.updated_at).toLocaleDateString("tr-TR")}</span>
-                  </CardDescription>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {texts?.map((text: Text) => (
+              <Card key={text.id} className="group hover:ring-2 hover:ring-primary/20 transition-all border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-slate-50/50 pb-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-md font-bold">
+                        {text.recipient_profile.first_name} {text.recipient_profile.last_name}
+                      </CardTitle>
+                      <Badge variant="secondary" className="mt-1 text-[10px] h-5">
+                        {text.recipient_profile.class}
+                      </Badge>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(text.updated_at).toLocaleDateString("tr-TR")}
+                    </span>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">{text.content}</p>
+                <CardContent className="pt-4">
+                  <p className="mb-4 line-clamp-4 text-sm leading-relaxed text-slate-600 italic">
+                    "{text.content}"
+                  </p>
                   <Link href={`/edit/${text.id}`}>
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                    <Button variant="ghost" size="sm" className="w-full text-xs hover:bg-primary/10 hover:text-primary">
                       <Edit className="mr-2 h-3 w-3" />
                       Düzenle
                     </Button>
