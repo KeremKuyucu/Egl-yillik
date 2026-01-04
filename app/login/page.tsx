@@ -115,7 +115,7 @@ export default function LoginPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Güvenli Mesajlaşma</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">EGL Yıllık Form</h1>
             <p className="text-sm text-muted-foreground">Hesabınıza erişmek için giriş yapın</p>
           </div>
           <Card>
