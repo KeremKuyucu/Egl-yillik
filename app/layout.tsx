@@ -1,14 +1,33 @@
-import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { Toaster } from "@/components/ui/toaster" // Eğer Sonner kullanıyorsan importu ona göre değiştir
+import { cn } from "@/lib/utils"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+})
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+})
 
 export const metadata: Metadata = {
-  title: "Yıllık",
+  title: {
+    template: "%s | EGL Yıllık",
+    default: "EGL Yıllık - 2026 Mezuniyeti",
+  },
+  description: "Ertuğrulgazi Lisesi Dijital Yıllık ve Anı Platformu",
+  icons: {
+    icon: "/favicon.ico", // Favicon dosyan varsa
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 }
 
 export default function RootLayout({
@@ -17,9 +36,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`font-sans antialiased`}>
+    <html lang="tr" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen bg-slate-50/50 font-sans antialiased", // Varsayılan arka plan rengi
+          geistSans.variable,
+          geistMono.variable
+        )}
+      >
         {children}
+        <Toaster /> {/* Bildirimlerin görünmesi için gerekli */}
         <Analytics />
       </body>
     </html>
