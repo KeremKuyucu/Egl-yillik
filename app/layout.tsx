@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   description: "Ertuğrulgazi Lisesi Dijital Yıllık ve Anı Platformu",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/image.png",
   },
 }
 
