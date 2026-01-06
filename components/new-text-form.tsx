@@ -6,10 +6,37 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Users, GraduationCap, AlertCircle, Send, Sparkles, Loader2, X } from "lucide-react"
+import {
+  Users,
+  GraduationCap,
+  AlertCircle,
+  Send,
+  Sparkles,
+  Loader2,
+  X,
+  Check,
+  ChevronsUpDown,
+  Search
+} from "lucide-react"
+
+// Combobox için gerekli Shadcn bileşenleri
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 interface Profile {
   id: string
@@ -27,10 +54,14 @@ interface NewTextFormProps {
 
 export default function NewTextForm({ classmates, others, userClass, preSelectedId }: NewTextFormProps) {
   const [recipientId, setRecipientId] = useState(preSelectedId || "")
+  const [open, setOpen] = useState(false) // Combobox açık/kapalı durumu
   const [content, setContent] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  // Seçili kişinin adını bulmak için yardımcı
+  const selectedProfile = [...classmates, ...others].find(p => p.id === recipientId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +84,6 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
         throw new Error("Oturum açmanız gerekiyor")
       }
 
-      // Supabase insert işlemi
       const { error: insertError } = await supabase.from("texts").insert({
         author_id: user.id,
         recipient_id: recipientId,
@@ -100,68 +130,107 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Kişi Seçimi */}
-        <div className="space-y-2">
-          <Label htmlFor="recipient" className="text-sm font-semibold text-slate-700">
+        {/* Kişi Seçimi (Combobox / Autocomplete) */}
+        <div className="space-y-2 flex flex-col">
+          <Label className="text-sm font-semibold text-slate-700">
             Kime Yazıyorsun?
           </Label>
-          <Select value={recipientId} onValueChange={setRecipientId} required>
-            <SelectTrigger id="recipient" className="h-11 bg-slate-50 border-slate-200 focus:bg-white focus:ring-primary/20">
-              <SelectValue placeholder="Bir arkadaşını seç..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              {hasClassmatesLeft && (
-                <>
-                  <div className="px-2 py-2 text-xs font-bold text-slate-500 bg-slate-50 flex items-center gap-2 border-b border-slate-100 sticky top-0 z-10">
-                    <Users className="h-3 w-3" />
-                    Sınıf Arkadaşlarım ({userClass})
-                    <Badge variant="secondary" className="ml-auto text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100">Zorunlu</Badge>
-                  </div>
-                  {classmates.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id} className="cursor-pointer py-2.5">
-                      <div className="flex items-center justify-between w-full gap-2">
-                        <span className="font-medium text-slate-700">
-                          {profile.first_name} {profile.last_name}
-                        </span>
-                        <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-400 font-normal">
-                          {profile.class}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </>
-              )}
 
-              {others.length > 0 && (
-                <>
-                  <div className="px-2 py-2 text-xs font-bold text-slate-500 bg-slate-50 flex items-center gap-2 border-b border-slate-100 border-t mt-1 sticky top-0 z-10">
-                    <GraduationCap className="h-3 w-3" />
-                    Diğer Sınıflar
-                    <Badge variant="secondary" className="ml-auto text-[10px] bg-slate-100 text-slate-500 hover:bg-slate-100">İsteğe Bağlı</Badge>
-                  </div>
-                  {others.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id} className="cursor-pointer py-2.5">
-                      <div className="flex items-center justify-between w-full gap-2">
-                        <span className="text-slate-600">
-                          {profile.first_name} {profile.last_name}
-                        </span>
-                        <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-400 font-normal">
-                          {profile.class}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </>
-              )}
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between h-11 bg-slate-50 border-slate-200 hover:bg-white hover:border-primary/30 text-slate-900 font-normal shadow-sm"
+              >
+                {selectedProfile ? (
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium">{selectedProfile.first_name} {selectedProfile.last_name}</span>
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-slate-100 text-slate-500 font-normal">
+                      {selectedProfile.class}
+                    </Badge>
+                  </span>
+                ) : (
+                  <span className="text-slate-500">Bir arkadaşını ara...</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-              {!hasClassmatesLeft && others.length === 0 && (
-                <div className="px-4 py-8 text-center text-sm text-slate-400">
-                  <Sparkles className="h-8 w-8 text-slate-200 mx-auto mb-2" />
-                  Görünüşe göre herkese yazmışsın! 🎉
-                </div>
-              )}
-            </SelectContent>
-          </Select>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="İsim veya sınıf ara..." />
+                <CommandList>
+                  <CommandEmpty className="py-6 text-center text-sm text-slate-500">
+                    Kişi bulunamadı.
+                  </CommandEmpty>
+
+                  {/* Sınıf Arkadaşları Grubu */}
+                  {hasClassmatesLeft && (
+                    <CommandGroup heading={`Sınıf Arkadaşlarım (${userClass}) - Zorunlu`}>
+                      {classmates.map((profile) => (
+                        <CommandItem
+                          key={profile.id}
+                          value={`${profile.first_name} ${profile.last_name} ${profile.class}`} // Arama için anahtar kelimeler
+                          onSelect={() => {
+                            setRecipientId(profile.id)
+                            setOpen(false)
+                          }}
+                          className="cursor-pointer py-2.5"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 text-primary",
+                              recipientId === profile.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-medium">{profile.first_name} {profile.last_name}</span>
+                            <Badge variant="secondary" className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100">
+                              {profile.class}
+                            </Badge>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {hasClassmatesLeft && others.length > 0 && <CommandSeparator />}
+
+                  {/* Diğer Sınıflar Grubu */}
+                  {others.length > 0 && (
+                    <CommandGroup heading="Diğer Sınıflar - İsteğe Bağlı">
+                      {others.map((profile) => (
+                        <CommandItem
+                          key={profile.id}
+                          value={`${profile.first_name} ${profile.last_name} ${profile.class}`}
+                          onSelect={() => {
+                            setRecipientId(profile.id)
+                            setOpen(false)
+                          }}
+                          className="cursor-pointer py-2.5"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 text-primary",
+                              recipientId === profile.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex items-center justify-between w-full">
+                            <span>{profile.first_name} {profile.last_name}</span>
+                            <Badge variant="outline" className="text-[10px] text-slate-400">
+                              {profile.class}
+                            </Badge>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Mesaj Alanı */}
