@@ -17,8 +17,7 @@ import {
   Search,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown,
-  Printer
+  ArrowDown
 } from "lucide-react"
 
 // --- SERVER ACTION: SİLME İŞLEMİ ---
@@ -289,18 +288,6 @@ export default async function AdminPage(props: AdminPageProps) {
                                 <span className="font-medium text-slate-700 truncate" title={formatName(text.recipient)}>
                                   {formatName(text.recipient)}
                                 </span>
-
-                                {/* YENİ EKLENEN BUTON: Sadece hover olunca veya mobilde görünür */}
-                                <Link
-                                  href={`/print/${text.recipient_id}`}
-                                  target="_blank"
-                                  className="opacity-0 group-hover/recipient:opacity-100 transition-opacity"
-                                  title="Bu öğrencinin yıllığını indir"
-                                >
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
-                                    <Printer className="h-3.5 w-3.5" />
-                                  </Button>
-                                </Link>
                               </div>
 
                               <div className="flex items-center gap-2 mt-1">
