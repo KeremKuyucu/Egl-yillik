@@ -228,8 +228,7 @@ export default async function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Bunu query params ile New sayfasına taşıyabilirsin, şimdilik direkt New'e gidiyor */}
-                  <Link href="/new">
+                  <Link href={`/new?recipientId=${suggestedClassmate.id}`}>
                     <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 shadow-md">
                       <UserPlus className="mr-2 h-4 w-4" />
                       Ona Yazmaya Başla

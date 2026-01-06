@@ -13,7 +13,13 @@ interface Profile {
   class: string
 }
 
-export default async function NewTextPage() {
+// Next.js 15'te searchParams Promise olabilir, bu yüzden await ediyoruz.
+export default async function NewTextPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ recipientId?: string }>
+}) {
+  const { recipientId } = await searchParams // ID'yi buradan alıyoruz
   const supabase = await createClient()
 
   const {
@@ -44,19 +50,11 @@ export default async function NewTextPage() {
     .order("class", { ascending: true })
     .order("first_name", { ascending: true })
 
-  if (profilesError) {
-    console.error("Profiles error:", profilesError)
-  }
-
   // Kullanıcının daha önce yazdığı metinler
-  const { data: existingTexts, error: textsError } = await supabase
+  const { data: existingTexts } = await supabase
     .from("texts")
     .select("recipient_id")
     .eq("author_id", user.id)
-
-  if (textsError) {
-    console.error("Texts error:", textsError)
-  }
 
   const writtenRecipientIds = existingTexts?.map((t) => t.recipient_id) ?? []
 
@@ -78,11 +76,10 @@ export default async function NewTextPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      {/* Dekoratif Arka Plan (Dashboard ile uyumlu) */}
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white pointer-events-none" />
 
       {/* Header */}
-      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-xl sticky top-0 z-50 supports-[backdrop-filter]:bg-white/60">
+      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2.5 opacity-80 hover:opacity-100 transition-opacity">
             <div className="bg-primary/10 p-1.5 rounded-md">
@@ -103,7 +100,6 @@ export default async function NewTextPage() {
       <main className="container mx-auto px-4 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="mx-auto max-w-2xl">
 
-          {/* Başlık Alanı */}
           <div className="text-center mb-10 space-y-4">
             <div className="inline-flex items-center justify-center p-3 bg-white shadow-sm rounded-full ring-1 ring-slate-100">
               <div className="bg-primary/10 p-3 rounded-full text-primary">
@@ -122,9 +118,7 @@ export default async function NewTextPage() {
             </div>
           </div>
 
-          {/* Form Kartı */}
           <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 bg-white overflow-hidden">
-            {/* Üst Bilgi Şeridi */}
             <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-3 flex items-center justify-center gap-2 text-xs text-slate-500">
               <Sparkles className="h-3 w-3 text-amber-500" />
               <span>Yazarken nazik ve yapıcı olmayı unutma.</span>
@@ -135,11 +129,11 @@ export default async function NewTextPage() {
                 classmates={classmates}
                 others={others}
                 userClass={userProfile.class}
+                preSelectedId={recipientId} // <-- ID'yi prop olarak forma geçiyoruz
               />
             </CardContent>
           </Card>
 
-          {/* Alt Bilgi */}
           <p className="text-center text-xs text-slate-400 mt-6">
             Kalan Sınıf Arkadaşı: <span className="font-medium text-slate-600">{classmates.length}</span> kişi
           </p>

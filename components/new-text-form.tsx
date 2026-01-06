@@ -22,10 +22,11 @@ interface NewTextFormProps {
   classmates: Profile[]
   others: Profile[]
   userClass: string
+  preSelectedId?: string
 }
 
-export default function NewTextForm({ classmates, others, userClass }: NewTextFormProps) {
-  const [recipientId, setRecipientId] = useState("")
+export default function NewTextForm({ classmates, others, userClass, preSelectedId }: NewTextFormProps) {
+  const [recipientId, setRecipientId] = useState(preSelectedId || "")
   const [content, setContent] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
