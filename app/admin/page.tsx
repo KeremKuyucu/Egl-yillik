@@ -1,11 +1,58 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Shield } from "lucide-react"
+import Link from "next/link"
+import {
+  Shield,
+  LayoutDashboard,
+  ArrowRight,
+  Trash2,
+  FileText,
+  Users,
+  Calendar,
+  Search,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Printer
+} from "lucide-react"
 
-export default async function AdminPage() {
+// --- SERVER ACTION: SİLME İŞLEMİ ---
+async function deleteText(formData: FormData) {
+  "use server"
+  const id = formData.get("id") as string
+  const supabase = await createClient()
+
+  const { error } = await supabase.from("texts").delete().eq("id", id)
+
+  if (!error) {
+    revalidatePath("/admin")
+  }
+}
+
+// --- TİPLER VE YARDIMCI FONKSİYONLAR ---
+interface AdminPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+const formatName = (person: any) => {
+  const p = Array.isArray(person) ? person[0] : person
+  if (!p) return "Bilinmiyor"
+  return `${p.first_name} ${p.last_name}`
+}
+
+const getDetails = (person: any) => {
+  const p = Array.isArray(person) ? person[0] : person
+  if (!p) return { number: "-", class: "-" }
+  return { number: p.school_number, class: p.class }
+}
+
+export default async function AdminPage(props: AdminPageProps) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient()
 
   const {
@@ -24,8 +71,7 @@ export default async function AdminPage() {
   }
 
   // Verileri çekme
-  // NOT: author ve recipient aynı tabloya (profiles) baktığı için açık foreign key isimlendirmesi kullanıyoruz.
-  const { data: texts, error } = await supabase
+  const { data: rawTexts, error } = await supabase
     .from("texts")
     .select(
       `
@@ -46,100 +92,274 @@ export default async function AdminPage() {
       )
     `
     )
-    .order("created_at", { ascending: false })
 
   if (error) {
     console.error("Veri çekme hatası:", error)
-    // Hata durumunda basit bir UI gösterilebilir veya loglanabilir
   }
 
-  // Tip güvenliği için basit bir yardımcı fonksiyon (optional)
-  const formatName = (person: any) => {
-    if (!person) return "Bilinmiyor"
-    return `${person.first_name} ${person.last_name}`
+  // --- SIRALAMA MANTIĞI (Javascript Tarafında) ---
+  // URL'den gelen parametreler: ?sort=recipient&order=asc
+  const sortKey = (searchParams.sort as string) || "date"
+  const sortOrder = (searchParams.order as string) || "desc"
+
+  // Veriyi kopyalayıp sıralıyoruz
+  let texts = rawTexts ? [...rawTexts] : []
+
+  texts.sort((a: any, b: any) => {
+    let valA, valB
+
+    switch (sortKey) {
+      case "recipient": // Alıcıya göre
+        valA = formatName(a.recipient).toLowerCase()
+        valB = formatName(b.recipient).toLowerCase()
+        break
+      case "author": // Gönderene göre
+        valA = formatName(a.author).toLowerCase()
+        valB = formatName(b.author).toLowerCase()
+        break
+      case "date": // Tarihe göre
+      default:
+        valA = new Date(a.created_at).getTime()
+        valB = new Date(b.created_at).getTime()
+        break
+    }
+
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1
+    return 0
+  })
+
+  // Sıralama Linki Oluşturan Yardımcı Bileşen
+  const SortLink = ({ column, label }: { column: string, label: string }) => {
+    const isActive = sortKey === column
+    const nextOrder = isActive && sortOrder === "asc" ? "desc" : "asc"
+
+    return (
+      <Link
+        href={`/admin?sort=${column}&order=${nextOrder}`}
+        className={`flex items-center gap-1 hover:text-slate-900 transition-colors ${isActive ? "text-slate-900 font-bold" : "text-slate-500"}`}
+      >
+        {label}
+        {isActive ? (
+          sortOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-50" />
+        )}
+      </Link>
+    )
   }
+
+  // İstatistikler
+  const totalTexts = texts?.length || 0
+  const uniqueAuthors = new Set(texts?.map((t: any) => Array.isArray(t.author) ? t.author[0]?.school_number : t.author?.school_number)).size
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Shield className="h-5 w-5 text-primary" />
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white pointer-events-none" />
+
+      {/* Header */}
+      <header className="border-b border-amber-200/60 bg-white/70 backdrop-blur-xl sticky top-0 z-50">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700 shadow-sm ring-1 ring-amber-200">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 font-serif leading-none">Yönetim Paneli</h1>
+              <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-wider mt-0.5">Admin Erişimi</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold">Admin Paneli</h1>
-            <p className="text-sm text-muted-foreground">Tüm Metinler</p>
-          </div>
+
+          <Link href="/dashboard">
+            <Button variant="outline" size="sm" className="bg-white hover:bg-slate-50 text-slate-600 border-slate-200">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Öğrenci Görünümü</span>
+              <span className="sm:hidden">Öğrenci</span>
+            </Button>
+          </Link>
         </div>
       </header>
 
-      <main className="flex-1 space-y-6 p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Yazılan Tüm Metinler</CardTitle>
-            <CardDescription>Tüm kullanıcıların yazdığı metinleri görüntüleyin</CardDescription>
+      <main className="container mx-auto p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+        {/* İstatistik Kartları */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="bg-white border-slate-200 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Toplam Anı</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{totalTexts}</div>
+              <p className="text-xs text-slate-500">Sistemdeki toplam mesaj sayısı</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-slate-200 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Aktif Yazarlar</CardTitle>
+              <Users className="h-4 w-4 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{uniqueAuthors}</div>
+              <p className="text-xs text-slate-500">Anı yazan öğrenci sayısı</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Sistem Durumu</CardTitle>
+              <Shield className="h-4 w-4 text-emerald-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Aktif</div>
+              <p className="text-xs text-slate-400">Veritabanı bağlantısı sağlıklı</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Ana Tablo */}
+        <Card className="border-slate-200 shadow-lg shadow-slate-200/40 overflow-hidden bg-white">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg font-bold text-slate-800">Metin Kayıtları</CardTitle>
+                <CardDescription>Tüm sınıf içi ve sınıflar arası mesajlaşma trafiği.</CardDescription>
+              </div>
+              <Badge variant="outline" className="bg-white w-fit">
+                {totalTexts} kayıt listelendi
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="p-0">
             {texts && texts.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
+              <div className="w-full">
+                <Table className="w-full table-fixed">
+                  <TableHeader className="bg-slate-50">
                     <TableRow>
-                      <TableHead>Kimden</TableHead>
-                      <TableHead>Numara</TableHead>
-                      <TableHead>Sınıf</TableHead>
-                      <TableHead>Kime</TableHead>
-                      <TableHead>Numara</TableHead>
-                      <TableHead>Sınıf</TableHead>
-                      <TableHead>Metin</TableHead>
-                      <TableHead>Tarih</TableHead>
+                      {/* Tıklanabilir Başlıklar */}
+                      <TableHead className="w-[18%] pl-6">
+                        <SortLink column="author" label="Gönderen" />
+                      </TableHead>
+                      <TableHead className="w-[4%]"></TableHead>
+                      <TableHead className="w-[18%]">
+                        <SortLink column="recipient" label="Alıcı" />
+                      </TableHead>
+                      <TableHead className="w-[45%]">İçerik</TableHead>
+                      <TableHead className="w-[10%]">
+                        <SortLink column="date" label="Tarih" />
+                      </TableHead>
+                      <TableHead className="w-[5%] text-right pr-6">İşlem</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {texts.map((text: any) => (
-                      <TableRow key={text.id}>
-                        {/* GÖNDEREN BİLGİLERİ */}
-                        <TableCell className="font-medium">
-                          {formatName(text.author)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{text.author?.school_number || "-"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{text.author?.class || "-"}</Badge>
-                        </TableCell>
+                    {texts.map((text: any) => {
+                      const authorDetails = getDetails(text.author)
+                      const recipientDetails = getDetails(text.recipient)
 
-                        {/* ALICI BİLGİLERİ */}
-                        <TableCell className="font-medium">
-                          {formatName(text.recipient)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{text.recipient?.school_number || "-"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{text.recipient?.class || "-"}</Badge>
-                        </TableCell>
+                      return (
+                        <TableRow key={text.id} className="hover:bg-slate-50/80 group">
+                          {/* GÖNDEREN */}
+                          <TableCell className="pl-6 align-top py-4">
+                            <div className="flex flex-col truncate">
+                              <span className="font-semibold text-slate-900 truncate" title={formatName(text.author)}>
+                                {formatName(text.author)}
+                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-indigo-50 text-indigo-700 border-indigo-100 whitespace-nowrap">
+                                  {authorDetails.class}
+                                </Badge>
+                                <span className="text-xs text-slate-400 whitespace-nowrap">#{authorDetails.number}</span>
+                              </div>
+                            </div>
+                          </TableCell>
 
-                        {/* METİN İÇERİĞİ */}
-                        <TableCell className="max-w-md">
-                          <p className="line-clamp-2 text-sm text-muted-foreground">{text.content}</p>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {new Date(text.created_at).toLocaleDateString("tr-TR", {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          {/* OK İKONU */}
+                          <TableCell className="align-top py-4">
+                            <ArrowRight className="h-4 w-4 text-slate-300 mt-2" />
+                          </TableCell>
+
+                          {/* ALICI */}
+                          <TableCell className="align-top py-4">
+                            <div className="flex flex-col truncate group/recipient">
+
+                              {/* İsim ve Link */}
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-medium text-slate-700 truncate" title={formatName(text.recipient)}>
+                                  {formatName(text.recipient)}
+                                </span>
+
+                                {/* YENİ EKLENEN BUTON: Sadece hover olunca veya mobilde görünür */}
+                                <Link
+                                  href={`/print/${text.recipient_id}`}
+                                  target="_blank"
+                                  className="opacity-0 group-hover/recipient:opacity-100 transition-opacity"
+                                  title="Bu öğrencinin yıllığını indir"
+                                >
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
+                                    <Printer className="h-3.5 w-3.5" />
+                                  </Button>
+                                </Link>
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 text-slate-500 whitespace-nowrap">
+                                  {recipientDetails.class}
+                                </Badge>
+                                <span className="text-xs text-slate-400 whitespace-nowrap">#{recipientDetails.number}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          {/* İÇERİK */}
+                          <TableCell className="align-top py-4">
+                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-sm text-slate-600 leading-relaxed whitespace-normal break-words w-full">
+                              "{text.content}"
+                            </div>
+                          </TableCell>
+
+                          {/* TARİH */}
+                          <TableCell className="align-top py-4">
+                            <div className="flex items-center text-xs text-slate-400 mt-2 whitespace-nowrap">
+                              <Calendar className="mr-1.5 h-3 w-3" />
+                              {new Date(text.created_at).toLocaleDateString("tr-TR", {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </TableCell>
+
+                          {/* SİLME BUTONU */}
+                          <TableCell className="align-top py-4 text-right pr-6">
+                            <form action={deleteText}>
+                              <input type="hidden" name="id" value={text.id} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                type="submit"
+                                className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </form>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </div>
             ) : (
-              <p className="text-center text-muted-foreground py-8">Henüz yazılmış metin yok.</p>
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="bg-slate-50 p-4 rounded-full mb-3">
+                  <Search className="h-8 w-8 text-slate-300" />
+                </div>
+                <p className="text-slate-500 font-medium">Henüz hiç anı yazılmamış.</p>
+                <p className="text-xs text-slate-400 mt-1">Öğrenciler yazmaya başladığında burada görünecek.</p>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -1,16 +1,15 @@
 "use client"
 
 import type React from "react"
-
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { UserPlus } from "lucide-react"
+import { UserPlus, School, Loader2, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function SignUpPage() {
@@ -32,19 +31,19 @@ export default function SignUpPage() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError("Şifreler eşleşmiyor")
+      setError("Şifreler birbiriyle eşleşmiyor.")
       setIsLoading(false)
       return
     }
 
     if (schoolNumber.length !== 3 || !/^\d{3}$/.test(schoolNumber)) {
-      setError("Okul numarası 3 haneli olmalıdır")
+      setError("Okul numarası 3 haneli olmalıdır.")
       setIsLoading(false)
       return
     }
 
     if (!classRoom) {
-      setError("Lütfen sınıf seçin")
+      setError("Lütfen sınıfınızı seçin.")
       setIsLoading(false)
       return
     }
@@ -72,38 +71,51 @@ export default function SignUpPage() {
 
       router.push("/dashboard")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Bir hata oluştu")
+      setError(error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-background p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <UserPlus className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Hesap Oluştur</h1>
-            <p className="text-sm text-muted-foreground">Yıllık yazma platformumuza katılın</p>
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50/50 p-6 md:p-10 relative overflow-hidden">
+      {/* Dekoratif Arka Plan */}
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white pointer-events-none" />
+
+      <div className="w-full max-w-[450px] animate-in fade-in zoom-in-95 duration-500">
+
+        {/* Logo / Marka Alanı */}
+        <div className="flex flex-col items-center gap-2 mb-8 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+            <School className="h-6 w-6 text-primary" />
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Kayıt Ol</CardTitle>
-              <CardDescription>Başlamak için hesabınızı oluşturun</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSignUp}>
-                <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="text-2xl font-bold font-serif text-slate-900 tracking-tight">EGL Yıllık</h1>
+            <p className="text-sm text-slate-500 font-medium">2026 Mezuniyeti</p>
+          </div>
+        </div>
+
+        <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1 text-center pb-6 border-b border-slate-100">
+            <CardTitle className="text-xl font-bold text-slate-800">Hesap Oluştur</CardTitle>
+            <CardDescription className="text-slate-500">
+              Yıllık sistemine katılmak için bilgilerinizi girin.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="pt-6">
+            <form onSubmit={handleSignUp}>
+              <div className="flex flex-col gap-5">
+
+                {/* İsim Soyisim - Yan Yana */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="first-name">Ad</Label>
                     <Input
                       id="first-name"
-                      type="text"
                       placeholder="Adınız"
                       required
+                      className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
@@ -112,22 +124,26 @@ export default function SignUpPage() {
                     <Label htmlFor="last-name">Soyad</Label>
                     <Input
                       id="last-name"
-                      type="text"
                       placeholder="Soyadınız"
                       required
+                      className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
                   </div>
+                </div>
+
+                {/* Okul No ve Sınıf - Yan Yana */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="school-number">Okul Numarası (3 haneli)</Label>
+                    <Label htmlFor="school-number">Okul No</Label>
                     <Input
                       id="school-number"
-                      type="text"
                       placeholder="123"
                       required
                       maxLength={3}
                       pattern="\d{3}"
+                      className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                       value={schoolNumber}
                       onChange={(e) => setSchoolNumber(e.target.value.replace(/\D/g, ""))}
                     />
@@ -135,67 +151,101 @@ export default function SignUpPage() {
                   <div className="grid gap-2">
                     <Label htmlFor="class">Sınıf</Label>
                     <Select value={classRoom} onValueChange={setClassRoom} required>
-                      <SelectTrigger id="class">
-                        <SelectValue placeholder="Sınıf seçin" />
+                      <SelectTrigger id="class" className="bg-slate-50 border-slate-200 focus:bg-white">
+                        <SelectValue placeholder="Seç" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="12A">12-A</SelectItem>
-                        <SelectItem value="12B">12-B</SelectItem>
-                        <SelectItem value="12C">12-C</SelectItem>
-                        <SelectItem value="12D">12-D</SelectItem>
-                        <SelectItem value="12E">12-E</SelectItem>
-                        <SelectItem value="12F">12-F</SelectItem>
+                        {["12A", "12B", "12C", "12D", "12E", "12F"].map((cls) => (
+                          <SelectItem key={cls} value={cls}>
+                            {cls.replace("12", "12-")}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                </div>
+
+                {/* Email */}
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email Adresi</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="ornek@ogrenci.com"
+                    required
+                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                {/* Şifreler */}
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Şifre</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="******"
+                    required
+                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Şifre Tekrar</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="******"
+                    required
+                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+
+                {error && (
+                  <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 border border-red-100 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {error}
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">Şifre</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirm-password">Şifre Tekrar</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                  </div>
-                  {error && (
-                    <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full mt-2 shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Kayıt Ol ve Başla
+                    </>
                   )}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Hesap oluşturuluyor..." : "Kayıt Ol"}
-                  </Button>
-                </div>
-                <div className="mt-4 text-center text-sm">
-                  Zaten hesabınız var mı?{" "}
-                  <Link href="/login" className="underline underline-offset-4 hover:text-primary">
-                    Giriş Yap
-                  </Link>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+
+          <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-4 justify-center">
+            <div className="text-sm text-slate-500">
+              Zaten hesabınız var mı?{" "}
+              <Link href="/login" className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80 transition-colors">
+                Giriş Yap
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+
+        <p className="text-center text-xs text-slate-400 mt-6 px-6">
+          Kayıt olarak okul kurallarını ve yıllık katılım şartlarını kabul etmiş olursunuz.
+        </p>
       </div>
     </div>
   )
