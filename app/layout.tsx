@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Toaster } from "@/components/ui/toaster" // Eğer Sonner kullanıyorsan importu ona göre değiştir
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import "./globals.css"
 
