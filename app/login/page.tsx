@@ -9,14 +9,13 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Lock, LayoutDashboard, Shield, School, Loader2, AlertCircle, ArrowRight } from "lucide-react"
+import { Lock, Loader2, AlertCircle, LogIn } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,135 +31,55 @@ export default function LoginPage() {
       })
       if (error) throw error
 
-      const { data: userData } = await supabase.auth.getUser()
-
-      if (userData.user) {
-        // Profil ve rol kontrolü
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", userData.user.id)
-          .single()
-
-        if (profile?.role === "admin") {
-          // Admin ise seçim ekranını aktif et
-          setIsAdmin(true)
-          setIsLoading(false)
-          router.refresh() // Server componentleri güncelle
-          return
-        }
-
-        // Admin değilse direkt dashboard
-        router.push("/dashboard")
-        router.refresh()
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
+      router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Giriş yapılamadı. Bilgilerinizi kontrol edin.")
       setIsLoading(false)
     }
   }
 
-  // Ortak stil sınıfı (Background)
-  const containerClass = "flex min-h-screen w-full items-center justify-center bg-slate-50/50 p-6 md:p-10 relative overflow-hidden"
-  const gradientClass = "fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white pointer-events-none"
-
-  // --- ADMIN SEÇİM EKRANI ---
-  if (isAdmin) {
-    return (
-      <div className={containerClass}>
-        <div className={gradientClass} />
-
-        <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-          <div className="flex flex-col items-center gap-4 mb-8 text-center">
-            <div className="bg-amber-100 p-3 rounded-full ring-4 ring-amber-50">
-              <Shield className="h-8 w-8 text-amber-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 font-serif">Yönetici Erişimi</h1>
-              <p className="text-slate-500">Devam etmek istediğiniz paneli seçin.</p>
-            </div>
-          </div>
-
-          <Card className="border-slate-200 shadow-xl bg-white/80 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-6 grid gap-4">
-              <Button
-                onClick={() => router.push("/admin")}
-                className="w-full h-16 text-base justify-between group bg-slate-900 hover:bg-slate-800 shadow-lg shadow-slate-900/20"
-                variant="default"
-              >
-                <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5 text-amber-400" />
-                  <div className="flex flex-col items-start">
-                    <span className="font-semibold">Yönetim Paneli</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Sistemi ve kullanıcıları yönet</span>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-200" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-slate-500">Veya</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => router.push("/dashboard")}
-                className="w-full h-14 text-base justify-start text-slate-600 border-slate-200 hover:text-primary hover:bg-primary/5 hover:border-primary/30"
-                variant="outline"
-              >
-                <LayoutDashboard className="mr-3 h-5 w-5" />
-                Yıllık Sayfasına Git
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
-  // --- STANDART GİRİŞ FORMU ---
   return (
-    <div className={containerClass}>
-      <div className={gradientClass} />
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 p-4">
+      {/* Mobile-Optimized Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 -left-10 w-64 h-64 sm:w-96 sm:h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-10 -right-10 w-64 h-64 sm:w-96 sm:h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl sm:blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      </div>
 
-      <div className="w-full max-w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-
-        {/* Logo Alanı */}
-        <div className="flex flex-col items-center gap-2 mb-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-            <School className="h-6 w-6 text-primary" />
+      <div className="w-full max-w-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3 mb-6 text-center">
+          <div className="relative">
+            <img src="/image.png" alt="Logo" className="h-16 w-16 sm:h-20 sm:w-20" />
+            <div className="" style={{ animation: 'pulse 2s ease-in-out infinite' }}></div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold font-serif text-slate-900 tracking-tight">EGL Yıllık</h1>
-            <p className="text-sm text-slate-500 font-medium">Hoş Geldiniz</p>
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">EGL Yıllık</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Hoş Geldiniz</p>
           </div>
         </div>
 
-        <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 text-center pb-6 border-b border-slate-100">
-            <CardTitle className="text-xl font-bold text-slate-800">Giriş Yap</CardTitle>
-            <CardDescription className="text-slate-500">
-              Devam etmek için hesabınıza erişin
+        {/* Card */}
+        <Card className="border-2 border-blue-200 dark:border-blue-800/50 shadow-xl">
+          <CardHeader className="space-y-1 text-center pb-4 border-b">
+            <CardTitle className="text-lg sm:text-xl font-bold">Giriş Yap</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Hesabınıza erişin
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 px-4 sm:px-6">
             <form onSubmit={handleLogin}>
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">E-posta Adresi</Label>
+                  <Label htmlFor="email" className="text-sm">E-posta</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="ornek@ogrenci.com"
                     required
-                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                    className="h-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -168,9 +87,9 @@ export default function LoginPage() {
 
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Şifre</Label>
-                    <Link href="/forgot-password" className="ml-auto text-xs text-muted-foreground hover:text-primary transition-colors">
-                      Şifremi unuttum?
+                    <Label htmlFor="password" className="text-sm">Şifre</Label>
+                    <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                      Unuttum?
                     </Link>
                   </div>
                   <Input
@@ -178,32 +97,32 @@ export default function LoginPage() {
                     type="password"
                     placeholder="******"
                     required
-                    className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                    className="h-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
 
                 {error && (
-                  <div className="rounded-lg bg-red-50 px-3 py-3 text-sm text-red-600 border border-red-100 flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span className="leading-tight">{error}</span>
+                  <div className="rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 flex items-start gap-2">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                    <span>{error}</span>
                   </div>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full h-10 shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                  className="w-full h-10 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg shadow-blue-500/30 border-0"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Giriş Yapılıyor...
+                      Giriş yapılıyor...
                     </>
                   ) : (
                     <>
-                      <Lock className="mr-2 h-4 w-4" />
+                      <LogIn className="mr-2 h-4 w-4" />
                       Giriş Yap
                     </>
                   )}
@@ -212,10 +131,10 @@ export default function LoginPage() {
             </form>
           </CardContent>
 
-          <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-4 justify-center">
-            <div className="text-sm text-slate-500">
+          <CardFooter className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30 border-t p-3 sm:p-4 justify-center">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               Hesabınız yok mu?{" "}
-              <Link href="/signup" className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80 transition-colors">
+              <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
                 Kayıt Ol
               </Link>
             </div>
