@@ -1,51 +1,28 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import DashboardGrid from "@/components/dashboard-grid"
+import { ModeToggle } from "@/components/mode-toggle"
+import RoleGuard from "@/components/role-guard"
+import { ROLES } from "@/lib/constants"
+import Footer from "@/components/footer"
 import {
   FileText,
   Plus,
   LogOut,
   Sparkles,
   ShieldAlert,
-  Quote,
-  ChevronRight,
-  School,
+  Users,
+  Text,
   UserPlus,
-  Zap,
-  Clock
+  Clock,
+  Lock,
+  Heart,
+  Star,
+  Zap
 } from "lucide-react"
-
-interface Text {
-  id: string
-  recipient_id: string
-  content: string
-  created_at: string
-  updated_at: string
-  recipient_profile: {
-    first_name: string
-    last_name: string
-    class: string
-  }
-}
-
-// Avatar Renkleri
-const getAvatarColor = (name: string) => {
-  const colors = [
-    "bg-red-100 text-red-700", "bg-orange-100 text-orange-700", "bg-amber-100 text-amber-700",
-    "bg-green-100 text-green-700", "bg-emerald-100 text-emerald-700", "bg-teal-100 text-teal-700",
-    "bg-cyan-100 text-cyan-700", "bg-blue-100 text-blue-700", "bg-indigo-100 text-indigo-700",
-    "bg-violet-100 text-violet-700", "bg-purple-100 text-purple-700", "bg-fuchsia-100 text-fuchsia-700",
-    "bg-pink-100 text-pink-700", "bg-rose-100 text-rose-700",
-  ]
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return colors[Math.abs(hash) % colors.length]
-}
 
 // Zaman bazlı selamlama
 const getGreeting = () => {
@@ -53,6 +30,30 @@ const getGreeting = () => {
   if (hour < 12) return "Günaydın"
   if (hour < 18) return "Tünaydın"
   return "İyi Akşamlar"
+}
+
+// ROZET SİSTEMİ
+const getBadge = (count: number) => {
+  if (count >= 30) return {
+    label: "Yıllık Efsanesi",
+    color: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg shadow-purple-500/40",
+    icon: <Star className="h-3 w-3 mr-1" />
+  }
+  if (count >= 15) return {
+    label: "Hatıra Mimarı",
+    color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-amber-500/40",
+    icon: <Zap className="h-3 w-3 mr-1" />
+  }
+  if (count >= 5) return {
+    label: "Anı Yazarı",
+    color: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/40",
+    icon: <Heart className="h-3 w-3 mr-1" />
+  }
+  return {
+    label: "Yeni Üye",
+    color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-md",
+    icon: <Sparkles className="h-3 w-3 mr-1" />
+  }
 }
 
 export default async function DashboardPage() {
@@ -88,11 +89,17 @@ export default async function DashboardPage() {
     .eq("author_id", user.id)
     .order("updated_at", { ascending: false })
 
-  // İstatistikler ve Hesaplamalar
+  let receivedCount = 0
+  try {
+    const { data, error } = await supabase.rpc('get_my_received_count')
+    if (!error) receivedCount = data || 0
+  } catch (e) {
+    console.error("Sayaç hatası:", e)
+  }
+
   const writtenRecipientIds = texts?.map((t) => t.recipient_id) || []
   const classmateIds = classmates?.map((c) => c.id) || []
 
-  // Henüz yazılmamış kişiler (Öneri sistemi için)
   const unwrittenClassmates = classmates?.filter(c => !writtenRecipientIds.includes(c.id)) || []
   const suggestedClassmate = unwrittenClassmates.length > 0
     ? unwrittenClassmates[Math.floor(Math.random() * unwrittenClassmates.length)]
@@ -102,9 +109,8 @@ export default async function DashboardPage() {
   const requiredTotal = classmateIds.length
   const progressPercentage = requiredTotal > 0 ? Math.round((requiredWritten / requiredTotal) * 100) : 0
   const isRequiredComplete = requiredWritten === requiredTotal
-
-  // Toplam Kelime Sayısı (Gamification)
   const totalWords = texts?.reduce((acc, curr) => acc + (curr.content?.split(" ").length || 0), 0) || 0
+  const userBadge = getBadge(texts?.length || 0)
 
   const handleSignOut = async () => {
     "use server"
@@ -114,235 +120,277 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/50 via-white to-white pointer-events-none" />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300 font-sans">
 
-      {/* Header */}
-      <header className="border-b border-slate-200/60 bg-white/70 backdrop-blur-xl sticky top-0 z-50 supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-2.5 group cursor-default">
-            <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-              <School className="h-5 w-5 text-primary" />
+      {/* Animated Background Effects - Opacity düşürüldü */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Header - Arka plan daha opak yapıldı */}
+      <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
+        <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 gap-2">
+          {/* Logo - Mobilde Kompakt */}
+          <div className="flex items-center gap-2 min-w-0 flex-shrink">
+            <div className="relative">
+              <img src="/image.png" className="h-7 w-7 sm:h-9 sm:w-9" alt="Logo" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-slate-900 font-serif leading-none">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold font-serif leading-none bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent truncate">
                 EGL Yıllık
               </h1>
-              <p className="text-[10px] text-muted-foreground font-medium tracking-wide">2026 MEZUNİYETİ</p>
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hidden xs:block">2026</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            {userProfile?.role === "admin" && (
+          {/* Actions - Mobilde Optimize */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Admin Buttons - Sadece masaüstünde text, mobilde sadece icon */}
+            <RoleGuard minLevel={ROLES.ADMIN}>
               <Link href="/admin">
-                <Button variant="outline" size="sm" className="hidden md:flex border-amber-200 bg-amber-50/50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 hover:border-amber-300 transition-all shadow-sm">
-                  <ShieldAlert className="h-3.5 w-3.5 mr-2" />
-                  Yönetim
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 sm:h-9 px-2 sm:px-3 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                >
+                  <Text className="h-3.5 w-3.5 sm:mr-2" />
+                  <span className="hidden sm:inline text-xs sm:text-sm">Yazılanlar</span>
                 </Button>
               </Link>
-            )}
+            </RoleGuard>
 
-            <div className="hidden sm:flex flex-col items-end mr-2">
-              <span className="text-sm font-semibold text-slate-800 leading-none">
+            <RoleGuard minLevel={ROLES.MODERATOR}>
+              <Link href="/admin/users">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 sm:h-9 px-2 sm:px-3 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800"
+                >
+                  <Users className="h-3.5 w-3.5 sm:mr-2" />
+                  <span className="hidden sm:inline text-xs sm:text-sm">Kullanıcılar</span>
+                </Button>
+              </Link>
+            </RoleGuard>
+
+            <ModeToggle />
+
+            {/* User Info - Masaüstünde göster */}
+            <div className="hidden md:flex flex-col items-end mr-2 min-w-0">
+              <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
                 {userProfile?.first_name} {userProfile?.last_name}
               </span>
-              <span className="text-[10px] text-primary font-bold uppercase tracking-wider bg-primary/5 px-1.5 py-0.5 rounded mt-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
                 {userProfile?.class}
               </span>
             </div>
 
+            {/* Logout Button */}
             <form action={handleSignOut}>
-              <Button variant="ghost" size="icon" type="submit" className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors">
-                <LogOut className="h-5 w-5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                type="submit"
+                className="h-8 w-8 sm:h-9 sm:w-9 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </form>
+          </div>
+        </div>
+
+        {/* Mobile User Info - Altında göster */}
+        <div className="md:hidden border-t border-indigo-100/50 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-950/20 px-3 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+              {userProfile?.first_name} {userProfile?.last_name}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 flex-shrink-0">
+              {userProfile?.class}
+            </span>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-        {/* Hero Section: Grid Layout for Stats & Suggestions */}
+        {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
 
-          {/* Sol Kolon: İlerleme ve Selamlama (2 birim genişlik) */}
-          <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col justify-between">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-transparent to-emerald-50/50 opacity-40 pointer-events-none" />
+          {/* Sol Kolon - Ana Kart */}
+          {/* Arka plan opaklığı artırıldı (bg-white/95) */}
+          <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-2xl flex flex-col justify-between group">
 
-            <div className="relative p-6 sm:p-8">
-              <div className="flex items-center gap-2 text-primary/80 mb-2">
-                <Clock className="h-4 w-4" />
-                <span className="text-xs font-semibold uppercase tracking-wider">{getGreeting()}</span>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-indigo-950/30 dark:to-pink-950/30 pointer-events-none"></div>
+
+            <div className="relative p-6 sm:p-8 z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-300">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="text-xs font-bold uppercase tracking-wider">{getGreeting()}</span>
+                </div>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold font-serif text-slate-800 mb-4">
-                {userProfile?.first_name}
-              </h2>
-              <p className="text-slate-500 max-w-lg text-lg leading-relaxed">
-                <span className="font-semibold text-slate-900">{userProfile?.class}</span> sınıfında anılarınla iz bırakıyorsun. Şu ana kadar <span className="text-primary font-bold">{totalWords}</span> kelimelik hatıra biriktirdin.
+
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <h2 className="text-3xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-white drop-shadow-sm">
+                  {userProfile?.first_name}
+                </h2>
+                <Badge className={`${userBadge.color} flex items-center px-3 py-1 text-sm shadow-md`}>
+                  {userBadge.icon}
+                  {userBadge.label}
+                </Badge>
+              </div>
+
+              {/* Metin rengi koyulaştırıldı */}
+              <p className="text-slate-600 dark:text-slate-300 max-w-lg text-lg leading-relaxed font-medium">
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">{userProfile?.class}</span> sınıfında anılarınla iz bırakıyorsun. Şu ana kadar{" "}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold text-base border border-emerald-200 dark:border-emerald-800">
+                  {totalWords}
+                </span>{" "}
+                kelimelik hatıra biriktirdin.
               </p>
             </div>
 
-            {/* Progress Bar Alt Kısım */}
-            <div className="relative bg-slate-50/80 border-t border-slate-100 p-6 sm:px-8">
+            {/* Progress Bar Alt Kısım - Arka plan daha net */}
+            <div className="relative bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-200/60 dark:border-slate-700/60 p-6 sm:px-8 z-10">
               <div className="flex justify-between items-end mb-3">
-                <span className="text-sm font-semibold text-slate-700">Sınıf Tamamlama Oranı</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Sınıf Tamamlama Oranı</span>
                 <div className="text-right">
-                  <span className="text-xl font-bold text-primary">{requiredWritten}</span>
-                  <span className="text-sm text-slate-400 font-medium">/{requiredTotal}</span>
+                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{requiredWritten}</span>
+                  <span className="text-sm text-slate-500 font-medium">/{requiredTotal}</span>
                 </div>
               </div>
-              <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+              <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className={`h-full transition-all duration-1000 ease-out rounded-full ${isRequiredComplete ? 'bg-emerald-500' : 'bg-primary'}`}
+                  className={`h-full transition-all duration-1000 ease-out rounded-full relative overflow-hidden ${isRequiredComplete
+                    ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
+                    : 'bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg shadow-purple-500/30'
+                    }`}
                   style={{ width: `${progressPercentage}%` }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
+                </div>
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center font-medium">
+                {isRequiredComplete ? "🎉 Tebrikler! Sınıfı tamamladın!" : `%${progressPercentage} tamamlandı`}
               </div>
             </div>
           </div>
 
-          {/* Sağ Kolon: Akıllı Öneri Kartı (1 birim genişlik) */}
-          <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm p-6 flex flex-col h-full">
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <Zap className="h-24 w-24 text-amber-500" />
-            </div>
+          {/* Sağ Kolon */}
+          <div className="flex flex-col gap-6">
 
-            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-              <Sparkles className="h-5 w-5 text-amber-500" />
-              Sıradaki Kişi
-            </h3>
+            {/* 1. SANA YAZILANLAR KARTI - Contrast Artırıldı */}
+            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex-1 min-h-[160px] group shadow-lg">
+              <div className="absolute inset-0 bg-slate-900 dark:bg-black"></div>
+              {/* Pattern Olarak Daha Az Opaklık */}
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-purple-900/40 to-slate-900/40 opacity-100"></div>
 
-            {suggestedClassmate ? (
-              <div className="flex-1 flex flex-col justify-between">
-                <p className="text-slate-500 text-sm mb-6">
-                  Henüz <strong>{suggestedClassmate.first_name}</strong> için bir anı yazmadın. Ona güzel bir hatıra bırakmaya ne dersin?
-                </p>
+              <div className="absolute -right-6 -bottom-6 text-white/5 group-hover:text-white/10 transition-colors duration-500">
+                <Lock size={120} className="group-hover:rotate-12 transition-transform duration-500" />
+              </div>
 
-                <div className="mt-auto">
-                  <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold ${getAvatarColor(suggestedClassmate.first_name)}`}>
-                      {suggestedClassmate.first_name[0]}{suggestedClassmate.last_name[0]}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-800 text-sm">{suggestedClassmate.first_name} {suggestedClassmate.last_name}</div>
-                      <div className="text-xs text-slate-400">{suggestedClassmate.school_number}</div>
+              <div className="relative z-10 p-6 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
+                      <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">Gizli Kasa</h3>
                     </div>
                   </div>
+                  <div className="flex items-end gap-2 mb-1">
+                    <span className="text-5xl font-bold font-serif text-white drop-shadow-lg">{receivedCount}</span>
+                    <span className="text-sm text-slate-300 font-medium mb-2">kişi senin ile ilgili metin yazdı.</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
+                  <Lock className="h-3 w-3 text-amber-400" />
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                    Mezuniyet günü kilitler açılacak!
+                  </p>
+                </div>
+              </div>
+            </div>
 
+            {/* 2. ÖNERİ KARTI - Daha temiz arka plan */}
+            {suggestedClassmate ? (
+              <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-900/30 overflow-hidden flex-1 shadow-lg group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40">
+
+                <div className="relative p-5 flex flex-col justify-between h-full z-10">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                      </div>
+                      <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                        Sıradaki: {suggestedClassmate.first_name}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 font-medium mb-4 pl-1">
+                      Ona güzel bir anı bırakmaya ne dersin?
+                    </p>
+                  </div>
                   <Link href={`/new?recipientId=${suggestedClassmate.id}`}>
-                    <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 shadow-md">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Ona Yazmaya Başla
+                    <Button
+                      size="sm"
+                      className="w-full h-9 bg-amber-600 hover:bg-amber-700 text-white shadow-md border-0"
+                    >
+                      <UserPlus className="mr-2 h-3.5 w-3.5" />
+                      Yazmaya Başla
                     </Button>
                   </Link>
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col justify-center items-center text-center">
-                <div className="bg-green-100 p-3 rounded-full mb-3">
-                  <Sparkles className="h-6 w-6 text-green-600" />
+              <div className="relative rounded-2xl overflow-hidden flex-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
+                <div className="relative p-5 flex flex-col items-center justify-center text-center h-full z-10">
+                  <div className="bg-emerald-100 dark:bg-emerald-900/50 p-3 rounded-full mb-3 text-emerald-600 dark:text-emerald-400">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">Tebrikler! 🎉</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Sınıfı tamamladın!</p>
                 </div>
-                <p className="text-slate-600 font-medium">Tebrikler!</p>
-                <p className="text-slate-400 text-xs mt-1">Sınıfındaki herkese yazdın.</p>
               </div>
             )}
+
           </div>
         </div>
 
-        {/* Yazdıklarım Başlık ve Buton */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        {/* Yazdıklarım Başlık */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-slate-400" />
+            <h3 className="text-xl font-bold font-serif text-slate-800 dark:text-white flex items-center gap-2">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                <FileText className="h-5 w-5" />
+              </div>
               Anı Defterin
             </h3>
-            <p className="text-sm text-slate-500 mt-1">
-              Toplam {texts?.length || 0} anı biriktirdin.
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 pl-1">
+              Yazdığın tüm anılar burada. ✨
             </p>
           </div>
           <Link href="/new">
-            <Button className="w-full sm:w-auto shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300">
+            <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 border-0">
               <Plus className="mr-2 h-4 w-4" />
-              Yeni Anı Yaz
+              <span className="font-semibold">Yeni Anı Yaz</span>
             </Button>
           </Link>
         </div>
 
         {textsError && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-100 mb-6 flex items-center">
-            <ShieldAlert className="h-4 w-4 mr-2" />
-            Bir hata oluştu: {textsError.message}
+          <div className="rounded-lg bg-red-50 dark:bg-red-900/10 px-4 py-3 text-sm border border-red-200 dark:border-red-900/20 mb-6 flex items-center">
+            <ShieldAlert className="h-4 w-4 mr-2 text-red-600" />
+            <span className="text-red-700 dark:text-red-400 font-medium">Bir hata oluştu: {textsError.message}</span>
           </div>
         )}
 
-        {/* Anı Listesi */}
-        {texts && texts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
-            <div className="bg-white p-4 rounded-full shadow-sm mb-4 ring-1 ring-slate-100">
-              <Sparkles className="h-8 w-8 text-amber-400 fill-amber-100 animate-pulse" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900">Henüz kimseye yazmadın</h3>
-            <p className="text-sm text-slate-500 mb-8 max-w-[280px]">
-              Ertuğrulgazi Lisesi hatıralarını ölümsüzleştirmek için ilk adımı at.
-            </p>
-            <Link href="/new">
-              <Button variant="outline" className="border-slate-300 hover:bg-white hover:text-primary">
-                İlk Anını Paylaş
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {texts?.map((text: Text, index) => {
-              const initials = `${text.recipient_profile.first_name[0]}${text.recipient_profile.last_name[0]}`.toUpperCase();
-              const fullName = `${text.recipient_profile.first_name} ${text.recipient_profile.last_name}`;
-              const avatarColorClass = getAvatarColor(fullName);
+        {/* Client Component */}
+        {/* @ts-ignore */}
+        <DashboardGrid texts={texts || []} />
 
-              return (
-                <Card
-                  key={text.id}
-                  className="group hover:-translate-y-1 transition-all duration-300 border-slate-200/60 shadow-sm hover:shadow-lg hover:shadow-slate-200/50 hover:border-primary/20 bg-white overflow-hidden flex flex-col"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <CardHeader className="pb-3 pt-5 px-5 flex flex-row items-center gap-3 space-y-0">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-inner ring-2 ring-white ${avatarColorClass}`}>
-                      {initials}
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <h4 className="font-bold text-slate-800 truncate text-sm">
-                        {fullName}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-slate-100 text-slate-500 font-normal">
-                          {text.recipient_profile.class}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="px-5 pb-3 flex-1 relative">
-                    <Quote className="absolute top-2 left-3 h-6 w-6 text-slate-100 -z-10 fill-slate-50 transform -scale-x-100" />
-                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-4 relative z-0">
-                      {text.content}
-                    </p>
-                  </CardContent>
-
-                  <CardFooter className="px-5 py-4 pt-0 flex items-center justify-between border-t border-slate-50 mt-3 bg-slate-50/30">
-                    <span className="text-[10px] text-slate-400 font-medium flex items-center">
-                      {new Date(text.updated_at).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long' })}
-                    </span>
-                    <Link href={`/edit/${text.id}`}>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:text-primary hover:bg-white group-hover:shadow-sm group-hover:pr-1 transition-all">
-                        Düzenle
-                        <ChevronRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
-              )
-            })}
-          </div>
-        )}
       </main>
-    </div>
+      <Footer />
+    </div >
   )
-}
+};

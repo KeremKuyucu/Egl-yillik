@@ -15,7 +15,8 @@ export async function GET(request: Request) {
             // Başarılı giriş sonrası yönlendirme
             // origin: https://egl-yillik.vercel.app
             // next: /update-password
-            return NextResponse.redirect(`${origin}${next}`)
+            const safeNext = next.startsWith('/') ? next : '/dashboard'
+            return NextResponse.redirect(`${origin}${safeNext}`)
         }
     }
 

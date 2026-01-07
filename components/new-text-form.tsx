@@ -9,8 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import {
-  Users,
-  GraduationCap,
   AlertCircle,
   Send,
   Sparkles,
@@ -18,10 +16,9 @@ import {
   X,
   Check,
   ChevronsUpDown,
-  Search
 } from "lucide-react"
+import { createTextAction } from "@/app/actions"
 
-// Combobox için gerekli Shadcn bileşenleri
 import {
   Command,
   CommandEmpty,
@@ -52,20 +49,53 @@ interface NewTextFormProps {
   preSelectedId?: string
 }
 
+// Renk paleti (İsim baş harflerine göre renk seçmek için)
+const AVATAR_COLORS = [
+  "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+  "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
+  "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
+  "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+  "bg-lime-100 text-lime-600 dark:bg-lime-900/30 dark:text-lime-400",
+  "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+  "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+  "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400",
+  "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
+  "bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400",
+  "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+  "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
+  "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400",
+  "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
+  "bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-900/30 dark:text-fuchsia-400",
+  "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
+  "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400",
+]
+
+// İsme göre sabit renk üreten yardımcı fonksiyon
+const getColorFromName = (name: string) => {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
+// Baş harfleri çıkaran yardımcı fonksiyon
+const getInitials = (firstName: string, lastName: string) => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+}
+
 export default function NewTextForm({ classmates, others, userClass, preSelectedId }: NewTextFormProps) {
   const [recipientId, setRecipientId] = useState(preSelectedId || "")
-  const [open, setOpen] = useState(false) // Combobox açık/kapalı durumu
+  const [open, setOpen] = useState(false)
   const [content, setContent] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Seçili kişinin adını bulmak için yardımcı
   const selectedProfile = [...classmates, ...others].find(p => p.id === recipientId)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -76,27 +106,18 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
     }
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const result = await createTextAction(recipientId, content)
 
-      if (!user) {
-        throw new Error("Oturum açmanız gerekiyor")
+      if (result.error) {
+        setError(result.error)
+        setIsLoading(false)
+        return
       }
-
-      const { error: insertError } = await supabase.from("texts").insert({
-        author_id: user.id,
-        recipient_id: recipientId,
-        content: content,
-      })
-
-      if (insertError) throw insertError
 
       router.push("/dashboard")
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Bir hata oluştu")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -104,35 +125,35 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
   const hasClassmatesLeft = classmates.length > 0
 
   return (
-    <div className="space-y-6">
-
-      {/* İlerleme / Uyarı Alanı */}
+    <div className="space-y-8">
+      {/* İlerleme Durumu - Alert */}
       {hasClassmatesLeft ? (
-        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-start gap-3 shadow-sm">
-          <div className="bg-amber-100 p-2 rounded-full shrink-0">
-            <AlertCircle className="h-5 w-5 text-amber-600" />
+        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
+          <div className="bg-amber-500/20 p-2 rounded-full shrink-0 text-amber-600 dark:text-amber-400">
+            <AlertCircle className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-amber-900">Görev: Sınıf Arkadaşların Bekliyor!</h4>
-            <p className="text-xs text-amber-700/80 mt-1 leading-relaxed">
-              <span className="font-semibold">{userClass}</span> sınıfından hala yazman gereken <span className="font-bold underline">{classmates.length} kişi</span> var. Mezuniyet yıllığında kimseyi boş geçmeyelim.
+            <h4 className="text-sm font-semibold text-amber-700 dark:text-amber-400">Görev: Sınıf Arkadaşların Bekliyor!</h4>
+            <p className="text-xs text-amber-600/90 dark:text-amber-500 mt-1 leading-relaxed">
+              <span className="font-medium">{userClass}</span> sınıfından yazman gereken <span className="font-bold underline">{classmates.length} kişi</span> kaldı.
             </p>
           </div>
         </div>
       ) : (
-        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 shadow-sm">
-          <Sparkles className="h-5 w-5 text-emerald-600 fill-emerald-100" />
-          <p className="text-sm font-medium text-emerald-800">
-            Harika! Kendi sınıfındaki herkese yazdın. Şimdi diğer sınıflara geçebilirsin.
+        <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3">
+          <div className="bg-emerald-500/20 p-2 rounded-full text-emerald-600 dark:text-emerald-400">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+            Harika! Kendi sınıfını tamamladın.
           </p>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* Kişi Seçimi (Combobox / Autocomplete) */}
+        {/* Kişi Seçimi */}
         <div className="space-y-2 flex flex-col">
-          <Label className="text-sm font-semibold text-slate-700">
+          <Label className="text-sm font-medium text-foreground">
             Kime Yazıyorsun?
           </Label>
 
@@ -142,17 +163,21 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-full justify-between h-11 bg-slate-50 border-slate-200 hover:bg-white hover:border-primary/30 text-slate-900 font-normal shadow-sm"
+                className="w-full justify-between h-14 bg-background border-input hover:bg-muted/50 text-foreground font-normal shadow-sm transition-colors px-3"
               >
                 {selectedProfile ? (
-                  <span className="flex items-center gap-2">
-                    <span className="font-medium">{selectedProfile.first_name} {selectedProfile.last_name}</span>
-                    <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-slate-100 text-slate-500 font-normal">
-                      {selectedProfile.class}
-                    </Badge>
+                  <span className="flex items-center gap-3">
+                    {/* SEÇİLEN KİŞİNİN AVATARI */}
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${getColorFromName(selectedProfile.first_name)}`}>
+                      {getInitials(selectedProfile.first_name, selectedProfile.last_name)}
+                    </div>
+                    <div className="flex flex-col items-start text-sm">
+                      <span className="font-semibold leading-none">{selectedProfile.first_name} {selectedProfile.last_name}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">{selectedProfile.class}</span>
+                    </div>
                   </span>
                 ) : (
-                  <span className="text-slate-500">Bir arkadaşını ara...</span>
+                  <span className="text-muted-foreground">Bir arkadaşını ara...</span>
                 )}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -162,34 +187,37 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
               <Command>
                 <CommandInput placeholder="İsim veya sınıf ara..." />
                 <CommandList>
-                  <CommandEmpty className="py-6 text-center text-sm text-slate-500">
+                  <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
                     Kişi bulunamadı.
                   </CommandEmpty>
 
-                  {/* Sınıf Arkadaşları Grubu */}
                   {hasClassmatesLeft && (
-                    <CommandGroup heading={`Sınıf Arkadaşlarım (${userClass}) - Zorunlu`}>
+                    <CommandGroup heading={`Sınıf Arkadaşlarım (${userClass})`}>
                       {classmates.map((profile) => (
                         <CommandItem
                           key={profile.id}
-                          value={`${profile.first_name} ${profile.last_name} ${profile.class}`} // Arama için anahtar kelimeler
+                          value={`${profile.first_name} ${profile.last_name} ${profile.class}`}
                           onSelect={() => {
                             setRecipientId(profile.id)
                             setOpen(false)
                           }}
-                          className="cursor-pointer py-2.5"
+                          className="cursor-pointer py-2.5 px-3"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4 text-primary",
+                              "mr-3 h-4 w-4 text-primary shrink-0",
                               recipientId === profile.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <div className="flex items-center justify-between w-full">
-                            <span className="font-medium">{profile.first_name} {profile.last_name}</span>
-                            <Badge variant="secondary" className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100">
-                              {profile.class}
-                            </Badge>
+                          <div className="flex items-center gap-3 w-full">
+                            {/* LİSTEDEKİ AVATAR */}
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shadow-sm shrink-0 ${getColorFromName(profile.first_name)}`}>
+                              {getInitials(profile.first_name, profile.last_name)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">{profile.first_name} {profile.last_name}</span>
+                              <span className="text-[10px] text-muted-foreground">{profile.class}</span>
+                            </div>
                           </div>
                         </CommandItem>
                       ))}
@@ -198,9 +226,8 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
 
                   {hasClassmatesLeft && others.length > 0 && <CommandSeparator />}
 
-                  {/* Diğer Sınıflar Grubu */}
                   {others.length > 0 && (
-                    <CommandGroup heading="Diğer Sınıflar - İsteğe Bağlı">
+                    <CommandGroup heading="Diğer Sınıflar">
                       {others.map((profile) => (
                         <CommandItem
                           key={profile.id}
@@ -209,19 +236,23 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
                             setRecipientId(profile.id)
                             setOpen(false)
                           }}
-                          className="cursor-pointer py-2.5"
+                          className="cursor-pointer py-2.5 px-3"
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4 text-primary",
+                              "mr-3 h-4 w-4 text-primary shrink-0",
                               recipientId === profile.id ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          <div className="flex items-center justify-between w-full">
-                            <span>{profile.first_name} {profile.last_name}</span>
-                            <Badge variant="outline" className="text-[10px] text-slate-400">
-                              {profile.class}
-                            </Badge>
+                          <div className="flex items-center gap-3 w-full">
+                            {/* LİSTEDEKİ AVATAR */}
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shadow-sm shrink-0 ${getColorFromName(profile.first_name)}`}>
+                              {getInitials(profile.first_name, profile.last_name)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">{profile.first_name} {profile.last_name}</span>
+                              <span className="text-[10px] text-muted-foreground">{profile.class}</span>
+                            </div>
                           </div>
                         </CommandItem>
                       ))}
@@ -235,36 +266,40 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
 
         {/* Mesaj Alanı */}
         <div className="space-y-3">
-          <Label htmlFor="content" className="text-sm font-semibold text-slate-700 flex justify-between">
-            <span>Mesajın</span>
-            <span className="text-xs font-normal text-slate-400">İçinden geldiği gibi...</span>
-          </Label>
+          <div className="flex justify-between items-center">
+            <Label htmlFor="content" className="text-sm font-medium text-foreground">
+              Mesajın
+            </Label>
+            <span className="text-xs text-muted-foreground">İçinden geldiği gibi...</span>
+          </div>
+
           <Textarea
             id="content"
             placeholder="Güzel bir anıdan bahset, gelecekte hatırlamasını istediğin bir not bırak..."
             required
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[250px] resize-y bg-slate-50 border-slate-200 focus:bg-white focus:border-primary/50 text-base leading-relaxed p-4 shadow-inner transition-all"
+            className="min-h-[250px] resize-y bg-background border-input focus:ring-1 focus:ring-primary/20 text-base leading-relaxed p-4 shadow-sm transition-all"
           />
-          <p className="text-xs text-right text-slate-400">
+          <p className="text-xs text-right text-muted-foreground">
             {content.length} karakter
           </p>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 border border-red-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive border border-destructive/20 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
             <AlertCircle className="h-4 w-4" />
             {error}
           </div>
         )}
 
         {/* Butonlar */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-4 pt-4">
           <Button
             type="submit"
             disabled={isLoading}
-            className="flex-1 h-11 shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all text-base"
+            className="flex-1 h-12 shadow-sm text-base font-medium"
+            size="lg"
           >
             {isLoading ? (
               <>
@@ -283,7 +318,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
             type="button"
             variant="outline"
             onClick={() => router.push("/dashboard")}
-            className="h-11 px-6 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            className="h-12 px-6 border-input text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             <X className="mr-2 h-4 w-4" />
             İptal

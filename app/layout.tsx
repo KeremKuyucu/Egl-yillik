@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
 }
 
 export default function RootLayout({
@@ -39,14 +43,24 @@ export default function RootLayout({
     <html lang="tr" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-slate-50/50 font-sans antialiased", // Varsayılan arka plan rengi
+          // 2. Değişiklik: bg-slate-50 yerine bg-background ve text-foreground
+          // Bu sayede sistem koyu moddaysa siyah, açık moddaysa beyaz olur.
+          "min-h-screen bg-background text-foreground font-sans antialiased",
           geistSans.variable,
           geistMono.variable
         )}
       >
-        {children}
-        <Toaster /> {/* Bildirimlerin görünmesi için gerekli */}
-        <Analytics />
+        {/* 3. Ekleme: Tüm içeriği ThemeProvider ile sarmalıyoruz */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )
