@@ -107,7 +107,7 @@ export default async function UsersAdminPage({
     };
 
     return (
-        <RoleGuard minLevel={ROLES.MODERATOR}>
+        <RoleGuard minLevel={ROLES.KAMIL}>
             <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-100 dark:from-slate-950 dark:via-slate-900 dark:to-fuchsia-950">
                 <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-300/20 via-transparent to-transparent pointer-events-none" />
                 <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-purple-300/20 via-transparent to-transparent pointer-events-none" />
