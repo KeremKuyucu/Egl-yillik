@@ -34,7 +34,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit } from "lucide-react"
-import { ROLES } from "@/lib/constants"
+import { ROLES, getLevelInfo, ROLE_DETAILS } from "@/lib/constants"
 import { updateUserLevel, updateUserProfile } from "@/lib/actions"
 import { deleteTextAction } from "@/app/actions"
 import { EditUserForm } from "@/components/edit-user-form"
@@ -45,11 +45,7 @@ import { toast } from "sonner"
 // 1. LEVEL SELECTOR (Kullanıcı Seviyesi Değiştirme)
 // --------------------------------------------------------
 function getRoleName(level: number): string {
-    if (level >= ROLES.OWNER) return "Sahip"
-    if (level >= ROLES.SUPER_ADMIN) return "Süper Admin"
-    if (level >= ROLES.ADMIN) return "Admin"
-    if (level >= ROLES.MODERATOR) return "Moderatör"
-    return "Kullanıcı"
+    return getLevelInfo(level).label;
 }
 
 interface LevelSelectorProps {
@@ -64,10 +60,10 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
     const router = useRouter()
 
     const availableLevels = [
-        { value: ROLES.USER, label: "Kullanıcı", disabled: false },
-        { value: ROLES.MODERATOR, label: "Moderatör", disabled: ROLES.MODERATOR >= maxLevel },
-        { value: ROLES.ADMIN, label: "Admin", disabled: ROLES.ADMIN >= maxLevel },
-        { value: ROLES.SUPER_ADMIN, label: "Süper Admin", disabled: ROLES.SUPER_ADMIN >= maxLevel },
+        { value: ROLES.USER, label: ROLE_DETAILS[ROLES.USER].label, disabled: false },
+        { value: ROLES.MODERATOR, label: ROLE_DETAILS[ROLES.MODERATOR].label, disabled: ROLES.MODERATOR >= maxLevel },
+        { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label, disabled: ROLES.ADMIN >= maxLevel },
+        { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label, disabled: ROLES.SUPER_ADMIN >= maxLevel },
     ]
 
     const handleLevelChange = async () => {

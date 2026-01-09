@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import RoleGuard from "@/components/role-guard"
-import { ROLES } from "@/lib/constants"
+import { ROLES, getLevelInfo } from "@/lib/constants"
 import { requireMod } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -80,56 +80,26 @@ export default async function UsersAdminPage({
     }
 
     const getLevelBadge = (level: number) => {
-        let badgeContent: React.ReactNode;
-        let tooltipText: string;
+        const info = getLevelInfo(level);
+        const Icon = level >= ROLES.ADMIN ? Shield : (level >= ROLES.MODERATOR ? Star : null);
+        const isOwner = level >= ROLES.OWNER;
 
-        if (level >= ROLES.OWNER) {
-            badgeContent = (
-                <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700 cursor-help shadow-lg shadow-purple-500/50 animate-pulse">
-                    <Crown className="h-3 w-3 mr-1" />
-                    Owner
-                </Badge>
-            );
-            tooltipText = "Tam Yetki: Veritabanı silme, admin atama, her şeyi yönetme.";
-        } else if (level >= ROLES.SUPER_ADMIN) {
-            badgeContent = (
-                <Badge className="bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 hover:from-red-700 hover:to-orange-700 cursor-help shadow-md shadow-red-500/50">
-                    <Shield className="h-3 w-3 mr-1" />
-                    Süper Admin
-                </Badge>
-            );
-            tooltipText = "Yüksek Yetki: Admin ve Moderatör atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.";
-        } else if (level >= ROLES.ADMIN) {
-            badgeContent = (
-                <Badge className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white border-0 hover:from-amber-700 hover:to-yellow-700 cursor-help shadow-md shadow-amber-500/50">
-                    <Shield className="h-3 w-3 mr-1" />
-                    Admin
-                </Badge>
-            );
-            tooltipText = "Yönetim: Moderatör atayabilir, içerikleri yönetebilir, kullanıcıları düzenleyebilir.";
-        } else if (level >= ROLES.MODERATOR) {
-            badgeContent = (
-                <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0 hover:from-blue-700 hover:to-cyan-700 cursor-help shadow-md shadow-blue-500/50">
-                    <Star className="h-3 w-3 mr-1" />
-                    Moderatör
-                </Badge>
-            );
-            tooltipText = "Denetim: Profil bilgilerini düzenleyebilir (Rol değiştiremez).";
-        } else {
-            badgeContent = (
-                <Badge variant="outline" className="cursor-help border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900">
-                    Kullanıcı
-                </Badge>
-            );
-            tooltipText = "Standart: Sadece kendi profilini görebilir ve mesaj yazabilir.";
-        }
+        const badgeContent = (
+            <Badge
+                variant={level === ROLES.USER ? "outline" : "default"}
+                className={`${info.badgeColor} cursor-help`}
+            >
+                {isOwner ? <Crown className="h-3 w-3 mr-1" /> : Icon && <Icon className="h-3 w-3 mr-1" />}
+                {info.label}
+            </Badge>
+        );
 
         return (
             <TooltipProvider>
                 <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>{badgeContent}</TooltipTrigger>
                     <TooltipContent>
-                        <p className="max-w-xs text-xs">{tooltipText}</p>
+                        <p className="max-w-xs text-xs">{info.description}</p>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
@@ -153,7 +123,7 @@ export default async function UsersAdminPage({
                                 <h1 className="text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent font-serif leading-none">Kullanıcı Yönetimi</h1>
                                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
                                     <Sparkles className="h-2.5 w-2.5 text-pink-500" />
-                                    {currentUserLevel >= ROLES.SUPER_ADMIN ? "Süper Admin Paneli" : currentUserLevel >= ROLES.ADMIN ? "Admin Paneli" : currentUserLevel >= ROLES.MODERATOR ? "Moderatör Paneli" : "Kullanıcı Paneli"}
+                                    {getLevelInfo(currentUserLevel).label} Paneli
                                 </p>
                             </div>
                         </div>
