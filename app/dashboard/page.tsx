@@ -162,7 +162,7 @@ export default async function DashboardPage() {
               </Link>
             </RoleGuard>
 
-            <RoleGuard minLevel={ROLES.MODERATOR}>
+            <RoleGuard minLevel={ROLES.KAMIL}>
               <Link href="/admin/users">
                 <Button
                   variant="outline"

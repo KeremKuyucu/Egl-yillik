@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import RoleGuard from "@/components/role-guard"
 import { ROLES, getLevelInfo } from "@/lib/constants"
-import { requireMod } from "@/lib/auth"
+import { requireKamil } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,7 +36,7 @@ export default async function UsersAdminPage({
     const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (!currentUser) return null
 
-    requireMod();
+    requireKamil();
 
     const { data: currentProfile } = await supabase
         .from("profiles")
