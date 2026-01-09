@@ -1,7 +1,11 @@
 // components/footer.tsx
 import React from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { Heart, Shield } from 'lucide-react';
+=======
+import { Heart, Shield, Github } from 'lucide-react';
+>>>>>>> dbd3b819dacbb317df29aad448c64b7b9e4689e7
 
 const Footer = () => {
     return (
@@ -43,7 +47,11 @@ const Footer = () => {
                             </p>
                         </div>
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 group-hover:scale-110 transition-all duration-300">
+<<<<<<< HEAD
                             <Heart className="h-4 w-4 fill-white" />
+=======
+                            <Github className="h-4 w-4 fill-white" />
+>>>>>>> dbd3b819dacbb317df29aad448c64b7b9e4689e7
                         </div>
                     </Link>
                 </div>
