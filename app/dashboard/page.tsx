@@ -55,7 +55,7 @@ const getBadge = (count: number) => {
     icon: <Sparkles className="h-3 w-3 mr-1" />
   }
 }
-
+{/* Yapımcı GitHub:KeremKuyucu */ }
 export default async function DashboardPage() {
   const supabase = await createClient()
 

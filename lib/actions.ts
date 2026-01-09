@@ -11,7 +11,7 @@ interface UpdateUserProfileData {
     school_number: string
     class: string
 }
-
+{/* Yapımcı GitHub:KeremKuyucu */ }
 export async function updateUserLevel(userId: string, newLevel: number) {
     try {
         const supabase = await createClient()
