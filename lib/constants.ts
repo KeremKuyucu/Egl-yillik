@@ -60,4 +60,5 @@ export const AVAILABLE_LEVELS = [
     { value: ROLES.MODERATOR, label: ROLE_DETAILS[ROLES.MODERATOR].label },
     { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label },
     { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
+    { value: ROLES.KAMIL, label: ROLE_DETAILS[ROLES.KAMIL].label },
 ] as const;

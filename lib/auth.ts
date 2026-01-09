@@ -12,7 +12,7 @@ export async function requireLevel(minLevel: number) {
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("level")
+        .select("*")
         .eq("id", user.id)
         .single()
 

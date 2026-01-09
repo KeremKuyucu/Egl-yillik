@@ -7,6 +7,7 @@ import DashboardGrid from "@/components/dashboard-grid"
 import { ModeToggle } from "@/components/mode-toggle"
 import RoleGuard from "@/components/role-guard"
 import { ROLES } from "@/lib/constants"
+import { getFullName } from "@/lib/utils"
 import Footer from "@/components/footer"
 import {
   FileText,
@@ -15,13 +16,13 @@ import {
   Sparkles,
   ShieldAlert,
   Users,
-  Text,
   UserPlus,
   Clock,
   Lock,
   Heart,
   Star,
-  Zap
+  Zap,
+  Shield
 } from "lucide-react"
 
 // Zaman bazlı selamlama
@@ -70,6 +71,13 @@ export default async function DashboardPage() {
   }
 
   const { data: userProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+  // Son aktiflik zamanını güncelle (arka planda, sayfa yüklemesini bekletmez)
+  supabase
+    .from("profiles")
+    .update({ last_active: new Date().toISOString() })
+    .eq("id", user.id)
+    .then(() => { /* güncelleme tamamlandı */ })
 
   const { data: classmates } = await supabase
     .from("profiles")
@@ -149,28 +157,16 @@ export default async function DashboardPage() {
           {/* Actions - Mobilde Optimize */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Admin Buttons - Sadece masaüstünde text, mobilde sadece icon */}
-            <RoleGuard minLevel={ROLES.ADMIN}>
+            {/* Merkezi Yönetim Butonu - Tek Noktadan Erişim */}
+            <RoleGuard minLevel={ROLES.KAMIL}>
               <Link href="/admin">
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                  className="h-8 sm:h-9 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-purple-500/20"
                 >
-                  <Text className="h-3.5 w-3.5 sm:mr-2" />
-                  <span className="hidden sm:inline text-xs sm:text-sm">Yazılanlar</span>
-                </Button>
-              </Link>
-            </RoleGuard>
-
-            <RoleGuard minLevel={ROLES.KAMIL}>
-              <Link href="/admin/users">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800"
-                >
-                  <Users className="h-3.5 w-3.5 sm:mr-2" />
-                  <span className="hidden sm:inline text-xs sm:text-sm">Kullanıcılar</span>
+                  <Shield className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline text-xs sm:text-sm">Yönetim Paneli</span>
                 </Button>
               </Link>
             </RoleGuard>
@@ -180,7 +176,7 @@ export default async function DashboardPage() {
             {/* User Info - Masaüstünde göster */}
             <div className="hidden md:flex flex-col items-end mr-2 min-w-0">
               <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
-                {userProfile?.first_name} {userProfile?.last_name}
+                {getFullName(userProfile?.first_name, userProfile?.last_name)}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
                 {userProfile?.class}
@@ -205,7 +201,7 @@ export default async function DashboardPage() {
         <div className="md:hidden border-t border-indigo-100/50 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-950/20 px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-              {userProfile?.first_name} {userProfile?.last_name}
+              {getFullName(userProfile?.first_name, userProfile?.last_name)}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 flex-shrink-0">
               {userProfile?.class}

@@ -81,7 +81,14 @@ const getColorFromName = (name: string) => {
 
 // Baş harfleri çıkaran yardımcı fonksiyon
 const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  const first = (firstName || '').trim().charAt(0)
+  const last = (lastName || '').trim().charAt(0)
+  return `${first}${last}`.toUpperCase()
+}
+
+// İsmi düzgün birleştiren yardımcı fonksiyon (boşluk sorununu çözer)
+const getFullName = (firstName: string, lastName: string) => {
+  return [firstName, lastName].filter(n => n && n.trim()).join(' ')
 }
 
 export default function NewTextForm({ classmates, others, userClass, preSelectedId }: NewTextFormProps) {
@@ -172,7 +179,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
                       {getInitials(selectedProfile.first_name, selectedProfile.last_name)}
                     </div>
                     <div className="flex flex-col items-start text-sm">
-                      <span className="font-semibold leading-none">{selectedProfile.first_name} {selectedProfile.last_name}</span>
+                      <span className="font-semibold leading-none">{getFullName(selectedProfile.first_name, selectedProfile.last_name)}</span>
                       <span className="text-[10px] text-muted-foreground font-medium">{selectedProfile.class}</span>
                     </div>
                   </span>
@@ -215,7 +222,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
                               {getInitials(profile.first_name, profile.last_name)}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium text-sm">{profile.first_name} {profile.last_name}</span>
+                              <span className="font-medium text-sm">{getFullName(profile.first_name, profile.last_name)}</span>
                               <span className="text-[10px] text-muted-foreground">{profile.class}</span>
                             </div>
                           </div>
@@ -250,7 +257,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
                               {getInitials(profile.first_name, profile.last_name)}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium text-sm">{profile.first_name} {profile.last_name}</span>
+                              <span className="font-medium text-sm">{getFullName(profile.first_name, profile.last_name)}</span>
                               <span className="text-[10px] text-muted-foreground">{profile.class}</span>
                             </div>
                           </div>
