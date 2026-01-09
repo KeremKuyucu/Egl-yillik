@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Lock, Loader2, AlertCircle, LogIn } from "lucide-react"
 
 export default function LoginPage() {
@@ -16,7 +16,41 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRecoveryLoading, setIsRecoveryLoading] = useState(true)
   const router = useRouter()
+
+  // Şifre sıfırlama token'ını tespit et ve yönlendir
+  useEffect(() => {
+    const handleRecoveryToken = async () => {
+      // URL hash'ini kontrol et (# sonrası)
+      const hash = window.location.hash
+      if (hash && hash.includes('type=recovery')) {
+        const supabase = createClient()
+
+        // Hash'ten parametreleri çıkar
+        const params = new URLSearchParams(hash.substring(1))
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+
+        if (accessToken && refreshToken) {
+          // Oturumu ayarla
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (!error) {
+            // Şifre güncelleme sayfasına yönlendir
+            router.replace('/update-password')
+            return
+          }
+        }
+      }
+      setIsRecoveryLoading(false)
+    }
+
+    handleRecoveryToken()
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,6 +71,18 @@ export default function LoginPage() {
       setError(error instanceof Error ? error.message : "Giriş yapılamadı. Bilgilerinizi kontrol edin.")
       setIsLoading(false)
     }
+  }
+
+  // Recovery token işlenirken loading göster
+  if (isRecoveryLoading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <span className="text-muted-foreground">Yükleniyor...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
