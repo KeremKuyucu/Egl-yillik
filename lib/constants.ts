@@ -37,7 +37,7 @@ export const ROLE_DETAILS = {
     },
     [ROLES.KAMIL]: {
         label: "Kamil",
-        description: "Standart: Sadece kendi profilini görebilir ve mesaj yazabilir.",
+        description: "Kamil işte bi açıklamaya ihtiyacı yok.",
         badgeColor: "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900"
     }
 } as const;
@@ -53,3 +53,11 @@ export function getLevelInfo(level: number) {
 
 // Tip güvenliği için (Opsiyonel ama önerilir)
 export type RoleLevel = typeof ROLES[keyof typeof ROLES];
+
+// Admin panelinde atanabilir seviyeler (OWNER hariç)
+export const AVAILABLE_LEVELS = [
+    { value: ROLES.USER, label: ROLE_DETAILS[ROLES.USER].label },
+    { value: ROLES.MODERATOR, label: ROLE_DETAILS[ROLES.MODERATOR].label },
+    { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label },
+    { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
+] as const;

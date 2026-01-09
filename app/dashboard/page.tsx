@@ -26,9 +26,10 @@ import {
 
 // Zaman bazlı selamlama
 const getGreeting = () => {
-  const hour = new Date().getHours()
-  if (hour < 12) return "Günaydın"
-  if (hour < 18) return "Tünaydın"
+  const hour = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', hour: 'numeric', hour12: false })
+  const hourNum = parseInt(hour, 10)
+  if (hourNum < 12) return "Günaydın"
+  if (hourNum < 18) return "Tünaydın"
   return "İyi Akşamlar"
 }
 

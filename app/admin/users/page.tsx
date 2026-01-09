@@ -221,7 +221,7 @@ export default async function UsersAdminPage({
                                     <TableBody>
                                         {filteredUsers.map((user, index) => {
                                             const canEditLevel = currentUserLevel > (user.level ?? 0)
-                                            const canEditProfile = currentUserLevel >= ROLES.MODERATOR && currentUserLevel > (user.level ?? 0)
+                                            const canEditProfile = currentUserLevel >= ROLES.MODERATOR && (currentUserLevel > (user.level ?? 0) || user.id === currentUser.id)
                                             const isCurrentUser = user.id === currentUser.id
 
                                             // Her kullanıcı için farklı hover rengi
@@ -269,7 +269,7 @@ export default async function UsersAdminPage({
                                                     <TableCell className="text-right pr-6">
                                                         <div className="flex items-center justify-end gap-2">
                                                             {/* Profil Düzenleme Butonu */}
-                                                            {canEditProfile && !isCurrentUser ? (
+                                                            {canEditProfile ? (
                                                                 <EditUserButton
                                                                     user={user}
                                                                     currentUserLevel={currentUserLevel}
@@ -277,7 +277,7 @@ export default async function UsersAdminPage({
                                                             ) : null}
 
                                                             {/* Seviye Değiştirme (Sadece Süper Admin+) */}
-                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && canEditLevel && !isCurrentUser ? (
+                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && canEditLevel ? (
                                                                 <LevelSelector
                                                                     userId={user.id}
                                                                     currentLevel={user.level ?? 0}
@@ -285,10 +285,10 @@ export default async function UsersAdminPage({
                                                                 />
                                                             ) : null}
 
-                                                            {/* Mesaj */}
-                                                            {isCurrentUser && (
-                                                                <Badge variant="outline" className="text-xs border-pink-300 text-pink-600 dark:border-pink-700 dark:text-pink-400">
-                                                                    Kendi profilinizi değiştiremezsiniz
+                                                            {/* Mesaj - Kendi seviyesini değiştiremez ama profilini düzenleyebilir */}
+                                                            {isCurrentUser && currentUserLevel < ROLES.SUPER_ADMIN && (
+                                                                <Badge variant="outline" className="text-xs border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400">
+                                                                    Seviye değiştirme yetkiniz yok
                                                                 </Badge>
                                                             )}
                                                             {!canEditProfile && !isCurrentUser && (

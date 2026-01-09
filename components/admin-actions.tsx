@@ -34,7 +34,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit } from "lucide-react"
-import { ROLES, getLevelInfo, ROLE_DETAILS } from "@/lib/constants"
+import { ROLES, getLevelInfo, ROLE_DETAILS, AVAILABLE_LEVELS } from "@/lib/constants"
 import { updateUserLevel, updateUserProfile } from "@/lib/actions"
 import { deleteTextAction } from "@/app/actions"
 import { EditUserForm } from "@/components/edit-user-form"
@@ -59,12 +59,10 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
     const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel.toString())
     const router = useRouter()
 
-    const availableLevels = [
-        { value: ROLES.USER, label: ROLE_DETAILS[ROLES.USER].label, disabled: false },
-        { value: ROLES.MODERATOR, label: ROLE_DETAILS[ROLES.MODERATOR].label, disabled: ROLES.MODERATOR >= maxLevel },
-        { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label, disabled: ROLES.ADMIN >= maxLevel },
-        { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label, disabled: ROLES.SUPER_ADMIN >= maxLevel },
-    ]
+    const availableLevels = AVAILABLE_LEVELS.map(level => ({
+        ...level,
+        disabled: level.value >= maxLevel
+    }))
 
     const handleLevelChange = async () => {
         startTransition(async () => {
