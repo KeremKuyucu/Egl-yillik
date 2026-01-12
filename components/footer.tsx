@@ -58,10 +58,6 @@ const Footer = () => {
 
                         {/* Güvenlik Rozetleri */}
                         <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                            <span className="flex items-center gap-1.5">
-                                <Shield className="h-3 w-3 text-emerald-500" />
-                                Güvenli Bağlantı
-                            </span>
                             <span className="hidden sm:inline">•</span>
                             <Link
                                 href="https://github.com/keremkuyucu/egl-yillik"
