@@ -1,16 +1,5 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-
-export default async function HomePage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (user) {
-    redirect("/dashboard")
-  } else {
-    redirect("/login")
-  }
+// Bu sayfa middleware tarafından yönetiliyor
+// Kullanıcı giriş yapmışsa /dashboard'a, yapmamışsa /login'e yönlendirilir
+export default function HomePage() {
+  return null
 }
