@@ -25,9 +25,33 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data, error } = await supabase.auth.getUser()
+    if (error) {
+      // Handle invalid refresh token by clearing cookies
+      if (error.code === 'refresh_token_not_found' || error.status === 400) {
+        // Clear all supabase auth cookies
+        const response = NextResponse.redirect(new URL('/login', request.url))
+        request.cookies.getAll().forEach(cookie => {
+          if (cookie.name.includes('supabase') || cookie.name.includes('sb-')) {
+            response.cookies.delete(cookie.name)
+          }
+        })
+        return response
+      }
+    }
+    user = data.user
+  } catch (error) {
+    // If there's an auth error, clear cookies and redirect to login
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    request.cookies.getAll().forEach(cookie => {
+      if (cookie.name.includes('supabase') || cookie.name.includes('sb-')) {
+        response.cookies.delete(cookie.name)
+      }
+    })
+    return response
+  }
 
   if (
     (request.nextUrl.pathname.startsWith("/dashboard") ||

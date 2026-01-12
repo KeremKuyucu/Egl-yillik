@@ -62,3 +62,31 @@ export const AVAILABLE_LEVELS = [
     { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
     { value: ROLES.KAMIL, label: ROLE_DETAILS[ROLES.KAMIL].label },
 ] as const;
+
+// İstanbul saat dilimi sabiti
+export const ISTANBUL_TIMEZONE = 'Europe/Istanbul';
+
+/**
+ * İstanbul saat dilimine göre şu anki zamanı ISO string olarak döndürür.
+ * Veritabanına yazılacak tüm tarihler için bu fonksiyon kullanılmalıdır.
+ */
+export function getIstanbulISOString(): string {
+    const now = new Date();
+    // İstanbul UTC+3
+    const istanbulOffset = 3 * 60; // dakika cinsinden
+    const localOffset = now.getTimezoneOffset(); // dakika cinsinden, UTC'den fark (negatif doğu için)
+    const totalOffset = istanbulOffset + localOffset;
+    const istanbulTime = new Date(now.getTime() + totalOffset * 60 * 1000);
+    return istanbulTime.toISOString();
+}
+
+/**
+ * İstanbul saat dilimine göre şu anki Date objesini döndürür.
+ */
+export function getIstanbulDate(): Date {
+    const now = new Date();
+    const istanbulOffset = 3 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const totalOffset = istanbulOffset + localOffset;
+    return new Date(now.getTime() + totalOffset * 60 * 1000);
+}

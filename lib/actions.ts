@@ -3,7 +3,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { ROLES } from "@/lib/constants"
+import { ROLES, getIstanbulISOString } from "@/lib/constants"
 
 interface UpdateUserProfileData {
     first_name: string
@@ -141,7 +141,7 @@ export async function updateUserProfile(
                 last_name: data.last_name,
                 school_number: data.school_number,
                 class: data.class,
-                updated_at: new Date().toISOString(),
+                updated_at: getIstanbulISOString(),
             })
             .eq("id", userId)
 

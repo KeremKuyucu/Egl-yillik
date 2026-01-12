@@ -6,7 +6,7 @@ import Link from "next/link"
 import DashboardGrid from "@/components/dashboard-grid"
 import { ModeToggle } from "@/components/mode-toggle"
 import RoleGuard from "@/components/role-guard"
-import { ROLES } from "@/lib/constants"
+import { ROLES, getIstanbulISOString } from "@/lib/constants"
 import { getFullName } from "@/lib/utils"
 import Footer from "@/components/footer"
 import {
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
   // Son aktiflik zamanını güncelle (arka planda, sayfa yüklemesini bekletmez)
   supabase
     .from("profiles")
-    .update({ last_active: new Date().toISOString() })
+    .update({ last_active: getIstanbulISOString() })
     .eq("id", user.id)
     .then(() => { /* güncelleme tamamlandı */ })
 

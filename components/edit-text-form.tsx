@@ -19,6 +19,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Trash2, Save, Loader2, X, AlertTriangle, Undo2 } from "lucide-react"
+import { getIstanbulISOString } from "@/lib/constants"
 
 interface EditTextFormProps {
   text: {
@@ -46,7 +47,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
         .from("texts")
         .update({
           content,
-          updated_at: new Date().toISOString()
+          updated_at: getIstanbulISOString()
         })
         .eq("id", text.id)
 
