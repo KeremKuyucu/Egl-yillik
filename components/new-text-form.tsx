@@ -16,8 +16,10 @@ import {
   X,
   Check,
   ChevronsUpDown,
+
 } from "lucide-react"
 import { createTextAction } from "@/app/actions"
+import { cn } from "@/lib/utils"
 
 import {
   Command,
@@ -33,7 +35,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+
 
 interface Profile {
   id: string
@@ -100,6 +102,8 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
   const router = useRouter()
 
   const selectedProfile = [...classmates, ...others].find(p => p.id === recipientId)
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

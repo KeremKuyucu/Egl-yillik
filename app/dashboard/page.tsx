@@ -57,7 +57,7 @@ const getBadge = (count: number) => {
     icon: <Sparkles className="h-3 w-3 mr-1" />
   }
 }
-{/* Yapımcı GitHub:KeremKuyucu */ }
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -131,17 +131,17 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300 font-sans">
 
-      {/* Animated Background Effects - Opacity düşürüldü */}
+      {/* Animated Background Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Header - Arka plan daha opak yapıldı */}
+      {/* Header */}
       <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
         <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6 gap-2">
-          {/* Logo - Mobilde Kompakt */}
+          {/* Logo */}
           <div className="flex items-center gap-2 min-w-0 flex-shrink">
             <div className="relative">
               <img src="/image.png" className="h-7 w-7 sm:h-9 sm:w-9" alt="Logo" />
@@ -154,10 +154,9 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Actions - Mobilde Optimize */}
+          {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Admin Buttons - Sadece masaüstünde text, mobilde sadece icon */}
-            {/* Merkezi Yönetim Butonu - Tek Noktadan Erişim */}
+            {/* Admin Button */}
             <RoleGuard minLevel={ROLES.KAMIL}>
               <Link href="/admin">
                 <Button
@@ -173,7 +172,7 @@ export default async function DashboardPage() {
 
             <ModeToggle />
 
-            {/* User Info - Masaüstünde göster */}
+            {/* User Info - Desktop */}
             <div className="hidden md:flex flex-col items-end mr-2 min-w-0">
               <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
                 {getFullName(userProfile?.first_name, userProfile?.last_name)}
@@ -197,7 +196,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Mobile User Info - Altında göster */}
+        {/* Mobile User Info */}
         <div className="md:hidden border-t border-indigo-100/50 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-950/20 px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
@@ -216,7 +215,6 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
 
           {/* Sol Kolon - Ana Kart */}
-          {/* Arka plan opaklığı artırıldı (bg-white/95) */}
           <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-2xl flex flex-col justify-between group">
 
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-indigo-950/30 dark:to-pink-950/30 pointer-events-none"></div>
@@ -239,17 +237,109 @@ export default async function DashboardPage() {
                 </Badge>
               </div>
 
-              {/* Metin rengi koyulaştırıldı */}
-              <p className="text-slate-600 dark:text-slate-300 max-w-lg text-lg leading-relaxed font-medium">
+              <p className="text-slate-700 dark:text-slate-200 max-w-lg text-base leading-relaxed font-medium">
                 <span className="font-bold text-indigo-600 dark:text-indigo-400">{userProfile?.class}</span> sınıfında anılarınla iz bırakıyorsun. Şu ana kadar{" "}
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold text-base border border-emerald-200 dark:border-emerald-800">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
                   {totalWords}
                 </span>{" "}
                 kelimelik hatıra biriktirdin.
               </p>
+
+              {/* Son Teslim Tarihi - Geri Sayım */}
+              {(() => {
+                // 9 Şubat 2026 23:59:59 UTC+3 (İstanbul)
+                const deadlineDate = new Date(2026, 1, 9, 23, 59, 59) // Ay 0-indexed (1 = Şubat)
+                const now = new Date()
+                const diffTime = deadlineDate.getTime() - now.getTime()
+                const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
+                const formattedDate = deadlineDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+                const isUrgent = daysLeft <= 7 && daysLeft > 0
+                const isPassed = daysLeft === 0
+
+                return (
+                  <div className={`mt-6 p-5 rounded-xl border backdrop-blur-sm transition-all duration-300 ${isPassed
+                    ? 'bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950/40 dark:to-rose-950/40 border-red-200 dark:border-red-800'
+                    : isUrgent
+                      ? 'bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-200 dark:border-amber-800 animate-pulse'
+                      : 'bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-indigo-950/40 dark:to-purple-950/40 border-indigo-200 dark:border-indigo-800'
+                    }`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-2 rounded-lg ${isPassed
+                          ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400'
+                          : isUrgent
+                            ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'
+                            : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                          }`}>
+                          <Clock className="h-4 w-4" />
+                        </div>
+                        <span className={`text-sm font-bold ${isPassed
+                          ? 'text-red-700 dark:text-red-300'
+                          : isUrgent
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-indigo-700 dark:text-indigo-300'
+                          }`}>
+                          Son Teslim Tarihi
+                        </span>
+                      </div>
+                      <span className={`text-sm font-bold ${isPassed
+                        ? 'text-red-600 dark:text-red-400'
+                        : isUrgent
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-indigo-600 dark:text-indigo-400'
+                        }`}>
+                        {formattedDate}
+                      </span>
+                    </div>
+
+                    {/* Geri Sayım Sayacı */}
+                    <div className="flex items-center justify-center py-4">
+                      <div className="text-center">
+                        <div className={`text-5xl font-bold font-mono ${isPassed
+                          ? 'text-red-600 dark:text-red-400'
+                          : isUrgent
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-indigo-600 dark:text-indigo-400'
+                          }`}>
+                          {daysLeft}
+                        </div>
+                        <div className={`text-sm font-medium mt-1 ${isPassed
+                          ? 'text-red-700 dark:text-red-300'
+                          : isUrgent
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-indigo-700 dark:text-indigo-300'
+                          }`}>
+                          {isPassed ? 'Süre Doldu' : daysLeft === 1 ? 'Gün Kaldı' : 'Gün Kaldı'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alt Mesaj */}
+                    <div className={`text-center text-xs font-medium ${isPassed
+                      ? 'text-red-600 dark:text-red-400'
+                      : isUrgent
+                        ? 'text-amber-700 dark:text-amber-300'
+                        : 'text-indigo-600 dark:text-indigo-400'
+                      }`}>
+                      {isPassed
+                        ? '⏰ Son teslim tarihi geçti!'
+                        : isUrgent
+                          ? '⚠️ Son günler! Acele et!'
+                          : '✨ Anılarını yazmak için bolca zaman var'}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {texts && texts.length === 0 && (
+                <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 text-center">Henüz bir yazım kaydı bulunmamaktadır.</p>
+                </div>
+              )}
             </div>
 
-            {/* Progress Bar Alt Kısım - Arka plan daha net */}
+            {/* Progress Bar Alt Kısım */}
             <div className="relative bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-200/60 dark:border-slate-700/60 p-6 sm:px-8 z-10">
               <div className="flex justify-between items-end mb-3">
                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Sınıf Tamamlama Oranı</span>
@@ -278,11 +368,9 @@ export default async function DashboardPage() {
           {/* Sağ Kolon */}
           <div className="flex flex-col gap-6">
 
-            {/* 1. SANA YAZILANLAR KARTI - Contrast Artırıldı */}
+            {/* 1. SANA YAZILANLAR KARTI */}
             <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex-1 min-h-[160px] group shadow-lg">
-              <div className="absolute inset-0 bg-slate-900 dark:bg-black"></div>
-              {/* Pattern Olarak Daha Az Opaklık */}
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-purple-900/40 to-slate-900/40 opacity-100"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 dark:from-black dark:via-indigo-950 dark:to-purple-950"></div>
 
               <div className="absolute -right-6 -bottom-6 text-white/5 group-hover:text-white/10 transition-colors duration-500">
                 <Lock size={120} className="group-hover:rotate-12 transition-transform duration-500" />
@@ -298,22 +386,21 @@ export default async function DashboardPage() {
                   </div>
                   <div className="flex items-end gap-2 mb-1">
                     <span className="text-5xl font-bold font-serif text-white drop-shadow-lg">{receivedCount}</span>
-                    <span className="text-sm text-slate-300 font-medium mb-2">kişi senin ile ilgili metin yazdı.</span>
+                    <span className="text-sm text-slate-200 font-medium mb-2">kişi senin ile ilgili metin yazdı.</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
                   <Lock className="h-3 w-3 text-amber-400" />
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
                     Mezuniyet günü kilitler açılacak!
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* 2. ÖNERİ KARTI - Daha temiz arka plan */}
+            {/* 2. ÖNERİ KARTI */}
             {suggestedClassmate ? (
               <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-900/30 overflow-hidden flex-1 shadow-lg group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40">
-
                 <div className="relative p-5 flex flex-col justify-between h-full z-10">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -388,6 +475,6 @@ export default async function DashboardPage() {
 
       </main>
       <Footer />
-    </div >
+    </div>
   )
-};
+}

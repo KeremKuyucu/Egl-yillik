@@ -134,7 +134,7 @@ export default function DashboardGrid({ texts }: { texts: Text[] }) {
 
                                 <CardFooter className="px-5 py-4 pt-0 flex items-center justify-between border-t border-border mt-3 bg-muted/30">
                                     <span className="text-[10px] text-muted-foreground font-medium flex items-center">
-                                        {new Date(text.updated_at).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long' })}
+                                        {new Date(text.updated_at).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
                                     <Link href={`/edit/${text.id}`}>
                                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:text-primary hover:bg-background group-hover:shadow-sm group-hover:pr-1 transition-all">

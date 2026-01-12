@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Users, MessageSquare, ArrowRight, Lock } from "lucide-react"
+import { Users, MessageSquare, ArrowRight, Lock, Mail } from "lucide-react"
 import { toast } from "sonner"
 import { ROLES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
@@ -129,6 +129,31 @@ export function AdminOverviewCards({ usersCount, textsCount, currentUserLevel }:
                     </CardContent>
                 </Card>
             </Link>
+
+            {/* Mail Hatırlatma Kartı - Sadece SUPER_ADMIN ve üzeri */}
+            {currentUserLevel >= ROLES.SUPER_ADMIN && (
+                <Link href="/admin/reminders" className="group md:col-span-2">
+                    <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-emerald-500/50">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <CardHeader>
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <Mail className="h-6 w-6" />
+                            </div>
+                            <CardTitle className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                Mail Hatırlatma Sistemi
+                            </CardTitle>
+                            <CardDescription>
+                                Tüm kullanıcılara yıllık yazı durumlarını hatırlatan toplu mail gönderin.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center text-sm font-medium text-emerald-600 dark:text-emerald-400 group-hover:translate-x-2 transition-transform">
+                                Panele Git <ArrowRight className="ml-2 h-4 w-4" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            )}
         </div>
     )
 }
