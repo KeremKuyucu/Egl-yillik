@@ -25,12 +25,17 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
+  // Auth gerektirmeyen sayfalar - bunlara her zaman erişim var
+  const publicPaths = ['/login', '/signup', '/forgot-password', '/auth/callback', '/update-password']
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
   let user = null
   try {
     const { data, error } = await supabase.auth.getUser()
     if (error) {
       // Handle invalid refresh token by clearing cookies
-      if (error.code === 'refresh_token_not_found' || error.status === 400) {
+      // Ama sadece korumalı sayfalarda redirect yap
+      if ((error.code === 'refresh_token_not_found' || error.status === 400) && !isPublicPath) {
         // Clear all supabase auth cookies
         const response = NextResponse.redirect(new URL('/login', request.url))
         request.cookies.getAll().forEach(cookie => {
@@ -44,19 +49,31 @@ export async function updateSession(request: NextRequest) {
     user = data.user
   } catch (error) {
     // If there's an auth error, clear cookies and redirect to login
-    const response = NextResponse.redirect(new URL('/login', request.url))
-    request.cookies.getAll().forEach(cookie => {
-      if (cookie.name.includes('supabase') || cookie.name.includes('sb-')) {
-        response.cookies.delete(cookie.name)
-      }
-    })
-    return response
+    // Ama sadece korumalı sayfalarda redirect yap
+    if (!isPublicPath) {
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      request.cookies.getAll().forEach(cookie => {
+        if (cookie.name.includes('supabase') || cookie.name.includes('sb-')) {
+          response.cookies.delete(cookie.name)
+        }
+      })
+      return response
+    }
+  }
+
+  // Ana sayfa için yönlendirme
+  if (request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone()
+    url.pathname = user ? "/dashboard" : "/login"
+    return NextResponse.redirect(url)
   }
 
   if (
     (request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/new") ||
-      request.nextUrl.pathname.startsWith("/edit")) &&
+      request.nextUrl.pathname.startsWith("/edit") ||
+      request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname.startsWith("/print")) &&
     !user
   ) {
     const url = request.nextUrl.clone()
