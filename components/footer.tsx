@@ -63,6 +63,16 @@ const Footer = () => {
                                 Güvenli Bağlantı
                             </span>
                             <span className="hidden sm:inline">•</span>
+                            <Link
+                                href="https://github.com/keremkuyucu/egl-yillik"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            >
+                                <Github className="h-3 w-3" />
+                                Kaynak Kodu
+                            </Link>
+                            <span className="hidden sm:inline">•</span>
                             <span className="flex items-center gap-1.5">
                                 <Heart className="h-3 w-3 text-red-500" />
                                 Sevgiyle Yapıldı

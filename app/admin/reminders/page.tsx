@@ -18,7 +18,7 @@ export default async function ReminderPage() {
         redirect("/dashboard")
     }
 
-    // Fetch all profiles
+    // Fetch all profilesww
     const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
