@@ -56,7 +56,7 @@ export async function sendReminderEmail(userId: string, email: string, userName:
 
                     <p>Lütfen son tarihe kadar yazılarını tamamla!</p>
                     
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://egl-yillik.com'}/dashboard" 
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" 
                        style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                         Dashboard'a Git
                     </a>
