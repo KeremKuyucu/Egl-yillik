@@ -465,6 +465,12 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Link href={`/profile/${userProfile?.school_number}`}>
+              <Button variant="outline" className="w-full sm:w-auto border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30">
+                <User className="mr-2 h-4 w-4" />
+                <span className="font-semibold">Profilim</span>
+              </Button>
+            </Link>
             <Link href="/surveys">
               <Button variant="outline" className="w-full sm:w-auto border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30">
                 <Award className="mr-2 h-4 w-4" />
