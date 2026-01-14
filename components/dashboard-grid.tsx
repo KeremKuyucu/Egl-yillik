@@ -19,6 +19,7 @@ interface Text {
         first_name: string
         last_name: string
         class: string
+        school_number: string
     }
 }
 
@@ -106,17 +107,22 @@ export default function DashboardGrid({ texts }: { texts: Text[] }) {
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 <CardHeader className="pb-3 pt-5 px-5 flex flex-row items-center gap-3 space-y-0">
-                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-inner ring-2 ring-background ${avatarColorClass}`}>
-                                        {initials}
-                                    </div>
+                                    <Link href={`/profile/${text.recipient_profile.school_number}`} className="hover:opacity-80 transition-opacity">
+                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-inner ring-2 ring-background ${avatarColorClass}`}>
+                                            {initials}
+                                        </div>
+                                    </Link>
                                     <div className="flex-1 overflow-hidden">
-                                        <h4 className="font-bold text-card-foreground truncate text-sm">
-                                            {fullName}
-                                        </h4>
+                                        <Link href={`/profile/${text.recipient_profile.school_number}`} className="hover:text-primary transition-colors">
+                                            <h4 className="font-bold text-card-foreground truncate text-sm">
+                                                {fullName}
+                                            </h4>
+                                        </Link>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-secondary text-secondary-foreground font-normal">
                                                 {text.recipient_profile.class}
                                             </Badge>
+                                            <span className="text-[10px] text-muted-foreground">#{text.recipient_profile.school_number}</span>
                                         </div>
                                     </div>
                                 </CardHeader>

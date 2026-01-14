@@ -22,7 +22,9 @@ import {
   Heart,
   Star,
   Zap,
-  Shield
+  Shield,
+  Award,
+  User
 } from "lucide-react"
 
 // Zaman bazlı selamlama
@@ -92,7 +94,8 @@ export default async function DashboardPage() {
       recipient_profile:recipient_id (
         first_name,
         last_name,
-        class
+        class,
+        school_number
       )
     `)
     .eq("author_id", user.id)
@@ -172,15 +175,22 @@ export default async function DashboardPage() {
 
             <ModeToggle />
 
-            {/* User Info - Desktop */}
-            <div className="hidden md:flex flex-col items-end mr-2 min-w-0">
-              <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
+            {/* User Info - Desktop (Profil Linki) */}
+            <Link href={`/profile/${userProfile?.school_number}`} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
+              <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 {getFullName(userProfile?.first_name, userProfile?.last_name)}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
                 {userProfile?.class}
               </span>
-            </div>
+            </Link>
+
+            {/* Profil Butonu - Mobil */}
+            <Link href={`/profile/${userProfile?.school_number}`} className="md:hidden">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400">
+                <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </Link>
 
             {/* Logout Button */}
             <form action={handleSignOut}>
@@ -454,12 +464,20 @@ export default async function DashboardPage() {
               Yazdığın tüm anılar burada. ✨
             </p>
           </div>
-          <Link href="/new">
-            <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 border-0">
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="font-semibold">Yeni Anı Yaz</span>
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <Link href="/surveys">
+              <Button variant="outline" className="w-full sm:w-auto border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30">
+                <Award className="mr-2 h-4 w-4" />
+                <span className="font-semibold">Anketler</span>
+              </Button>
+            </Link>
+            <Link href="/new">
+              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 border-0">
+                <Plus className="mr-2 h-4 w-4" />
+                <span className="font-semibold">Yeni Anı Yaz</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {textsError && (

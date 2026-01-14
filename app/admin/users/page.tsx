@@ -358,23 +358,27 @@ export default async function UsersAdminPage({
                                                     <TableCell className="pl-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             {/* Avatar */}
-                                                            <div className={`
-                                                                relative flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${avatarColor} 
-                                                                flex items-center justify-center text-white font-bold text-sm
-                                                                shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110
-                                                                ${isCurrentUser ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-900' : ''}
-                                                            `}>
-                                                                {initials}
-                                                                {isCurrentUser && (
-                                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
-                                                                        <Sparkles className="w-2.5 h-2.5 text-white" />
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                            <Link href={`/profile/${user.school_number}`} className="flex-shrink-0">
+                                                                <div className={`
+                                                                    relative w-10 h-10 rounded-xl bg-gradient-to-br ${avatarColor} 
+                                                                    flex items-center justify-center text-white font-bold text-sm
+                                                                    shadow-lg group-hover:shadow-xl transition-all duration-300 hover:scale-110
+                                                                    ${isCurrentUser ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-900' : ''}
+                                                                `}>
+                                                                    {initials}
+                                                                    {isCurrentUser && (
+                                                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
+                                                                            <Sparkles className="w-2.5 h-2.5 text-white" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </Link>
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className={`font-semibold truncate transition-colors ${isCurrentUser ? 'text-pink-600 dark:text-pink-400' : 'text-slate-800 dark:text-slate-200 group-hover:text-pink-600 dark:group-hover:text-pink-400'}`}>
-                                                                    {getFullName(user.first_name, user.last_name)}
-                                                                </span>
+                                                                <Link href={`/profile/${user.school_number}`} className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">
+                                                                    <span className={`font-semibold truncate ${isCurrentUser ? 'text-pink-600 dark:text-pink-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                                        {getFullName(user.first_name, user.last_name)}
+                                                                    </span>
+                                                                </Link>
                                                                 {isCurrentUser && (
                                                                     <span className="text-[10px] font-medium text-pink-500 dark:text-pink-400 uppercase tracking-wider">
                                                                         Sizin Hesabınız
