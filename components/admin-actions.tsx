@@ -33,13 +33,115 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Search, Loader2, Shield, Trash2, Edit, Database } from "lucide-react"
+import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X } from "lucide-react"
 import { ROLES, getLevelInfo, ROLE_DETAILS, AVAILABLE_LEVELS } from "@/lib/constants"
 import { updateUserLevel, updateUserProfile } from "@/lib/actions"
 import { deleteTextAction } from "@/app/actions"
 import { EditUserForm } from "@/components/edit-user-form"
 // DÜZELTME: sonner'dan direkt toast import edilir
 import { toast } from "sonner"
+
+// --------------------------------------------------------
+// 6. EXPORT USERS BUTTON (Excel/CSV İndirme) - KALDIRILDI
+// --------------------------------------------------------
+
+
+// --------------------------------------------------------
+// 7. USER FILTER BAR (Sınıf ve Rol Filtreleme)
+// --------------------------------------------------------
+interface UserFilterBarProps {
+    classes: string[]
+}
+
+export function UserFilterBar({ classes }: UserFilterBarProps) {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    // URL'den mevcut değerleri al
+    const currentClass = searchParams.get("class") || "all"
+    const currentRole = searchParams.get("role") || "all"
+
+    const updateFilter = (key: string, value: string) => {
+        const params = new URLSearchParams(searchParams.toString())
+
+        if (value && value !== "all") {
+            params.set(key, value)
+        } else {
+            params.delete(key)
+        }
+
+        router.push(`?${params.toString()}`)
+    }
+
+    const clearFilters = () => {
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete("class")
+        params.delete("role")
+        // Arama sorgusunu koru (q)
+        router.push(`?${params.toString()}`)
+    }
+
+    const hasFilters = currentClass !== "all" || currentRole !== "all"
+
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            {/* Sınıf Filtresi */}
+            <Select
+                value={currentClass}
+                onValueChange={(val) => updateFilter("class", val)}
+            >
+                <SelectTrigger className="w-[110px] h-9 text-xs">
+                    <div className="flex items-center gap-2 truncate">
+                        <Filter className="w-3 h-3 text-muted-foreground" />
+                        <span className="truncate">{currentClass === "all" ? "Tüm Sınıflar" : currentClass}</span>
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tüm Sınıflar</SelectItem>
+                    {classes.map((cls) => (
+                        <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            {/* Rol Filtresi */}
+            <Select
+                value={currentRole}
+                onValueChange={(val) => updateFilter("role", val)}
+            >
+                <SelectTrigger className="w-[110px] h-9 text-xs">
+                    <div className="flex items-center gap-2 truncate">
+                        <Shield className="w-3 h-3 text-muted-foreground" />
+                        <span className="truncate">
+                            {currentRole === "all"
+                                ? "Tüm Roller"
+                                : currentRole === "admin" ? "Yöneticiler" : "Kullanıcılar"
+                            }
+                        </span>
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tüm Roller</SelectItem>
+                    <SelectItem value="admin">Yöneticiler</SelectItem>
+                    <SelectItem value="user">Kullanıcılar</SelectItem>
+                </SelectContent>
+            </Select>
+
+            {/* Filtre Temizle */}
+            {hasFilters && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                    <X className="w-3 h-3 mr-1" />
+                    Temizle
+                </Button>
+            )}
+        </div>
+    )
+}
 
 // --------------------------------------------------------
 // 1. LEVEL SELECTOR (Kullanıcı Seviyesi Değiştirme)

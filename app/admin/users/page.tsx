@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 import { Shield, Users, Crown, Sparkles, Star, LayoutDashboard, Hash, GraduationCap, TrendingUp, Clock } from "lucide-react"
-import { LevelSelector, SearchInput, EditUserButton, MetadataButton } from "@/components/admin-actions"
+import { LevelSelector, SearchInput, EditUserButton, MetadataButton, UserFilterBar } from "@/components/admin-actions"
 import {
     Tooltip,
     TooltipContent,
@@ -86,33 +86,67 @@ export default async function UsersAdminPage({
 
     const currentUserLevel = currentProfile?.level ?? 0
 
-    // Kullanıcıları çek
+    // Filtre Parametreleri
     const searchQuery = (params.q as string) || ""
+    const classFilter = (params.class as string) || ""
+    const roleFilter = (params.role as string) || ""
 
+    // 1. Tüm sınıfları çek (Filtreleme dropdown'ı için)
+    const { data: allProfiles } = await supabase
+        .from("profiles")
+        .select("class")
+        .order("class")
+
+    // Benzersiz sınıfları al
+    const classes = [...new Set(allProfiles?.map(p => p.class).filter(Boolean) || [])] as string[]
+
+    // 2. Kullanıcıları çek ve filtrele
     let query = supabase
         .from("profiles")
         .select("id, first_name, last_name, school_number, class, level, last_active")
         .order("level", { ascending: false })
         .order("last_name")
 
+    // Server-side filtering
+    if (classFilter && classFilter !== "all") {
+        query = query.eq("class", classFilter)
+    }
+
+    if (roleFilter === "admin") {
+        query = query.gte("level", ROLES.MODERATOR) // Moderator ve üzeri yönetici sayılır
+    } else if (roleFilter === "user") {
+        query = query.lt("level", ROLES.MODERATOR)
+    }
+
+    // Search query varsa (isim veya numara)
+    // Not: Supabase'de karmaşık OR sorguları .or() ile yapılır
+    // Ancak basitlik için tüm sonuçları çekip JS tarafında arama yapmak daha güvenli olabilir
+    // (Büyük veri setleri için .or() tercih edilmeli)
+
     const { data: users, error } = await query
 
     if (error) console.error("Kullanıcı çekme hatası:", error)
 
-    // Arama filtresi
     let filteredUsers = (users || []) as UserProfile[]
-    const totalUsers = filteredUsers.length
 
+    // JS-side search (Daha esnek)
     if (searchQuery) {
         const q = searchQuery.toLowerCase()
         filteredUsers = filteredUsers.filter(u =>
             `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
-            u.school_number.toLowerCase().includes(q) ||
-            u.class.toLowerCase().includes(q)
+            u.school_number.toLowerCase().includes(q)
         )
     }
 
-    // İstatistikler
+    const totalUsers = filteredUsers.length
+
+    // İstatistikler (Sadece filtrelenmiş veriler üzerinden değil, genel istatistikleri göstermek daha iyi olabilir ama şimdilik mevcut görünüme göre filtrelenmiş verileri kullanıyoruz)
+    const statsUsers = users as UserProfile[] || [] // İstatistikler için ham veriyi kullan
+    // Eğer filtreleme yoksa ham veriyi, varsa filtrelenmiş veriyi istatistiklerde kullanmak kafa karıştırabilir.
+    // Dashboard kartlarında GENEL toplamları göstermek daha mantıklı.
+    // Bu yüzden ayrı bir sorgu yapmamak için, eğer filtre yoksa statsUsers = users, varsa yine users (çünkü users zaten DB filtresinden geçti).
+    // Ancak sadece SEARCH filtresi JS tarafında yapılıyor.
+
     const levelStats = {
         total: totalUsers,
         superAdmins: filteredUsers.filter(u => u.level >= ROLES.SUPER_ADMIN).length,
@@ -174,7 +208,7 @@ export default async function UsersAdminPage({
                                 <h1 className="text-lg font-bold bg-gradient-to-r from-red-600 via-pink-600 to-purple-600 bg-clip-text text-transparent font-serif leading-none">Kullanıcı Yönetimi</h1>
                                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
                                     <Sparkles className="h-2.5 w-2.5 text-pink-500" />
-                                    {getLevelInfo(currentUserLevel).label} Paneli • {totalUsers} Kayıtlı
+                                    {getLevelInfo(currentUserLevel).label} Paneli
                                 </p>
                             </div>
                         </div>
@@ -190,7 +224,7 @@ export default async function UsersAdminPage({
 
                 <main className="container mx-auto p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-                    {/* İstatistikler - Premium Glassmorphism */}
+                    {/* İstatistikler */}
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                         {/* Toplam Kullanıcı */}
                         <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-2xl shadow-slate-900/50 hover:shadow-slate-900/70 transition-all duration-500 hover:scale-[1.02] group lg:col-span-1">
@@ -278,24 +312,29 @@ export default async function UsersAdminPage({
                     {/* Kullanıcı Tablosu - Premium Design */}
                     <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
                         <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 via-rose-50/50 to-pink-50/80 dark:from-slate-800/50 dark:via-rose-900/20 dark:to-pink-900/20 px-4 sm:px-6 py-5">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 via-pink-700 to-purple-700 dark:from-slate-100 dark:via-pink-300 dark:to-purple-300 bg-clip-text text-transparent flex items-center gap-2">
-                                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white text-sm shadow-lg shadow-pink-500/30">
-                                            <Users className="w-4 h-4" />
-                                        </span>
-                                        Kullanıcı Listesi
-                                    </CardTitle>
-                                    <CardDescription className="text-muted-foreground mt-1">
-                                        {currentUserLevel >= ROLES.SUPER_ADMIN
-                                            ? "Kullanıcı seviyelerini ve profil bilgilerini yönetin."
-                                            : "Kullanıcı profil bilgilerini görüntüleyin ve düzenleyin."}
-                                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-slate-200/50 dark:bg-slate-700/50">
-                                            {filteredUsers.length} sonuç
-                                        </span>
-                                    </CardDescription>
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-slate-800 via-pink-700 to-purple-700 dark:from-slate-100 dark:via-pink-300 dark:to-purple-300 bg-clip-text text-transparent flex items-center gap-2">
+                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-500 text-white text-sm shadow-lg shadow-pink-500/30">
+                                                <Users className="w-4 h-4" />
+                                            </span>
+                                            Kullanıcı Listesi
+                                        </CardTitle>
+                                        <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2">
+                                            {currentUserLevel >= ROLES.SUPER_ADMIN
+                                                ? "Kullanıcıları yönetin."
+                                                : "Kullanıcıları görüntüleyin."}
+                                            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700">
+                                                {filteredUsers.length} sonuç
+                                            </span>
+                                        </CardDescription>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <SearchInput />
+                                    </div>
                                 </div>
-                                <SearchInput />
+                                <UserFilterBar classes={classes} />
                             </div>
                         </CardHeader>
 

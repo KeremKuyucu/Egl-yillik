@@ -28,15 +28,25 @@ export default async function AdminSuggestionsPage() {
 
     const supabase = await createClient()
 
-    // Tüm önerileri çek (bekleyen en üstte)
-    const { data: suggestions } = await supabase
+    // Tüm önerileri çek
+    const { data: rawSuggestions } = await supabase
         .from("user_category_suggestions")
         .select(`
             *,
             profiles:suggested_by (first_name, last_name, class)
         `)
-        .order("status", { ascending: true })
         .order("created_at", { ascending: false })
+
+    // Özel Sıralama: Bekleyenler en üstte, diğerleri kendi içinde tarihe göre (SQL'den zaten tarihli geliyor)
+    const suggestions = rawSuggestions?.sort((a, b) => {
+        // Pending (Bekleyen) her zaman en üstte olsun
+        if (a.status === "pending" && b.status !== "pending") return -1
+        if (a.status !== "pending" && b.status === "pending") return 1
+
+        // Eğer statüleri aynıysa (veya ikisi de pending değilse), sıralamayı bozma
+        // (SQL'den gelen created_at DESC sıralaması korunur)
+        return 0
+    }) || []
 
     const pendingCount = suggestions?.filter(s => s.status === "pending").length || 0
     const approvedCount = suggestions?.filter(s => s.status === "approved").length || 0
@@ -103,10 +113,10 @@ export default async function AdminSuggestionsPage() {
                                 <div
                                     key={suggestion.id}
                                     className={`p-4 sm:p-5 ${suggestion.status === "pending"
-                                            ? 'bg-amber-50/50 dark:bg-amber-950/10'
-                                            : suggestion.status === "rejected"
-                                                ? 'bg-red-50/30 dark:bg-red-950/10 opacity-60'
-                                                : ''
+                                        ? 'bg-amber-50/50 dark:bg-amber-950/10'
+                                        : suggestion.status === "rejected"
+                                            ? 'bg-red-50/30 dark:bg-red-950/10 opacity-60'
+                                            : ''
                                         }`}
                                 >
                                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">

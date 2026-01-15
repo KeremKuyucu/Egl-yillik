@@ -30,6 +30,15 @@ export async function suggestCategory(data: SuggestCategoryData) {
         return { error: "Açıklama en az 10 karakter olmalı" }
     }
 
+    // Renk formatı kontrolü (CSS Injection Security Fix)
+    // Sadece 'from-color-shade to-color-shade' formatına izin ver
+    const colorRegex = /^from-[a-z]+-\d{1,3} to-[a-z]+-\d{1,3}$/
+    if (!data.color || !colorRegex.test(data.color)) {
+        // Fallback or reject
+        // Güvenlik için reddediyoruz, ama kullanıcıya daha nazik bir mesaj dönüyoruz
+        return { error: "Geçersiz renk formatı seçildi" }
+    }
+
     // Kullanıcının bekleyen öneri sayısını kontrol et (spam önleme)
     const { data: pendingCount } = await supabase
         .from("user_category_suggestions")
