@@ -44,7 +44,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const { data: writtenTexts } = await supabase.from("texts").select("id, content").eq("author_id", profile.id)
 
     // Ona yazılan anı sayısı
-    const { count: receivedCount } = await supabase.from("texts").select("id", { count: 'exact', head: true }).eq("recipient_id", profile.id)
+    let receivedCount = 0
+    if (user.id === profile.id) {
+        try {
+            const { data, error } = await supabase.rpc('get_my_received_count')
+            if (!error) receivedCount = data || 0
+        } catch (e) {
+            console.error("Sayaç hatası:", e)
+        }
+    } else {
+        const { count } = await supabase.from("texts").select("id", { count: 'exact', head: true }).eq("recipient_id", profile.id)
+        receivedCount = count || 0
+    }
 
     // Sınıf arkadaşları (detaylı bilgilerle)
     const { data: classmates } = await supabase
@@ -272,41 +283,82 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
                     {/* Anket Başarıları */}
                     {allCategoriesWithVotes.length > 0 && (
-                        <div className="rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-2xl p-6 sm:p-8 mb-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400"><Trophy className="h-5 w-5" /></div>
-                                <div>
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Anket Durumu</h2>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        Sınıf arkadaşlarından aldığı oylar ({profile.class}) •
-                                        Toplam {classVotes.length} oy
-                                    </p>
-                                </div>
+                        <div className="relative overflow-hidden rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 dark:from-black dark:via-indigo-950 dark:to-purple-950 shadow-2xl mb-8">
+                            {/* Arka Plan Deseni */}
+                            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+                            <div className="absolute -right-10 -bottom-10 text-white/5">
+                                <Trophy size={200} />
                             </div>
 
-                            {/* Top 3 Büyük Kartlar */}
-                            {topCategories.length > 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                                    {topCategories.map((item, index) => (
-                                        <div key={item.category.id} className={`relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.category.color} text-white shadow-lg`}>
-                                            <div className="absolute -right-2 -bottom-2 text-white/20 text-6xl">{item.category.emoji}</div>
-                                            <div className="relative z-10">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    {index === 0 && <span className="text-lg">🥇</span>}
-                                                    {index === 1 && <span className="text-lg">🥈</span>}
-                                                    {index === 2 && <span className="text-lg">🥉</span>}
-                                                    <span className="text-2xl">{item.category.emoji}</span>
-                                                </div>
-                                                <p className="font-bold text-sm">{item.category.title}</p>
-                                                <p className="text-xs text-white/80 mt-1">{item.count} oy</p>
-                                            </div>
-                                        </div>
-                                    ))}
+                            <div className="relative z-10 p-6 sm:p-8">
+                                <div className="flex items-start gap-4 mb-6">
+                                    <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400">
+                                        <Trophy className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white mb-1">Anket Durumu</h2>
+                                        <p className="text-sm text-slate-300">
+                                            {isOwnProfile ? "Sınıf arkadaşlarından aldığın oylar" : "Sınıf arkadaşlarından aldığı oylar"} ({profile.class}) •
+                                            Toplam {classVotes.length} oy
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
 
-                            {/* Tüm Kategoriler - Collapsible */}
-                            <CollapsibleCategories categories={allCategoriesWithVotes} />
+                                {isUnlocked ? (
+                                    <>
+                                        {/* Top 3 Büyük Kartlar */}
+                                        {topCategories.length > 0 && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                                {topCategories.map((item, index) => (
+                                                    <div key={item.category.id} className={`relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.category.color} text-white shadow-lg`}>
+                                                        <div className="absolute -right-2 -bottom-2 text-white/20 text-6xl">{item.category.emoji}</div>
+                                                        <div className="relative z-10">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                {index === 0 && <span className="text-lg">🥇</span>}
+                                                                {index === 1 && <span className="text-lg">🥈</span>}
+                                                                {index === 2 && <span className="text-lg">🥉</span>}
+                                                                <span className="text-2xl">{item.category.emoji}</span>
+                                                            </div>
+                                                            <p className="font-bold text-sm">{item.category.title}</p>
+                                                            <p className="text-xs text-white/80 mt-1">{item.count} oy</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Tüm Kategoriler - Collapsible */}
+                                        <CollapsibleCategories categories={allCategoriesWithVotes} />
+                                    </>
+                                ) : (
+                                    <div className="rounded-xl bg-black/30 backdrop-blur-sm border border-white/10 p-8 text-center">
+                                        <div className="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Lock className="h-8 w-8" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-white mb-2">
+                                            Sonuçlar Kilitli
+                                        </h3>
+                                        <p className="text-slate-300 max-w-md mx-auto mb-6">
+                                            Anket sonuçları ve şampiyonlar mezuniyet gününde ({unlockDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}) açıklanacak.
+                                        </p>
+
+                                        {isOwnProfile && (
+                                            <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 inline-block">
+                                                <p className="text-sm text-slate-300 mb-1">Şu ana kadar senin için</p>
+                                                <div className="flex items-baseline justify-center gap-2">
+                                                    <span className="text-3xl font-bold text-amber-400">{classVotes.length}</span>
+                                                    <span className="text-lg font-medium text-slate-200">oy</span>
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1">kullanıldı!</p>
+                                            </div>
+                                        )}
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-300 text-sm font-medium">
+                                            <Clock className="h-4 w-4" />
+                                            <span>Heyecana {daysUntilUnlock} gün kaldı!</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                     {/* Sınıf Arkadaşları */}
