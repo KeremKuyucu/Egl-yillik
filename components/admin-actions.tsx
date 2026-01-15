@@ -33,7 +33,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Search, Loader2, Shield, Trash2, Edit } from "lucide-react"
+import { Search, Loader2, Shield, Trash2, Edit, Database } from "lucide-react"
 import { ROLES, getLevelInfo, ROLE_DETAILS, AVAILABLE_LEVELS } from "@/lib/constants"
 import { updateUserLevel, updateUserProfile } from "@/lib/actions"
 import { deleteTextAction } from "@/app/actions"
@@ -249,5 +249,155 @@ export function DeleteTextButton({ id }: { id: string }) {
         >
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </Button>
+    )
+}
+
+// --------------------------------------------------------
+// 5. METADATA BUTTON (Kullanıcı Meta Verisi Görüntüleme)
+// --------------------------------------------------------
+interface MetadataButtonProps {
+    userId: string
+}
+
+export function MetadataButton({ userId }: MetadataButtonProps) {
+    const [open, setOpen] = useState(false)
+    const [metadata, setMetadata] = useState<any>(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const fetchMetadata = async () => {
+        setLoading(true)
+        setError(null)
+
+        try {
+            const response = await fetch(`/api/admin/user-metadata?userId=${userId}`)
+            const data = await response.json()
+
+            if (data.error) {
+                setError(data.error)
+            } else {
+                setMetadata(data)
+            }
+        } catch (e) {
+            setError("Meta veri alınamadı")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleOpen = () => {
+        setOpen(true)
+        fetchMetadata()
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpen}
+                    className="h-8 text-xs px-2 border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/30"
+                >
+                    <Database className="h-3 w-3 mr-1" />
+                    Meta
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Database className="h-5 w-5 text-purple-600" />
+                        Kullanıcı Meta Verileri
+                    </DialogTitle>
+                    <DialogDescription>
+                        Auth ve profil meta verileri
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                    {loading && (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    {metadata && !loading && (
+                        <div className="space-y-4">
+                            {/* User ID */}
+                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                <p className="text-xs font-medium text-slate-500 mb-1">User ID</p>
+                                <p className="text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{metadata.id}</p>
+                            </div>
+
+                            {/* Email */}
+                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                <p className="text-xs font-medium text-slate-500 mb-1">Email</p>
+                                <p className="text-sm text-slate-900 dark:text-slate-100">{metadata.email || "—"}</p>
+                            </div>
+
+                            {/* Created At */}
+                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                <p className="text-xs font-medium text-slate-500 mb-1">Kayıt Tarihi</p>
+                                <p className="text-sm text-slate-900 dark:text-slate-100">
+                                    {metadata.created_at ? new Date(metadata.created_at).toLocaleString('tr-TR') : "—"}
+                                </p>
+                            </div>
+
+                            {/* Last Sign In */}
+                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                <p className="text-xs font-medium text-slate-500 mb-1">Son Giriş</p>
+                                <p className="text-sm text-slate-900 dark:text-slate-100">
+                                    {metadata.last_sign_in_at ? new Date(metadata.last_sign_in_at).toLocaleString('tr-TR') : "—"}
+                                </p>
+                            </div>
+
+                            {/* User Metadata */}
+                            {metadata.user_metadata && Object.keys(metadata.user_metadata).length > 0 && (
+                                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2">User Metadata</p>
+                                    <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                                        {JSON.stringify(metadata.user_metadata, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+
+                            {/* App Metadata */}
+                            {metadata.app_metadata && Object.keys(metadata.app_metadata).length > 0 && (
+                                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">App Metadata</p>
+                                    <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                                        {JSON.stringify(metadata.app_metadata, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+
+                            {/* Raw JSON */}
+                            <details className="group">
+                                <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                                    Ham JSON Verisi (Genişlet)
+                                </summary>
+                                <div className="mt-2 p-3 rounded-lg bg-slate-900 dark:bg-black border border-slate-700">
+                                    <pre className="text-xs font-mono text-green-400 overflow-x-auto whitespace-pre-wrap">
+                                        {JSON.stringify(metadata, null, 2)}
+                                    </pre>
+                                </div>
+                            </details>
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setOpen(false)}>
+                        Kapat
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

@@ -18,7 +18,7 @@ export default async function ReminderPage() {
         redirect("/dashboard")
     }
 
-    // Fetch all profilesww
+    // Fetch all profiles
     const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -47,6 +47,30 @@ export default async function ReminderPage() {
         }
     }
 
+    // Toplam anket kategorisi sayısını al
+    const { data: categories } = await adminClient
+        .from("survey_categories")
+        .select("id")
+        .eq("is_active", true)
+
+    const totalCategories = categories?.length || 0
+
+    // Her kullanıcının anket oylarını al
+    const { data: allVotes } = await adminClient
+        .from("survey_votes")
+        .select("voter_id, category_id")
+
+    // Kullanıcı bazlı oy sayısı haritası
+    const userSurveyVotes: Record<string, Set<string>> = {}
+    if (allVotes) {
+        for (const vote of allVotes) {
+            if (!userSurveyVotes[vote.voter_id]) {
+                userSurveyVotes[vote.voter_id] = new Set()
+            }
+            userSurveyVotes[vote.voter_id].add(vote.category_id)
+        }
+    }
+
     // Fetch stats for each user
     const usersWithStats = await Promise.all(
         profiles.map(async (p: any) => {
@@ -65,14 +89,24 @@ export default async function ReminderPage() {
                 statsError = e.message
             }
 
+            // Anket istatistikleri
+            const votedCategories = userSurveyVotes[p.id]?.size || 0
+            const surveyStats = {
+                total: totalCategories,
+                completed: votedCategories,
+                remaining: totalCategories - votedCategories,
+                percentage: totalCategories > 0 ? Math.round((votedCategories / totalCategories) * 100) : 0
+            }
+
             return {
                 ...p,
-                email: emailMap[p.id] || null, // Get email from auth.users
+                email: emailMap[p.id] || null,
                 stats,
-                statsError
+                statsError,
+                surveyStats
             }
         })
     )
 
-    return <ReminderClientPage users={usersWithStats} />
+    return <ReminderClientPage users={usersWithStats} totalCategories={totalCategories} />
 }

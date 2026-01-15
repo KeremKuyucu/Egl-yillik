@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 import { Shield, Users, Crown, Sparkles, Star, LayoutDashboard, Hash, GraduationCap, TrendingUp, Clock } from "lucide-react"
-import { LevelSelector, SearchInput, EditUserButton } from "@/components/admin-actions"
+import { LevelSelector, SearchInput, EditUserButton, MetadataButton } from "@/components/admin-actions"
 import {
     Tooltip,
     TooltipContent,
@@ -436,6 +436,11 @@ export default async function UsersAdminPage({
                                                                     maxLevel={currentUserLevel}
                                                                 />
                                                             ) : null}
+
+                                                            {/* Meta Data Görüntüleme (Sadece Süper Admin+) */}
+                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && (
+                                                                <MetadataButton userId={user.id} />
+                                                            )}
 
                                                             {/* Mesaj - Kendi seviyesini değiştiremez ama profilini düzenleyebilir */}
                                                             {isCurrentUser && currentUserLevel < ROLES.SUPER_ADMIN && (

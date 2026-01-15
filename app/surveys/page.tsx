@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { SURVEY_CATEGORIES } from "@/lib/survey-categories"
+import { FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -19,6 +19,18 @@ export default async function SurveysPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect("/login")
 
+    // Kategorileri Supabase'den çek
+    const { data: dbCategories } = await supabase
+        .from("survey_categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+
+    // Supabase'den veri geldiyse onu kullan, yoksa fallback
+    const categories: SurveyCategory[] = (dbCategories && dbCategories.length > 0)
+        ? dbCategories
+        : FALLBACK_CATEGORIES
+
     // Kullanıcının daha önce oy verdiği kategoriler
     const { data: myVotes } = await supabase
         .from("survey_votes")
@@ -26,7 +38,7 @@ export default async function SurveysPage() {
         .eq("voter_id", user.id)
 
     const votedCategories = new Set(myVotes?.map(v => v.category_id) || [])
-    const totalCategories = SURVEY_CATEGORIES.length
+    const totalCategories = categories.length
     const completedCount = votedCategories.size
     const progressPercentage = Math.round((completedCount / totalCategories) * 100)
 
@@ -111,7 +123,7 @@ export default async function SurveysPage() {
 
                 {/* Anket Kategorileri Grid */}
                 <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {SURVEY_CATEGORIES.map((category) => {
+                    {categories.map((category) => {
                         const isVoted = votedCategories.has(category.id)
 
                         return (
@@ -138,7 +150,7 @@ export default async function SurveysPage() {
                                             {isVoted && (
                                                 <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
                                                     <CheckCircle2 className="h-3.5 w-3.5" />
-                                                    <span className="text-xs font-medium">Oylndı</span>
+                                                    <span className="text-xs font-medium">Oylandı</span>
                                                 </div>
                                             )}
                                         </div>

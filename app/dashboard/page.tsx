@@ -15,7 +15,6 @@ import {
   LogOut,
   Sparkles,
   ShieldAlert,
-  Users,
   UserPlus,
   Clock,
   Lock,
@@ -24,7 +23,12 @@ import {
   Zap,
   Shield,
   Award,
-  User
+  User,
+  Vote,
+  TrendingUp,
+  ChevronRight,
+  PenLine,
+  MessageCircle
 } from "lucide-react"
 
 // Zaman bazlı selamlama
@@ -109,6 +113,23 @@ export default async function DashboardPage() {
     console.error("Sayaç hatası:", e)
   }
 
+  // Anket istatistiklerini al
+  const { data: categories } = await supabase
+    .from("survey_categories")
+    .select("id")
+    .eq("is_active", true)
+
+  const totalCategories = categories?.length || 0
+
+  const { data: userVotes } = await supabase
+    .from("survey_votes")
+    .select("category_id")
+    .eq("voter_id", user.id)
+
+  const votedCategories = userVotes?.length || 0
+  const surveyPercentage = totalCategories > 0 ? Math.round((votedCategories / totalCategories) * 100) : 0
+  const isSurveyComplete = votedCategories === totalCategories
+
   const writtenRecipientIds = texts?.map((t) => t.recipient_id) || []
   const classmateIds = classmates?.map((c) => c.id) || []
 
@@ -123,6 +144,10 @@ export default async function DashboardPage() {
   const isRequiredComplete = requiredWritten === requiredTotal
   const totalWords = texts?.reduce((acc, curr) => acc + (curr.content?.split(" ").length || 0), 0) || 0
   const userBadge = getBadge(texts?.length || 0)
+
+  // Son yazılan yazı
+  const lastText = texts && texts.length > 0 ? texts[0] : null
+  const lastTextDate = lastText ? new Date(lastText.updated_at) : null
 
   const handleSignOut = async () => {
     "use server"
@@ -220,6 +245,54 @@ export default async function DashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+        {/* Quick Stats Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                <PenLine className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{texts?.length || 0}</p>
+                <p className="text-xs text-slate-500">Yazılan</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                <MessageCircle className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{totalWords}</p>
+                <p className="text-xs text-slate-500">Kelime</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                <Vote className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{votedCategories}/{totalCategories}</p>
+                <p className="text-xs text-slate-500">Anket</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">%{progressPercentage}</p>
+                <p className="text-xs text-slate-500">İlerleme</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
@@ -376,17 +449,17 @@ export default async function DashboardPage() {
           </div>
 
           {/* Sağ Kolon */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
 
             {/* 1. SANA YAZILANLAR KARTI */}
-            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex-1 min-h-[160px] group shadow-lg">
+            <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden group shadow-lg">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 dark:from-black dark:via-indigo-950 dark:to-purple-950"></div>
 
               <div className="absolute -right-6 -bottom-6 text-white/5 group-hover:text-white/10 transition-colors duration-500">
-                <Lock size={120} className="group-hover:rotate-12 transition-transform duration-500" />
+                <Lock size={100} className="group-hover:rotate-12 transition-transform duration-500" />
               </div>
 
-              <div className="relative z-10 p-6 flex flex-col h-full justify-between">
+              <div className="relative z-10 p-5 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
@@ -395,11 +468,11 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                   <div className="flex items-end gap-2 mb-1">
-                    <span className="text-5xl font-bold font-serif text-white drop-shadow-lg">{receivedCount}</span>
-                    <span className="text-sm text-slate-200 font-medium mb-2">kişi senin ile ilgili metin yazdı.</span>
+                    <span className="text-4xl font-bold font-serif text-white drop-shadow-lg">{receivedCount}</span>
+                    <span className="text-sm text-slate-200 font-medium mb-1">kişi sana yazdı</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/5 mt-3">
                   <Lock className="h-3 w-3 text-amber-400" />
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">
                     Mezuniyet günü kilitler açılacak!
@@ -408,10 +481,49 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. ÖNERİ KARTI */}
+            {/* 2. ANKET DURUMU KARTI */}
+            <Link href="/surveys" className="group">
+              <div className={`relative rounded-2xl border overflow-hidden shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 ${isSurveyComplete
+                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-800'
+                  : 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-purple-200 dark:border-purple-800'
+                }`}>
+                <div className="relative z-10 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-lg ${isSurveyComplete ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400' : 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'}`}>
+                        <Vote className="h-4 w-4" />
+                      </div>
+                      <h3 className={`text-sm font-bold ${isSurveyComplete ? 'text-emerald-700 dark:text-emerald-300' : 'text-purple-700 dark:text-purple-300'}`}>
+                        Sınıf Anketleri
+                      </h3>
+                    </div>
+                    <ChevronRight className={`h-4 w-4 group-hover:translate-x-1 transition-transform ${isSurveyComplete ? 'text-emerald-500' : 'text-purple-500'}`} />
+                  </div>
+
+                  <div className="flex items-end gap-2 mb-3">
+                    <span className={`text-3xl font-bold ${isSurveyComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'}`}>
+                      {votedCategories}
+                    </span>
+                    <span className="text-sm text-slate-500 font-medium mb-1">/ {totalCategories} anket</span>
+                  </div>
+
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${isSurveyComplete ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
+                      style={{ width: `${surveyPercentage}%` }}
+                    />
+                  </div>
+                  <p className={`text-xs mt-2 font-medium ${isSurveyComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'}`}>
+                    {isSurveyComplete ? '✨ Tüm anketleri tamamladın!' : `${totalCategories - votedCategories} anket kaldı`}
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {/* 3. ÖNERİ KARTI */}
             {suggestedClassmate ? (
-              <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-900/30 overflow-hidden flex-1 shadow-lg group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40">
-                <div className="relative p-5 flex flex-col justify-between h-full z-10">
+              <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-900/30 overflow-hidden shadow-lg group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40">
+                <div className="relative p-5 flex flex-col justify-between z-10">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400">
@@ -437,8 +549,8 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden flex-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
-                <div className="relative p-5 flex flex-col items-center justify-center text-center h-full z-10">
+              <div className="relative rounded-2xl overflow-hidden bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900">
+                <div className="relative p-5 flex flex-col items-center justify-center text-center z-10">
                   <div className="bg-emerald-100 dark:bg-emerald-900/50 p-3 rounded-full mb-3 text-emerald-600 dark:text-emerald-400">
                     <Sparkles className="h-6 w-6" />
                   </div>
@@ -461,7 +573,11 @@ export default async function DashboardPage() {
               Anı Defterin
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 pl-1">
-              Yazdığın tüm anılar burada. ✨
+              {lastTextDate ? (
+                <>Son yazın: <span className="font-medium text-slate-700 dark:text-slate-300">{lastTextDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</span></>
+              ) : (
+                'Yazdığın tüm anılar burada. ✨'
+              )}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">

@@ -11,6 +11,7 @@ import Footer from "@/components/footer"
 import {
     ArrowLeft, FileText, Award, Users, Sparkles, Clock, Star, Zap, Heart, PenLine, Trophy, BarChart3, Lock, Gift, Shield
 } from "lucide-react"
+import CollapsibleCategories from "./collapsible-categories"
 
 const getBadge = (count: number) => {
     if (count >= 30) return { label: "Yıllık Efsanesi", color: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg shadow-purple-500/40", icon: <Star className="h-3 w-3 mr-1" /> }
@@ -62,6 +63,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // Sadece aynı sınıftan gelen oyları say
     const classVotes = surveyVotes?.filter((v: any) => v.voter?.class === profile.class) || []
 
+    // Tüm aktif kategorileri al
+    const { data: dbCategories } = await supabase
+        .from("survey_categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+
     const writtenCount = writtenTexts?.length || 0
     const totalWords = writtenTexts?.reduce((acc, curr) => acc + (curr.content?.split(" ").length || 0), 0) || 0
     const classmatesCount = classmates?.length || 0
@@ -73,11 +81,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         voteCounts[vote.category_id] = (voteCounts[vote.category_id] || 0) + 1
     })
 
-    const topCategories = Object.entries(voteCounts)
-        .sort(([, a], [, b]) => b - a)
+    // TÜM kategorileri göster (oy alanları sırala)
+    const allCategoriesWithVotes = (dbCategories || [])
+        .map(cat => ({
+            category: cat,
+            count: voteCounts[cat.id] || 0
+        }))
+        .sort((a, b) => b.count - a.count) // Oy sayısına göre sırala
+
+    // Top 3 (oy alanlar)
+    const topCategories = allCategoriesWithVotes
+        .filter(item => item.count > 0)
         .slice(0, 3)
-        .map(([categoryId, count]) => ({ category: getCategoryById(categoryId), count }))
-        .filter(item => item.category)
 
     const isOwnProfile = user.id === profile.id
 
@@ -256,32 +271,42 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     )}
 
                     {/* Anket Başarıları */}
-                    {topCategories.length > 0 && (
+                    {allCategoriesWithVotes.length > 0 && (
                         <div className="rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-2xl p-6 sm:p-8 mb-8">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400"><Trophy className="h-5 w-5" /></div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Anket Başarıları</h2>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Sınıf arkadaşlarından aldığı oylar ({profile.class})</p>
+                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Anket Durumu</h2>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Sınıf arkadaşlarından aldığı oylar ({profile.class}) •
+                                        Toplam {classVotes.length} oy
+                                    </p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {topCategories.map((item, index) => (
-                                    <div key={item.category!.id} className={`relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.category!.color} text-white shadow-lg`}>
-                                        <div className="absolute -right-2 -bottom-2 text-white/20 text-6xl">{item.category!.emoji}</div>
-                                        <div className="relative z-10">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                {index === 0 && <span className="text-lg">🥇</span>}
-                                                {index === 1 && <span className="text-lg">🥈</span>}
-                                                {index === 2 && <span className="text-lg">🥉</span>}
-                                                <span className="text-2xl">{item.category!.emoji}</span>
+
+                            {/* Top 3 Büyük Kartlar */}
+                            {topCategories.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                    {topCategories.map((item, index) => (
+                                        <div key={item.category.id} className={`relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.category.color} text-white shadow-lg`}>
+                                            <div className="absolute -right-2 -bottom-2 text-white/20 text-6xl">{item.category.emoji}</div>
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    {index === 0 && <span className="text-lg">🥇</span>}
+                                                    {index === 1 && <span className="text-lg">🥈</span>}
+                                                    {index === 2 && <span className="text-lg">🥉</span>}
+                                                    <span className="text-2xl">{item.category.emoji}</span>
+                                                </div>
+                                                <p className="font-bold text-sm">{item.category.title}</p>
+                                                <p className="text-xs text-white/80 mt-1">{item.count} oy</p>
                                             </div>
-                                            <p className="font-bold text-sm">{item.category!.title}</p>
-                                            <p className="text-xs text-white/80 mt-1">{item.count} oy</p>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Tüm Kategoriler - Collapsible */}
+                            <CollapsibleCategories categories={allCategoriesWithVotes} />
                         </div>
                     )}
                     {/* Sınıf Arkadaşları */}

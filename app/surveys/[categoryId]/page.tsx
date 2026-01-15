@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
-import { getCategoryById } from "@/lib/survey-categories"
+import { getCategoryById, FALLBACK_CATEGORIES, type SurveyCategory, type CustomOption } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import Footer from "@/components/footer"
 import SurveyVoteClient from "./client"
-import { ArrowLeft, Vote, Users } from "lucide-react"
+import { ArrowLeft, Vote, Users, Sparkles } from "lucide-react"
 
 interface SurveyCategoryPageProps {
     params: Promise<{ categoryId: string }>
@@ -19,7 +19,16 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect("/login")
 
-    const category = getCategoryById(categoryId)
+    // Kategoriyi Supabase'den çek
+    const { data: dbCategory } = await supabase
+        .from("survey_categories")
+        .select("*")
+        .eq("id", categoryId)
+        .eq("is_active", true)
+        .single()
+
+    // Supabase'den kategori bulunamadıysa fallback'e bak
+    const category: SurveyCategory | undefined = dbCategory || getCategoryById(categoryId, FALLBACK_CATEGORIES)
     if (!category) notFound()
 
     // Kullanıcı profili
@@ -39,10 +48,30 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
         .neq("id", user.id)
         .order("first_name")
 
+    // Bu kategorideki sınıfa özel özel seçenekleri al
+    const { data: customOptions } = await supabase
+        .from("survey_custom_options")
+        .select(`
+            id,
+            category_id,
+            option_text,
+            created_by,
+            class,
+            vote_count,
+            created_at,
+            creator:created_by (
+                first_name,
+                last_name
+            )
+        `)
+        .eq("category_id", categoryId)
+        .eq("class", userProfile.class)
+        .order("vote_count", { ascending: false })
+
     // Kullanıcının bu kategoride daha önce oy verip vermediğini kontrol et
     const { data: existingVote } = await supabase
         .from("survey_votes")
-        .select("voted_for_id")
+        .select("voted_for_id, custom_option_id")
         .eq("voter_id", user.id)
         .eq("category_id", categoryId)
         .single()
@@ -93,16 +122,24 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
                                 <Users className="h-4 w-4" />
                                 Sadece {userProfile.class} sınıfı için
                             </div>
+
+                            {/* Özel Seçenek İpucu */}
+                            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                                <Sparkles className="h-4 w-4" />
+                                <span>Listede aradığını bulamadın mı? Kendi seçeneğini ekleyebilirsin!</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Oylama - Sadece sınıf arkadaşları */}
+                {/* Oylama - Sınıf arkadaşları + Özel seçenekler */}
                 <SurveyVoteClient
                     categoryId={categoryId}
                     classmates={classmates || []}
+                    customOptions={(customOptions as unknown as CustomOption[]) || []}
                     userClass={userProfile.class}
                     existingVoteId={existingVote?.voted_for_id}
+                    existingCustomOptionId={existingVote?.custom_option_id}
                 />
             </main>
             <Footer />
