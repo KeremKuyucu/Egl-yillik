@@ -10,7 +10,8 @@ import {
     Vote,
     Trophy,
     CheckCircle2,
-    Sparkles
+    Sparkles,
+    PlusCircle
 } from "lucide-react"
 
 export default async function SurveysPage() {
@@ -166,6 +167,27 @@ export default async function SurveysPage() {
                             </Link>
                         )
                     })}
+
+                    {/* Kendin Ekle Kartı */}
+                    <Link href="/surveys/add-custom" className="group">
+                        <div className="relative overflow-hidden rounded-2xl border border-dashed border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/40 hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-300 shadow-lg backdrop-blur-xl p-5 h-full min-h-[160px] flex flex-col items-center justify-center text-center">
+
+                            {/* Arka Plan Animasyonu */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-200/20 via-pink-200/20 to-orange-200/20 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <PlusCircle className="h-7 w-7" />
+                                </div>
+                                <h3 className="text-lg font-bold text-purple-700 dark:text-purple-300 mb-1">
+                                    Kendin Ekle
+                                </h3>
+                                <p className="text-sm text-purple-600/80 dark:text-purple-400/80">
+                                    Yeni kategori öner veya özel seçenek ekle
+                                </p>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
 
             </main>
