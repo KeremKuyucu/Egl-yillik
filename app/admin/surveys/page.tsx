@@ -11,9 +11,7 @@ import {
     Vote,
     BarChart3,
     Crown,
-    Medal,
-    Star,
-    Sparkles
+    Medal
 } from "lucide-react"
 
 export default async function AdminSurveysPage() {
@@ -37,7 +35,6 @@ export default async function AdminSurveysPage() {
         .select(`
             id,
             category_id,
-            custom_option_id,
             voter:voter_id (
                 id,
                 first_name,
@@ -51,32 +48,9 @@ export default async function AdminSurveysPage() {
                 last_name,
                 class,
                 school_number
-            ),
-            custom_option:custom_option_id (
-                id,
-                option_text,
-                class,
-                vote_count
             )
         `)
         .order("category_id")
-
-    // Tüm özel seçenekleri getir
-    const { data: allCustomOptions } = await supabase
-        .from("survey_custom_options")
-        .select(`
-            id,
-            category_id,
-            option_text,
-            class,
-            vote_count,
-            created_at,
-            creator:created_by (
-                first_name,
-                last_name
-            )
-        `)
-        .order("vote_count", { ascending: false })
 
     // Tüm sınıfları getir
     const { data: allProfiles } = await supabase
@@ -89,7 +63,6 @@ export default async function AdminSurveysPage() {
     // Her kategori için sonuçları hesapla
     const categoryResults = categories.map(category => {
         const categoryVotes = allVotes?.filter(v => v.category_id === category.id) || []
-        const categoryCustomOptions = allCustomOptions?.filter(o => o.category_id === category.id) || []
 
         // Kişi bazında oy sayıları
         const personVoteCounts: Record<string, { profile: any, count: number }> = {}
@@ -108,23 +81,10 @@ export default async function AdminSurveysPage() {
             .sort((a, b) => b.count - a.count)
             .slice(0, 5)
 
-        // En popüler özel seçenekler
-        const topCustomOptions = categoryCustomOptions
-            .filter((o: any) => o.vote_count > 0)
-            .slice(0, 3)
-
-        // Custom option oylarını da say
-        const customOptionVotes = categoryVotes.filter((v: any) => v.custom_option_id).length
-        const personVotes = categoryVotes.length - customOptionVotes
-
         return {
             category,
             totalVotes: categoryVotes.length,
-            personVotes,
-            customOptionVotes,
-            topVoted,
-            topCustomOptions,
-            totalCustomOptions: categoryCustomOptions.length
+            topVoted
         }
     })
 
@@ -132,8 +92,6 @@ export default async function AdminSurveysPage() {
     const totalVotes = allVotes?.length || 0
     const uniqueVoters = new Set(allVotes?.map((v: any) => v.voter?.id)).size
     const uniqueVotedFor = new Set(allVotes?.filter((v: any) => v.voted_for).map((v: any) => v.voted_for?.id)).size
-    const totalCustomOptions = allCustomOptions?.length || 0
-    const customOptionVotes = allVotes?.filter((v: any) => v.custom_option_id).length || 0
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
@@ -159,7 +117,7 @@ export default async function AdminSurveysPage() {
 
             <main className="container mx-auto px-4 sm:px-6 py-8">
                 {/* Genel İstatistikler */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-lg">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 dark:text-purple-400">
@@ -193,33 +151,11 @@ export default async function AdminSurveysPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-lg">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl text-orange-600 dark:text-orange-400">
-                                <Star className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Özel Seçenek</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalCustomOptions}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-lg">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-pink-100 dark:bg-pink-900/30 rounded-xl text-pink-600 dark:text-pink-400">
-                                <Sparkles className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Özel Oy</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{customOptionVotes}</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Kategori Sonuçları */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {categoryResults.map(({ category, totalVotes, personVotes, customOptionVotes, topVoted, topCustomOptions, totalCustomOptions }) => (
+                    {categoryResults.map(({ category, totalVotes, topVoted }) => (
                         <div
                             key={category.id}
                             className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden"
@@ -239,18 +175,11 @@ export default async function AdminSurveysPage() {
                                         <p className="text-xs text-white/80">oy</p>
                                     </div>
                                 </div>
-                                {/* Alt istatistikler */}
-                                <div className="mt-3 flex gap-4 text-xs text-white/70">
-                                    <span>👤 {personVotes} kişi oyu</span>
-                                    <span>⭐ {customOptionVotes} özel seçenek oyu</span>
-                                    <span>📝 {totalCustomOptions} özel seçenek</span>
-                                </div>
                             </div>
 
                             {/* Lider Tablosu */}
                             <div className="p-4 space-y-4">
-                                {/* Kişiler */}
-                                {topVoted.length > 0 && (
+                                {topVoted.length > 0 ? (
                                     <div>
                                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
                                             <Users className="h-3 w-3" />
@@ -295,42 +224,7 @@ export default async function AdminSurveysPage() {
                                             ))}
                                         </div>
                                     </div>
-                                )}
-
-                                {/* Özel Seçenekler */}
-                                {topCustomOptions.length > 0 && (
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
-                                            <Star className="h-3 w-3" />
-                                            Popüler Özel Seçenekler
-                                        </p>
-                                        <div className="space-y-2">
-                                            {topCustomOptions.map((option: any) => (
-                                                <div
-                                                    key={option.id}
-                                                    className="flex items-center gap-3 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50"
-                                                >
-                                                    <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
-                                                        <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                                                            {option.option_text}
-                                                        </p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {option.class} • {(option.creator as { first_name: string }).first_name} ekledi
-                                                        </p>
-                                                    </div>
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                                                        {option.vote_count} oy
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {topVoted.length === 0 && topCustomOptions.length === 0 && (
+                                ) : (
                                     <div className="text-center py-6 text-slate-400">
                                         <Vote className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                         <p className="text-sm">Henüz oy yok</p>

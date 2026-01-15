@@ -11,20 +11,7 @@ export interface SurveyCategory {
     is_active?: boolean
 }
 
-export interface CustomOption {
-    id: string
-    category_id: string
-    option_text: string
-    created_by: string
-    class: string
-    vote_count: number
-    created_at: string
-    // Join'den gelen veriler
-    creator?: {
-        first_name: string
-        last_name: string
-    }
-}
+
 
 // Avatar renkleri (profil için)
 export const AVATAR_COLORS = [

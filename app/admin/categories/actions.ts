@@ -204,15 +204,18 @@ export async function deleteCategory(categoryId: string) {
         return { error: "Bu kategoride oylar var, önce oyları silmeniz gerekiyor veya kategoriyi pasife alın" }
     }
 
-    // Kategoriye ait özel seçenekler var mı?
-    const { data: customOptions } = await supabase
-        .from("survey_custom_options")
-        .select("id")
-        .eq("category_id", categoryId)
-        .limit(1)
 
-    if (customOptions && customOptions.length > 0) {
-        return { error: "Bu kategoride özel seçenekler var, önce onları silmeniz gerekiyor veya kategoriyi pasife alın" }
+
+
+    // Fix FK constraint issue manually: Kategori silinmeden önce ilgili önerilerin bağını kopar
+    const { error: updateError } = await supabase
+        .from("user_category_suggestions")
+        .update({ approved_category_id: null })
+        .eq("approved_category_id", categoryId)
+
+    if (updateError) {
+        console.error("Update related suggestions error:", updateError)
+        // Kritik hata değil, devam etmeyi deneyebiliriz ama loglamak önemli
     }
 
     const { error } = await supabase
