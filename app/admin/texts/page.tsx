@@ -18,7 +18,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Printer,
   Sparkles,
   TrendingUp,
   Clock,
@@ -538,11 +537,9 @@ export default async function AdminPage({
                             <TableCell>
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-sm leading-relaxed text-slate-600 dark:text-slate-300 line-clamp-2 hover:line-clamp-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer group/text relative min-w-[300px]">
+                                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-sm leading-relaxed text-slate-600 dark:text-slate-300 truncate max-w-[250px] xl:max-w-[400px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer group/text relative">
                                     {text.content}
-                                    <div className="absolute bottom-1 right-2 opacity-0 group-hover/text:opacity-100 transition-opacity bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm">
-                                      Genişlet
-                                    </div>
+                                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-50 dark:from-slate-800/50 to-transparent pointer-events-none" />
                                   </div>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
@@ -603,11 +600,6 @@ export default async function AdminPage({
                                       <span>ID: {text.id.slice(0, 8)}...</span>
                                     </div>
                                     <div className="flex gap-2">
-                                      <Link href={`/print/${text.id}`} target="_blank">
-                                        <Button variant="outline" size="sm" className="gap-2">
-                                          <Printer className="h-4 w-4" /> Yazdır
-                                        </Button>
-                                      </Link>
                                       <DeleteTextButton id={text.id} />
                                     </div>
                                   </DialogFooter>
@@ -630,15 +622,6 @@ export default async function AdminPage({
                             {/* İŞLEMLER */}
                             <TableCell className="text-right pr-6">
                               <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                <Link href={`/print/${text.id}`} target="_blank">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                                  >
-                                    <Printer className="h-4 w-4" />
-                                  </Button>
-                                </Link>
                                 <DeleteTextButton id={text.id} />
                               </div>
                             </TableCell>
@@ -760,11 +743,6 @@ export default async function AdminPage({
                           </div>
 
                           <DialogFooter className="mt-2 flex-row gap-2 justify-end">
-                            <Link href={`/print/${text.id}`} target="_blank">
-                              <Button variant="outline" size="sm" className="h-8 text-xs gap-2">
-                                <Printer className="h-3.5 w-3.5" /> Yazdır
-                              </Button>
-                            </Link>
                             <div className="scale-90 origin-right">
                               <DeleteTextButton id={text.id} />
                             </div>

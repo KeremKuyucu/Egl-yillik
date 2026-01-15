@@ -6,8 +6,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import Footer from "@/components/footer"
-import { ArrowLeft, Lock, Gift, Clock, Heart, Quote } from "lucide-react"
-import { PrintButton } from "./print-button"
+import { ArrowLeft, Lock, Gift, Clock, Heart, Quote, Trophy } from "lucide-react"
+import CollapsibleCategories from "../../profile/[schoolNumber]/collapsible-categories"
 
 interface MemoriesPageProps {
     params: Promise<{ schoolNumber: string }>
@@ -29,7 +29,6 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
 
     if (!profile) notFound()
 
-    // Sadece kendi anılarını görebilir
     if (user.id !== profile.id) {
         redirect(`/profile/${schoolNumber}`)
     }
@@ -112,7 +111,45 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
             )
         `)
         .eq("recipient_id", profile.id)
+        .eq("recipient_id", profile.id)
         .order("created_at", { ascending: false })
+
+    // Anket oylamaları (View üzerinden optimize edilmiş sorgu)
+    const { data: classVoteStats } = await supabase
+        .from("profile_vote_summary")
+        .select("category_id, vote_count")
+        .eq("voted_for_id", profile.id)
+        .eq("voter_class", profile.class)
+
+    const totalVotes = classVoteStats?.reduce((acc, curr) => acc + (curr.vote_count || 0), 0) || 0
+
+    // Tüm aktif kategorileri al
+    const { data: dbCategories } = await supabase
+        .from("survey_categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+
+    // Anket sonuçlarını grupla
+    const voteCounts: Record<string, number> = {}
+    classVoteStats?.forEach((stat: any) => {
+        voteCounts[stat.category_id] = stat.vote_count
+    })
+
+    // TÜM kategorileri göster (oy alanları sırala)
+    const allCategoriesWithVotes = (dbCategories || [])
+        .map(cat => ({
+            category: cat,
+            count: voteCounts[cat.id] || 0
+        }))
+        .sort((a, b) => b.count - a.count)
+
+    // Top 3 (oy alanlar)
+    const topCategories = allCategoriesWithVotes
+        .filter(item => item.count > 0)
+        .slice(0, 3)
+
+    const isOwnProfile = user.id === profile.id
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground">
@@ -132,7 +169,7 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
                     <div className="flex items-center gap-2">
                         <Gift className="h-5 w-5 text-pink-500" />
                         <span className="text-lg font-bold font-serif bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                            Sana Yazılanlar
+                            Anılar ve Anketler
                         </span>
                     </div>
                     <ModeToggle />
@@ -147,7 +184,7 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
                             <Gift className="h-8 w-8" />
                         </div>
                         <h1 className="text-3xl font-bold font-serif text-slate-900 dark:text-white mb-2 print:text-2xl print:text-black">
-                            🎉 Sana Yazılan Anılar
+                            🎉 Anılar ve Anketler
                         </h1>
                         <p className="text-slate-600 dark:text-slate-400 print:text-gray-600">
                             Arkadaşlarının senin için yazdığı {memories?.length || 0} anı
@@ -155,61 +192,102 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
                         <p className="text-xs text-slate-400 mt-2 print:text-gray-500">
                             {getFullName(profile.first_name, profile.last_name)} • {profile.class} • #{profile.school_number}
                         </p>
-                        <PrintButton />
                     </div>
 
-                    {/* Anılar Listesi */}
-                    {memories && memories.length > 0 ? (
-                        <div className="space-y-6">
-                            {memories.map((memory: any) => (
-                                <div key={memory.id} className="relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-xl p-6">
-                                    {/* Yazar Bilgisi */}
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <Link href={`/profile/${memory.author.school_number}`}>
-                                            <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg ${getColorFromName(memory.author.first_name)} hover:scale-105 transition-transform`}>
-                                                {getInitials(memory.author.first_name, memory.author.last_name)}
+                </div>
+
+                {/* Anket Sonuçları Bölümü */}
+                {allCategoriesWithVotes.length > 0 && (
+                    <div className="relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-xl p-6 sm:p-8 mb-8 print:break-inside-avoid">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400"><Trophy className="h-5 w-5" /></div>
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Anket Durumu</h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {isOwnProfile ? "Sınıf arkadaşlarından aldığın oylar" : "Sınıf arkadaşlarından aldığı oylar"} ({profile.class}) •
+                                    Toplam {totalVotes} oy
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Top 3 Büyük Kartlar */}
+                        {topCategories.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                {topCategories.map((item, index) => (
+                                    <div key={item.category.id} className={`relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.category.color} text-white shadow-lg`}>
+                                        <div className="absolute -right-2 -bottom-2 text-white/20 text-6xl">{item.category.emoji}</div>
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                {index === 0 && <span className="text-lg">🥇</span>}
+                                                {index === 1 && <span className="text-lg">🥈</span>}
+                                                {index === 2 && <span className="text-lg">🥉</span>}
+                                                <span className="text-2xl">{item.category.emoji}</span>
                                             </div>
+                                            <p className="font-bold text-sm">{item.category.title}</p>
+                                            <p className="text-xs text-white/80 mt-1">{item.count} oy</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Tüm Kategoriler - Collapsible */}
+                        <CollapsibleCategories categories={allCategoriesWithVotes} />
+                    </div>
+                )}
+
+                {/* Anılar Listesi */}
+                {memories && memories.length > 0 ? (
+                    <div className="space-y-6">
+                        {memories.map((memory: any) => (
+                            <div key={memory.id} className="relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-xl p-6">
+                                {/* Yazar Bilgisi */}
+                                <div className="flex items-center gap-4 mb-4">
+                                    <Link href={`/profile/${memory.author.school_number}`}>
+                                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg ${getColorFromName(memory.author.first_name)} hover:scale-105 transition-transform`}>
+                                            {getInitials(memory.author.first_name, memory.author.last_name)}
+                                        </div>
+                                    </Link>
+                                    <div>
+                                        <Link href={`/profile/${memory.author.school_number}`} className="hover:text-indigo-600 transition-colors">
+                                            <h3 className="font-bold text-slate-900 dark:text-white">
+                                                {getFullName(memory.author.first_name, memory.author.last_name)}
+                                            </h3>
                                         </Link>
-                                        <div>
-                                            <Link href={`/profile/${memory.author.school_number}`} className="hover:text-indigo-600 transition-colors">
-                                                <h3 className="font-bold text-slate-900 dark:text-white">
-                                                    {getFullName(memory.author.first_name, memory.author.last_name)}
-                                                </h3>
-                                            </Link>
-                                            <p className="text-xs text-slate-500">{memory.author.class} • #{memory.author.school_number}</p>
-                                        </div>
-                                        <div className="ml-auto">
-                                            <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
-                                        </div>
+                                        <p className="text-xs text-slate-500">{memory.author.class} • #{memory.author.school_number}</p>
                                     </div>
-
-                                    {/* Anı İçeriği */}
-                                    <div className="relative pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
-                                        <Quote className="absolute -left-3 -top-1 h-5 w-5 text-indigo-300 dark:text-indigo-700 bg-white dark:bg-slate-900" />
-                                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                                            {memory.content}
-                                        </p>
-                                    </div>
-
-                                    {/* Tarih */}
-                                    <div className="mt-4 text-right">
-                                        <span className="text-xs text-slate-400">
-                                            {new Date(memory.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                        </span>
+                                    <div className="ml-auto">
+                                        <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-16 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <Heart className="h-16 w-16 mx-auto text-slate-300 dark:text-slate-700 mb-4" />
-                            <h3 className="text-xl font-bold text-slate-600 dark:text-slate-400 mb-2">Henüz Anı Yok</h3>
-                            <p className="text-slate-500">Henüz kimse sana anı yazmamış.</p>
-                        </div>
-                    )}
-                </div>
-            </main>
+
+                                {/* Anı İçeriği */}
+                                <div className="relative pl-4 border-l-2 border-indigo-200 dark:border-indigo-800">
+                                    <Quote className="absolute -left-3 -top-1 h-5 w-5 text-indigo-300 dark:text-indigo-700 bg-white dark:bg-slate-900" />
+                                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                        {memory.content}
+                                    </p>
+                                </div>
+
+                                {/* Tarih */}
+                                <div className="mt-4 text-right">
+                                    <span className="text-xs text-slate-400">
+                                        {new Date(memory.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-16 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <Heart className="h-16 w-16 mx-auto text-slate-300 dark:text-slate-700 mb-4" />
+                        <h3 className="text-xl font-bold text-slate-600 dark:text-slate-400 mb-2">Henüz Anı Yok</h3>
+                        <p className="text-slate-500">Henüz kimse sana anı yazmamış.</p>
+                    </div>
+                )}
+
+            </main >
             <Footer />
-        </div>
+        </div >
     )
 }

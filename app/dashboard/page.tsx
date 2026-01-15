@@ -29,7 +29,8 @@ import {
   TrendingUp,
   ChevronRight,
   PenLine,
-  MessageCircle
+  MessageCircle,
+  Users
 } from "lucide-react"
 
 const getGreeting = () => {
@@ -616,6 +617,12 @@ export default async function DashboardPage() {
               <Button variant="outline" className="w-full sm:w-auto border-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
                 <Award className="mr-2 h-4 w-4" />
                 <span className="font-semibold">Anketler</span>
+              </Button>
+            </Link>
+            <Link href="/school">
+              <Button variant="outline" className="w-full sm:w-auto border-2 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+                <Users className="mr-2 h-4 w-4" />
+                <span className="font-semibold">Okul Listesi</span>
               </Button>
             </Link>
             <Link href="/new">
