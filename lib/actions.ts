@@ -3,7 +3,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { ROLES, getIstanbulISOString } from "@/lib/constants"
+import { ROLES } from "@/lib/constants"
 
 interface UpdateUserProfileData {
     first_name: string
@@ -108,7 +108,7 @@ export async function updateUserProfile(
         const currentUserLevel = currentProfile?.level ?? 0
 
         // Moderatör yetkisi kontrolü
-        if (currentUserLevel < ROLES.MODERATOR) {
+        if (currentUserLevel < ROLES.ADMIN) {
             return { success: false, error: "Bu işlem için yetkiniz yok" }
         }
 
@@ -141,7 +141,7 @@ export async function updateUserProfile(
                 last_name: data.last_name,
                 school_number: data.school_number,
                 class: data.class,
-                updated_at: getIstanbulISOString(),
+                updated_at: new Date().toISOString(),
             })
             .eq("id", userId)
 

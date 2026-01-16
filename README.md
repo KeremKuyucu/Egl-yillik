@@ -13,7 +13,9 @@ Eyüboğlu Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrencil
 - **Anı Yazma**: Sınıf arkadaşlarına kişisel anılar yazma
 - **Dashboard**: İlerleme takibi, istatistikler, geri sayım
 - **Profil Sayfası**: Kişisel istatistikler ve anket başarıları
+- **Hesap Yönetimi**: Şifre değiştirme, Google hesabı entegrasyonu ve hesap silme
 - **Gizli Kasa**: Sana yazılan anılar mezuniyet gününe kadar kilitli
+- **Tema Desteği**: Sistemle uyumlu otomatik karanlık/aydınlık mod ve hydration-safe UI
 
 ### 🗳️ Anket Sistemi
 - **Dinamik Kategoriler**: Admin tarafından yönetilebilir anket kategorileri
@@ -25,15 +27,15 @@ Eyüboğlu Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrencil
 | Seviye | Rol | Yetkiler |
 |--------|-----|----------|
 | 0 | User | Yazma, oylama |
-| 1 | Kamil | Hiçbir yetkisi yok |
 | 50 | Admin | Kullanıcı yönetimi |
 | 100 | Super Admin | Tam yetki, kategori yönetimi |
 | 1000 | Owner | Sistem sahibi |
 
 ### 📧 Bildirim Sistemi
-- **E-posta Hatırlatmaları**: Eksik yazısı olanlara otomatik e-posta
-- **Anket Durumu**: Yazı ve anket tamamlama istatistikleri
-- **Dinamik İçerik**: Duruma göre değişen e-posta şablonları
+- **E-posta Hatırlatmaları**: Eksik yazısı olanlara otomatik ve manuel e-posta gönderimi
+- **Gelişmiş Şablonlar**: Cihaz uyumlu (Outlook, Gmail vs.) tablo tabanlı HTML e-postalar
+- **İlerleme Takibi**: E-posta içerisinde görsel ilerleme çubukları (progress bar)
+- **Güvenlik Mailleri**: Şifre sıfırlama ve kayıt onaylama mailleri (spam korumalı)
 
 ## 🛠️ Teknoloji Stack
 
@@ -62,7 +64,11 @@ app/
 │   ├── reminders/      # E-posta hatırlatmaları
 │   └── surveys/        # Anket sonuçları
 ├── api/                # API routes
-└── login/              # Giriş sayfası
+├── auth/               # Auth callback ve redirect yönetimi
+├── login/              # Giriş sayfası
+├── signup/             # Kayıt sayfası
+├── settings/           # Kullanıcı hesap ayarları
+└── (root pages)        # Ana sayfa ve okul seçimleri
 
 components/             # Yeniden kullanılabilir bileşenler
 lib/                    # Yardımcı fonksiyonlar
@@ -100,18 +106,32 @@ cp .env.example .env.local
 
 `.env.local` dosyasını düzenleyin:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-RESEND_API_KEY=your_resend_api_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+POSTGRES_DATABASE=
+POSTGRES_HOST=
+POSTGRES_PASSWORD=
+POSTGRES_PRISMA_URL=
+POSTGRES_URL=
+POSTGRES_URL_NON_POOLING=
+POSTGRES_USER=
+SUPABASE_ANON_KEY=
+SUPABASE_JWT_SECRET=
+SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_URL=
+VERCEL_OIDC_TOKEN=
+RESEND_API_KEY=r
+NEXT_PUBLIC_APP_URL=
 ```
 
 4. **Supabase tablolarını oluşturun:**
 ```bash
 # Migration dosyalarını Supabase SQL Editor'da çalıştırın
 supabase/migrations/001_initial.sql
-supabase/migrations/002_dynamic_surveys.sql
+supabase/migrations/16.01.2026
 ```
 
 5. **Geliştirme sunucusunu başlatın:**

@@ -25,9 +25,7 @@ export async function requireLevel(minLevel: number) {
 }
 
 export const requireAdmin = () => requireLevel(ROLES.ADMIN);
-export const requireMod = () => requireLevel(ROLES.MODERATOR);
 export const requireUser = () => requireLevel(ROLES.USER);
-export const requireKamil = () => requireLevel(ROLES.KAMIL);
 export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN);
 export const requireOwner = () => requireLevel(ROLES.OWNER);
 

@@ -111,7 +111,6 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
             )
         `)
         .eq("recipient_id", profile.id)
-        .eq("recipient_id", profile.id)
         .order("created_at", { ascending: false })
 
     // Anket oylamaları (View üzerinden optimize edilmiş sorgu)
