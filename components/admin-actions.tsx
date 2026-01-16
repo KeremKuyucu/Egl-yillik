@@ -1,9 +1,3 @@
-Harika, önceki adımda UsersAdminPage tarafında yaptığımız değişiklikle uyumlu hale getirmek için MetadataButton bileşenini güncelliyoruz.
-Yapılan Değişiklikler:
- * MetadataButtonProps arayüzüne profileData eklendi.
- * MetadataButton artık hem API'den gelen Auth verilerini (email, giriş geçmişi vb.) hem de prop olarak gelen Profil verilerini (sınıf, numara, vb.) gösteriyor.
- * Profil verileri için yeni bir görsel alan eklendi.
-İşte güncellenmiş dosya içeriği:
 "use client"
 
 import { useState, useTransition } from "react"
