@@ -24,9 +24,8 @@ Eyüboğlu Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrencil
 ### 🔒 Yetki Sistemi
 | Seviye | Rol | Yetkiler |
 |--------|-----|----------|
-| 0 | Guest | Sadece görüntüleme |
-| 10 | User | Yazma, oylama |
-| 25 | Kamil | Admin panel erişimi |
+| 0 | User | Yazma, oylama |
+| 1 | Kamil | Hiçbir yetkisi yok |
 | 50 | Admin | Kullanıcı yönetimi |
 | 100 | Super Admin | Tam yetki, kategori yönetimi |
 | 1000 | Owner | Sistem sahibi |
