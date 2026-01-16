@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { requireKamil } from "@/lib/auth"
+import { requireAdmin } from "@/lib/auth"
 import { getLevelInfo } from "@/lib/constants"
 import {
     Shield,
@@ -13,7 +13,7 @@ import { AdminOverviewCards } from "@/components/admin-overview-cards"
 export default async function AdminDashboardPage() {
     const supabase = await createClient()
 
-    const { profile: currentProfile } = await requireKamil();
+    const { profile: currentProfile } = await requireAdmin();
 
     const { data: stats, error } = await supabase.rpc('get_admin_dashboard_stats')
 

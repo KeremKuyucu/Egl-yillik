@@ -7,7 +7,7 @@ import Link from "next/link"
 import DashboardGrid from "@/components/dashboard-grid"
 import { ModeToggle } from "@/components/mode-toggle"
 import RoleGuard from "@/components/role-guard"
-import { ROLES, getIstanbulISOString } from "@/lib/constants"
+import { ROLES } from "@/lib/constants"
 import { getFullName } from "@/lib/utils"
 import Footer from "@/components/footer"
 import {
@@ -30,7 +30,8 @@ import {
   ChevronRight,
   PenLine,
   MessageCircle,
-  Users
+  Users,
+  Settings
 } from "lucide-react"
 
 const getGreeting = () => {
@@ -78,9 +79,13 @@ export default async function DashboardPage() {
 
   const { data: userProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
+  if (!userProfile) {
+    redirect("/complete-profile")
+  }
+
   supabase
     .from("profiles")
-    .update({ last_active: getIstanbulISOString() })
+    .update({ last_active: new Date().toISOString() })
     .eq("id", user.id)
     .then(() => { })
 
@@ -160,7 +165,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300 font-sans" suppressHydrationWarning>
 
       {/* Enhanced Animated Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -187,7 +192,7 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
-            <RoleGuard minLevel={ROLES.KAMIL}>
+            <RoleGuard minLevel={ROLES.ADMIN}>
               <Link href="/admin">
                 <Button
                   variant="default"
@@ -214,6 +219,12 @@ export default async function DashboardPage() {
             <Link href={`/profile/${userProfile?.school_number}`} className="md:hidden">
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400">
                 <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </Link>
+
+            <Link href="/settings">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 group transition-all">
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform duration-300" />
               </Button>
             </Link>
 

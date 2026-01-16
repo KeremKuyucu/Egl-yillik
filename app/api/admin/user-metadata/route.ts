@@ -46,6 +46,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 })
         }
 
+        // Kullanıcının profil bilgilerini de al
+        const { data: userProfile, error: profileError } = await adminClient
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .single()
+
         // Sadece gerekli bilgileri döndür
         return NextResponse.json({
             id: userData.user.id,
@@ -57,6 +64,7 @@ export async function GET(request: NextRequest) {
             user_metadata: userData.user.user_metadata,
             app_metadata: userData.user.app_metadata,
             identities: userData.user.identities,
+            profile: userProfile,
         })
     } catch (e) {
         console.error("Metadata fetch error:", e)

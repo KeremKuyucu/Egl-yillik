@@ -29,9 +29,9 @@ interface RoleGuardProps {
  * </RoleGuard>
  * 
  * @example
- * // Sadece MODERATOR'lar görebilir (ADMIN ve üstü göremez)
- * <RoleGuard exactLevel={ROLES.MODERATOR}>
- *   <ModeratorPanel />
+ * // Sadece ADMIN'ler görebilir (SUPER_ADMIN ve üstü göremez)
+ * <RoleGuard exactLevel={ROLES.ADMIN}>
+ *   <AdminOnlyPanel />
  * </RoleGuard>
  * 
  * @example
@@ -41,8 +41,8 @@ interface RoleGuardProps {
  * </RoleGuard>
  * 
  * @example
- * // MODERATOR ile ADMIN arasındakiler (dahil)
- * <RoleGuard minLevel={ROLES.MODERATOR} maxLevel={ROLES.ADMIN}>
+ * // ADMIN ile SUPER_ADMIN arasındakiler (dahil)
+ * <RoleGuard minLevel={ROLES.ADMIN} maxLevel={ROLES.SUPER_ADMIN}>
  *   <StaffPanel />
  * </RoleGuard>
  * 
@@ -113,7 +113,6 @@ export interface UserRoleInfo {
     level: number
     label: string
     isAdmin: boolean
-    isModerator: boolean
     isSuperAdmin: boolean
     isOwner: boolean
     hasMinLevel: (minLevel: number) => boolean
@@ -129,7 +128,6 @@ export function getUserRoleInfo(level: number): UserRoleInfo {
         level,
         label: roleDetails.label,
         isAdmin: level >= ROLES.ADMIN,
-        isModerator: level >= ROLES.MODERATOR,
         isSuperAdmin: level >= ROLES.SUPER_ADMIN,
         isOwner: level >= ROLES.OWNER,
         hasMinLevel: (minLevel: number) => level >= minLevel,
@@ -165,15 +163,6 @@ export async function SuperAdminGuard({ children, fallback, inverse }: SimpleGua
     )
 }
 
-/** Sadece Moderatör ve üstü */
-export async function ModeratorGuard({ children, fallback, inverse }: SimpleGuardProps) {
-    return (
-        <RoleGuard minLevel={ROLES.MODERATOR} fallback={fallback} inverse={inverse}>
-            {children}
-        </RoleGuard>
-    )
-}
-
 /** Sadece Owner */
 export async function OwnerGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
@@ -187,7 +176,7 @@ export async function OwnerGuard({ children, fallback, inverse }: SimpleGuardPro
 export async function StaffGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
         <RoleGuard
-            minLevel={ROLES.MODERATOR}
+            minLevel={ROLES.ADMIN}
             maxLevel={ROLES.SUPER_ADMIN}
             fallback={fallback}
             inverse={inverse}

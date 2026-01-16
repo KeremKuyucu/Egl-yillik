@@ -413,11 +413,51 @@ export function MetadataButton({ userId, profileData }: MetadataButtonProps) {
                                 <UserCog className="h-4 w-4 text-pink-500" />
                                 Profil Verileri (public.profiles)
                             </h3>
-                            <div className="p-3 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
-                                <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                                    {JSON.stringify(profileData, null, 2)}
-                                </pre>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* UUID */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">UUID</p>
+                                    <p className="text-xs font-mono text-slate-700 dark:text-slate-300 break-all select-all">{profileData.id}</p>
+                                </div>
+                                {/* İsim Soyisim */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">İsim Soyisim</p>
+                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{profileData.first_name} {profileData.last_name}</p>
+                                </div>
+                                {/* Okul No */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">Okul No</p>
+                                    <p className="text-xs font-mono text-slate-700 dark:text-slate-300">{profileData.school_number}</p>
+                                </div>
+                                {/* Sınıf */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">Sınıf</p>
+                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{profileData.class}</p>
+                                </div>
+                                {/* Seviye */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">Seviye</p>
+                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{getLevelInfo(profileData.level).label} ({profileData.level})</p>
+                                </div>
+                                {/* Son Aktif */}
+                                <div className="p-2.5 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                    <p className="text-[10px] font-medium text-pink-600/70 dark:text-pink-400/70 mb-0.5">Veritabanı Son Aktiflik</p>
+                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                        {profileData.last_active ? new Date(profileData.last_active).toLocaleString('tr-TR') : "—"}
+                                    </p>
+                                </div>
                             </div>
+
+                            <details className="group">
+                                <summary className="cursor-pointer text-xs font-medium text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors py-1 select-none">
+                                    Ham Profil JSON (Genişlet)
+                                </summary>
+                                <div className="mt-2 p-3 rounded-lg bg-slate-900 dark:bg-black border border-slate-700">
+                                    <pre className="text-xs font-mono text-pink-300 overflow-x-auto whitespace-pre-wrap">
+                                        {JSON.stringify(profileData, null, 2)}
+                                    </pre>
+                                </div>
+                            </details>
                         </div>
                     )}
 
@@ -443,7 +483,19 @@ export function MetadataButton({ userId, profileData }: MetadataButtonProps) {
                                     {/* Email */}
                                     <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                                         <p className="text-[10px] font-medium text-slate-500 mb-0.5">Email</p>
-                                        <p className="text-xs text-slate-900 dark:text-slate-100 break-all">{authMetadata.email || "—"}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-xs text-slate-900 dark:text-slate-100 break-all">{authMetadata.email || "—"}</p>
+                                            {authMetadata.email_confirmed_at ? (
+                                                <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full">Onaylı</span>
+                                            ) : (
+                                                <span className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-1.5 py-0.5 rounded-full">Onaysız</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Phone */}
+                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Telefon</p>
+                                        <p className="text-xs text-slate-900 dark:text-slate-100">{authMetadata.phone || "—"}</p>
                                     </div>
                                     {/* Last Sign In */}
                                     <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -460,16 +512,35 @@ export function MetadataButton({ userId, profileData }: MetadataButtonProps) {
                                         </p>
                                     </div>
                                     {/* Providers */}
-                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Sağlayıcılar</p>
-                                        <p className="text-xs text-slate-900 dark:text-slate-100">
-                                            {authMetadata.app_metadata?.providers?.join(", ") || "email"}
-                                        </p>
+                                    <div className="col-span-1 sm:col-span-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Kimlik Sağlayıcılar</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {authMetadata.app_metadata?.providers?.map((p: string) => (
+                                                <span key={p} className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-600 uppercase">
+                                                    {p}
+                                                </span>
+                                            )) || "email"}
+                                        </div>
                                     </div>
+                                    {/* User Metadata */}
+                                    {/* Sadece önemli alanları göster */}
+                                    {authMetadata.user_metadata && Object.keys(authMetadata.user_metadata).length > 0 && (
+                                        <div className="col-span-1 sm:col-span-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                            <p className="text-[10px] font-medium text-slate-500 mb-1.5">User Metadata (Özet)</p>
+                                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                                {Object.entries(authMetadata.user_metadata).slice(0, 6).map(([key, val]) => (
+                                                    <div key={key} className="flex flex-col">
+                                                        <span className="text-[10px] text-slate-400">{key}:</span>
+                                                        <span className="truncate" title={String(val)}>{String(val)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <details className="group">
-                                    <summary className="cursor-pointer text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors py-1">
+                                    <summary className="cursor-pointer text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors py-1 select-none">
                                         Ham Auth JSON (Genişlet)
                                     </summary>
                                     <div className="mt-2 p-3 rounded-lg bg-slate-900 dark:bg-black border border-slate-700">

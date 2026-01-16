@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -50,12 +50,19 @@ const getAvatarColor = (name: string) => {
 
 export default function DashboardGrid({ texts }: { texts: Text[] }) {
     const [searchQuery, setSearchQuery] = useState("")
+    const [mounted, setMounted] = useState(false)
+
+    React.useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // Filtreleme
     const filteredTexts = texts.filter((text) => {
         const fullName = `${text.recipient_profile.first_name} ${text.recipient_profile.last_name}`.toLowerCase()
         return fullName.includes(searchQuery.toLowerCase())
     })
+
+    if (!mounted) return <div className="min-h-[400px]" />
 
     if (texts.length === 0) {
         return (

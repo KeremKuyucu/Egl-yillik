@@ -152,12 +152,14 @@ export async function sendReminderEmail(
                                                             </table>
                                                             
                                                             <!-- Progress Bar -->
-                                                            <div style="height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                                                <div style="height: 100%; width: ${stats.completion_percentage}%; background-color: ${textProgressColor}; border-radius: 4px;"></div>
-                                                            </div>
-                                                            <div style="text-align: right; margin-top: 4px;">
-                                                                <span style="font-size: 12px; color: ${textProgressColor}; font-weight: 600;">%${stats.completion_percentage}</span>
-                                                            </div>
+                                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #e2e8f0; border-radius: 10px; margin: 8px 0 4px 0;">
+                                                                <tr>
+                                                                    <td width="${stats.completion_percentage}%" style="background-color: ${textProgressColor}; border-radius: 10px; height: 20px; text-align: center; vertical-align: middle;">
+                                                                        <span style="color: white; font-size: 11px; font-weight: bold; line-height: 20px;">%${stats.completion_percentage}</span>
+                                                                    </td>
+                                                                    <td width="${100 - stats.completion_percentage}%"></td>
+                                                                </tr>
+                                                            </table>
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -198,12 +200,14 @@ export async function sendReminderEmail(
                                                             </table>
                                                             
                                                             <!-- Progress Bar -->
-                                                            <div style="height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                                                <div style="height: 100%; width: ${surveyStats.percentage}%; background-color: ${surveyProgressColor}; border-radius: 4px;"></div>
-                                                            </div>
-                                                            <div style="text-align: right; margin-top: 4px;">
-                                                                <span style="font-size: 12px; color: ${surveyProgressColor}; font-weight: 600;">%${surveyStats.percentage}</span>
-                                                            </div>
+                                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #e2e8f0; border-radius: 10px; margin: 8px 0 4px 0;">
+                                                                <tr>
+                                                                    <td width="${surveyStats.percentage}%" style="background-color: ${surveyProgressColor}; border-radius: 10px; height: 20px; text-align: center; vertical-align: middle;">
+                                                                        <span style="color: white; font-size: 11px; font-weight: bold; line-height: 20px;">%${surveyStats.percentage}</span>
+                                                                    </td>
+                                                                    <td width="${100 - surveyStats.percentage}%"></td>
+                                                                </tr>
+                                                            </table>
                                                         </td>
                                                     </tr>
                                                 </table>
