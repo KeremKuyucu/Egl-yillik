@@ -1,11 +1,15 @@
+Harika, önceki adımda UsersAdminPage tarafında yaptığımız değişiklikle uyumlu hale getirmek için MetadataButton bileşenini güncelliyoruz.
+Yapılan Değişiklikler:
+ * MetadataButtonProps arayüzüne profileData eklendi.
+ * MetadataButton artık hem API'den gelen Auth verilerini (email, giriş geçmişi vb.) hem de prop olarak gelen Profil verilerini (sınıf, numara, vb.) gösteriyor.
+ * Profil verileri için yeni bir görsel alan eklendi.
+İşte güncellenmiş dosya içeriği:
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Select,
     SelectContent,
@@ -33,18 +37,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X } from "lucide-react"
-import { ROLES, getLevelInfo, ROLE_DETAILS, AVAILABLE_LEVELS } from "@/lib/constants"
-import { updateUserLevel, updateUserProfile } from "@/lib/actions"
+import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
+import { getLevelInfo, AVAILABLE_LEVELS } from "@/lib/constants"
+import { updateUserLevel } from "@/lib/actions"
 import { deleteTextAction } from "@/app/actions"
 import { EditUserForm } from "@/components/edit-user-form"
-// DÜZELTME: sonner'dan direkt toast import edilir
 import { toast } from "sonner"
-
-// --------------------------------------------------------
-// 6. EXPORT USERS BUTTON (Excel/CSV İndirme) - KALDIRILDI
-// --------------------------------------------------------
-
 
 // --------------------------------------------------------
 // 7. USER FILTER BAR (Sınıf ve Rol Filtreleme)
@@ -57,7 +55,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    // URL'den mevcut değerleri al
     const currentClass = searchParams.get("class") || "all"
     const currentRole = searchParams.get("role") || "all"
 
@@ -77,7 +74,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
         const params = new URLSearchParams(searchParams.toString())
         params.delete("class")
         params.delete("role")
-        // Arama sorgusunu koru (q)
         router.push(`?${params.toString()}`)
     }
 
@@ -85,7 +81,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
 
     return (
         <div className="flex flex-wrap items-center gap-2">
-            {/* Sınıf Filtresi */}
             <Select
                 value={currentClass}
                 onValueChange={(val) => updateFilter("class", val)}
@@ -104,7 +99,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
                 </SelectContent>
             </Select>
 
-            {/* Rol Filtresi */}
             <Select
                 value={currentRole}
                 onValueChange={(val) => updateFilter("role", val)}
@@ -127,7 +121,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
                 </SelectContent>
             </Select>
 
-            {/* Filtre Temizle */}
             {hasFilters && (
                 <Button
                     variant="ghost"
@@ -247,6 +240,7 @@ interface UserProfile {
     school_number: string
     class: string
     level: number
+    [key: string]: any
 }
 
 interface EditUserButtonProps {
@@ -257,8 +251,6 @@ interface EditUserButtonProps {
 export function EditUserButton({ user, currentUserLevel }: EditUserButtonProps) {
     const [open, setOpen] = useState(false)
 
-    // Form işlemleri artık EditUserForm içinde yapılıyor.
-    // Biz sadece Modal'ı açıp kapatıyoruz.
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -275,10 +267,9 @@ export function EditUserButton({ user, currentUserLevel }: EditUserButtonProps) 
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* Form bileşenini buraya koyuyoruz */}
                 <EditUserForm
                     user={user}
-                    onSuccess={() => setOpen(false)} // İşlem bitince modal kapansın
+                    onSuccess={() => setOpen(false)}
                 />
 
             </DialogContent>
@@ -359,15 +350,17 @@ export function DeleteTextButton({ id }: { id: string }) {
 // --------------------------------------------------------
 interface MetadataButtonProps {
     userId: string
+    profileData?: any // Yeni: Profil verilerini de alıyoruz
 }
 
-export function MetadataButton({ userId }: MetadataButtonProps) {
+export function MetadataButton({ userId, profileData }: MetadataButtonProps) {
     const [open, setOpen] = useState(false)
-    const [metadata, setMetadata] = useState<any>(null)
+    const [authMetadata, setAuthMetadata] = useState<any>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const fetchMetadata = async () => {
+    // Sadece Auth verilerini (email, loglar vs.) çekiyoruz çünkü profil verisi zaten elimizde
+    const fetchAuthMetadata = async () => {
         setLoading(true)
         setError(null)
 
@@ -378,10 +371,10 @@ export function MetadataButton({ userId }: MetadataButtonProps) {
             if (data.error) {
                 setError(data.error)
             } else {
-                setMetadata(data)
+                setAuthMetadata(data)
             }
         } catch (e) {
-            setError("Meta veri alınamadı")
+            setError("Auth verisi alınamadı")
         } finally {
             setLoading(false)
         }
@@ -389,7 +382,9 @@ export function MetadataButton({ userId }: MetadataButtonProps) {
 
     const handleOpen = () => {
         setOpen(true)
-        fetchMetadata()
+        if (!authMetadata) {
+            fetchAuthMetadata()
+        }
     }
 
     return (
@@ -405,93 +400,93 @@ export function MetadataButton({ userId }: MetadataButtonProps) {
                     Meta
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Database className="h-5 w-5 text-purple-600" />
-                        Kullanıcı Meta Verileri
+                        Gelişmiş Veri Görüntüleyici
                     </DialogTitle>
                     <DialogDescription>
-                        Auth ve profil meta verileri
+                        Kullanıcıya ait veritabanı (Profiles) ve kimlik doğrulama (Auth) verileri.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    {loading && (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                <div className="space-y-6">
+                    {/* BÖLÜM 1: PROFIL VERİLERİ (Public) */}
+                    {profileData && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                                <UserCog className="h-4 w-4 text-pink-500" />
+                                Profil Verileri (public.profiles)
+                            </h3>
+                            <div className="p-3 rounded-lg bg-pink-50/50 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30">
+                                <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                                    {JSON.stringify(profileData, null, 2)}
+                                </pre>
+                            </div>
                         </div>
                     )}
 
-                    {error && (
-                        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
-                            {error}
+                    {/* BÖLÜM 2: AUTH VERİLERİ (Private/Admin) */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                                <Shield className="h-4 w-4 text-purple-500" />
+                                Auth Verileri (auth.users)
+                            </h3>
+                            {loading && <Loader2 className="h-3 w-3 animate-spin text-purple-500" />}
                         </div>
-                    )}
 
-                    {metadata && !loading && (
-                        <div className="space-y-4">
-                            {/* User ID */}
-                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <p className="text-xs font-medium text-slate-500 mb-1">User ID</p>
-                                <p className="text-sm font-mono text-slate-900 dark:text-slate-100 break-all">{metadata.id}</p>
+                        {error && (
+                            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs">
+                                {error}
                             </div>
+                        )}
 
-                            {/* Email */}
-                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <p className="text-xs font-medium text-slate-500 mb-1">Email</p>
-                                <p className="text-sm text-slate-900 dark:text-slate-100">{metadata.email || "—"}</p>
-                            </div>
-
-                            {/* Created At */}
-                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <p className="text-xs font-medium text-slate-500 mb-1">Kayıt Tarihi</p>
-                                <p className="text-sm text-slate-900 dark:text-slate-100">
-                                    {metadata.created_at ? new Date(metadata.created_at).toLocaleString('tr-TR') : "—"}
-                                </p>
-                            </div>
-
-                            {/* Last Sign In */}
-                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <p className="text-xs font-medium text-slate-500 mb-1">Son Giriş</p>
-                                <p className="text-sm text-slate-900 dark:text-slate-100">
-                                    {metadata.last_sign_in_at ? new Date(metadata.last_sign_in_at).toLocaleString('tr-TR') : "—"}
-                                </p>
-                            </div>
-
-                            {/* User Metadata */}
-                            {metadata.user_metadata && Object.keys(metadata.user_metadata).length > 0 && (
-                                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2">User Metadata</p>
-                                    <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                                        {JSON.stringify(metadata.user_metadata, null, 2)}
-                                    </pre>
+                        {!loading && authMetadata && (
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* Email */}
+                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Email</p>
+                                        <p className="text-xs text-slate-900 dark:text-slate-100 break-all">{authMetadata.email || "—"}</p>
+                                    </div>
+                                    {/* Last Sign In */}
+                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Son Oturum</p>
+                                        <p className="text-xs text-slate-900 dark:text-slate-100">
+                                            {authMetadata.last_sign_in_at ? new Date(authMetadata.last_sign_in_at).toLocaleString('tr-TR') : "—"}
+                                        </p>
+                                    </div>
+                                    {/* Created At */}
+                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Oluşturulma</p>
+                                        <p className="text-xs text-slate-900 dark:text-slate-100">
+                                            {authMetadata.created_at ? new Date(authMetadata.created_at).toLocaleString('tr-TR') : "—"}
+                                        </p>
+                                    </div>
+                                    {/* Providers */}
+                                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-medium text-slate-500 mb-0.5">Sağlayıcılar</p>
+                                        <p className="text-xs text-slate-900 dark:text-slate-100">
+                                            {authMetadata.app_metadata?.providers?.join(", ") || "email"}
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
 
-                            {/* App Metadata */}
-                            {metadata.app_metadata && Object.keys(metadata.app_metadata).length > 0 && (
-                                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">App Metadata</p>
-                                    <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                                        {JSON.stringify(metadata.app_metadata, null, 2)}
-                                    </pre>
-                                </div>
-                            )}
-
-                            {/* Raw JSON */}
-                            <details className="group">
-                                <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                                    Ham JSON Verisi (Genişlet)
-                                </summary>
-                                <div className="mt-2 p-3 rounded-lg bg-slate-900 dark:bg-black border border-slate-700">
-                                    <pre className="text-xs font-mono text-green-400 overflow-x-auto whitespace-pre-wrap">
-                                        {JSON.stringify(metadata, null, 2)}
-                                    </pre>
-                                </div>
-                            </details>
-                        </div>
-                    )}
+                                <details className="group">
+                                    <summary className="cursor-pointer text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors py-1">
+                                        Ham Auth JSON (Genişlet)
+                                    </summary>
+                                    <div className="mt-2 p-3 rounded-lg bg-slate-900 dark:bg-black border border-slate-700">
+                                        <pre className="text-xs font-mono text-green-400 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify(authMetadata, null, 2)}
+                                        </pre>
+                                    </div>
+                                </details>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <DialogFooter>
@@ -503,3 +498,4 @@ export function MetadataButton({ userId }: MetadataButtonProps) {
         </Dialog>
     )
 }
+
