@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 import { DeleteTextButton, SearchInput } from "@/components/admin-actions"
-import { getFullName, getInitials } from "@/lib/utils"
+import { getFullName, getInitials, cn } from "@/lib/utils"
 import { ROLES, getLevelInfo } from "@/lib/constants"
 import {
   Shield,
@@ -96,7 +96,7 @@ const getRoleBadge = (level: number) => {
   const info = getLevelInfo(level);
   if (level <= ROLES.USER) return null; // Normal kullanıcı için badge gösterme
 
-  const Icon = level >= ROLES.ADMIN ? Shield : (level >= ROLES.MODERATOR ? Star : Sparkles);
+  const Icon = level >= ROLES.SUPER_ADMIN ? Shield : (level >= ROLES.ADMIN ? Star : Sparkles);
   const isOwner = level >= ROLES.OWNER;
 
   return (
@@ -255,7 +255,7 @@ export default async function AdminPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950">
+    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950">
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-300/20 via-transparent to-transparent pointer-events-none" />
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-pink-300/20 via-transparent to-transparent pointer-events-none" />
@@ -286,7 +286,7 @@ export default async function AdminPage({
         </div>
       </header>
 
-      <main className="container mx-auto p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <main className="container mx-auto p-4 sm:p-6 pb-24 sm:pb-32 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
         {/* --- İSTATİSTİKLER --- */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -372,8 +372,8 @@ export default async function AdminPage({
               <CardDescription>Son 14 günün mesajlaşma trafiği</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64 w-full mt-4">
-                <div className="flex h-full items-end gap-2 sm:gap-4 px-2 pb-6">
+              <div className="h-64 w-full mt-4 overflow-x-auto pb-8 invisible-scrollbar">
+                <div className="flex h-full min-w-[600px] lg:min-w-full items-end gap-2 sm:gap-4 px-2 pb-6">
                   {dailyCounts.map((item, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative h-full justify-end">
                       {/* Tooltip */}
@@ -646,28 +646,33 @@ export default async function AdminPage({
                       <Dialog key={text.id}>
                         <DialogTrigger asChild>
                           <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer active:scale-[0.98] transition-transform">
-                            {/* Üst Kısım: Kimden -> Kime */}
-                            <div className="flex justify-between items-start mb-3">
+                            <div className="flex justify-between items-start mb-3 gap-2">
                               {/* Gönderen */}
-                              <div className="flex items-center gap-2">
-                                <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getAvatarColor(authorName)} flex items-center justify-center text-[10px] font-bold text-white shadow`}>
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={cn(
+                                  "shrink-0 h-8 w-8 rounded-full bg-gradient-to-br flex items-center justify-center text-[10px] font-bold text-white shadow",
+                                  getAvatarColor(authorName)
+                                )}>
                                   {authorInitials}
                                 </div>
-                                <div>
-                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{authorName}</p>
-                                  <p className="text-[9px] text-muted-foreground">{author?.class}</p>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{authorName}</p>
+                                  <p className="text-[9px] text-muted-foreground truncate">{author?.class}</p>
                                 </div>
                               </div>
 
-                              <ArrowRight className="h-3 w-3 text-slate-300 mt-2" />
+                              <ArrowRight className="h-3 w-3 text-slate-300 mt-2 shrink-0" />
 
                               {/* Alıcı */}
-                              <div className="flex items-center gap-2 text-right">
-                                <div>
-                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{recipientName}</p>
-                                  <p className="text-[9px] text-muted-foreground">{recipient?.class}</p>
+                              <div className="flex items-center gap-2 text-right min-w-0 flex-1 justify-end">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{recipientName}</p>
+                                  <p className="text-[9px] text-muted-foreground truncate">{recipient?.class}</p>
                                 </div>
-                                <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getAvatarColor(recipientName)} flex items-center justify-center text-[10px] font-bold text-white shadow`}>
+                                <div className={cn(
+                                  "shrink-0 h-8 w-8 rounded-full bg-gradient-to-br flex items-center justify-center text-[10px] font-bold text-white shadow",
+                                  getAvatarColor(recipientName)
+                                )}>
                                   {recipientInitials}
                                 </div>
                               </div>
@@ -768,6 +773,6 @@ export default async function AdminPage({
           </CardContent>
         </Card>
       </main>
-    </div>
+    </div >
   )
 }
