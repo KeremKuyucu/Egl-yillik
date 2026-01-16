@@ -10,10 +10,11 @@ import { cn } from "@/lib/utils"
 interface AdminOverviewCardsProps {
     usersCount: number
     textsCount: number
+    pendingSuggestionsCount?: number
     currentUserLevel: number
 }
 
-export function AdminOverviewCards({ usersCount, textsCount, currentUserLevel }: AdminOverviewCardsProps) {
+export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsCount = 0, currentUserLevel }: AdminOverviewCardsProps) {
 
     const canAccessTexts = currentUserLevel >= ROLES.ADMIN
 
@@ -178,8 +179,21 @@ export function AdminOverviewCards({ usersCount, textsCount, currentUserLevel }:
 
             {/* Kullanıcı Önerileri Kartı */}
             <Link href="/admin/suggestions" className="group">
-                <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-cyan-500/50">
+                <Card className={cn(
+                    "h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-cyan-500/50",
+                    pendingSuggestionsCount > 0 && "ring-2 ring-red-500 shadow-red-500/20"
+                )}>
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    {pendingSuggestionsCount > 0 && (
+                        <div className="absolute top-4 right-4 flex items-center gap-2 animate-bounce">
+                            <span className="flex h-3 w-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                            <span className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-tighter bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800">
+                                YENİ
+                            </span>
+                        </div>
+                    )}
+
                     <CardHeader>
                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30 mb-4 group-hover:scale-110 transition-transform duration-300">
                             <Sparkles className="h-6 w-6" />
@@ -187,8 +201,15 @@ export function AdminOverviewCards({ usersCount, textsCount, currentUserLevel }:
                         <CardTitle className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                             Kullanıcı Önerileri
                         </CardTitle>
-                        <CardDescription>
-                            Öğrencilerden gelen kategori önerilerini inceleyin ve onaylayın.
+                        <CardDescription className="flex items-center gap-2">
+                            {pendingSuggestionsCount > 0 ? (
+                                <span className="font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-full text-xs flex items-center gap-1 animate-pulse">
+                                    <Sparkles className="h-3 w-3" />
+                                    Yeni bir öneri var!
+                                </span>
+                            ) : (
+                                "Öğrencilerden gelen kategori önerilerini inceleyin."
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

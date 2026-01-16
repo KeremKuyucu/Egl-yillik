@@ -24,6 +24,12 @@ export default async function AdminDashboardPage() {
     const usersCount = stats?.users || 0
     const textsCount = stats?.texts || 0
 
+    // Bekleyen öneri sayısını çek
+    const { count: pendingSuggestionsCount } = await supabase
+        .from("user_category_suggestions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending")
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex flex-col">
             {/* Animated Background */}
@@ -72,6 +78,7 @@ export default async function AdminDashboardPage() {
                 <AdminOverviewCards
                     usersCount={usersCount || 0}
                     textsCount={textsCount || 0}
+                    pendingSuggestionsCount={pendingSuggestionsCount || 0}
                     currentUserLevel={currentProfile.level}
                 />
 
