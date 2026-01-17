@@ -60,8 +60,11 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 dark:text-emerald-500" />
                             </div>
                             <h3 className="text-lg sm:text-xl font-bold mb-2">E-posta Gönderildi!</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-4 px-4">
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-2 px-4">
                                 <span className="font-semibold text-foreground">{email}</span> adresine şifre sıfırlama linki gönderdik.
+                            </p>
+                            <p className="text-xs text-muted-foreground mb-4 px-4">
+                                Eğer e-postayı birkaç dakika içinde alamazsanız, Spam klasörüne bakmayı unutmayın.
                             </p>
                             <Link href="/login" prefetch={false} className="w-full px-4">
                                 <Button variant="outline" className="w-full h-9 text-sm">
