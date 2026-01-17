@@ -53,7 +53,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
                 <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                     {/* Profil bilgileri - Desktop */}
                     <Link href={`/profile/${userProfile?.school_number}`} prefetch={false} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
-                        <span className="font-bold text-sm text-slate-800 dark:text-white truncate max-w-[150px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        <span className="font-bold text-sm text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             {greeting}, {userProfile?.first_name}
                         </span>
                         <span className="text-xs text-slate-500 dark:text-slate-400">
