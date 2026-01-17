@@ -17,6 +17,7 @@ interface AdminOverviewCardsProps {
 export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsCount = 0, currentUserLevel }: AdminOverviewCardsProps) {
 
     const canAccessTexts = currentUserLevel >= ROLES.ADMIN
+    const canAccessMail = currentUserLevel >= ROLES.SUPER_ADMIN
 
     const handleTextsClick = (e: React.MouseEvent) => {
         if (!canAccessTexts) {
@@ -28,7 +29,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
     }
 
     return (
-        <div className="grid md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div className="grid md:grid-cols-2 gap-6 w-full">
             {/* Kullanıcı Yönetimi Kartı */}
             <Link href="/admin/users" prefetch={false} className="group">
                 <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-pink-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-pink-500/50">
@@ -40,11 +41,6 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
                         <CardTitle className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
                             Kullanıcı Yönetimi
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                            <span className="font-medium text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20 px-2 py-0.5 rounded-full text-xs">
-                                {usersCount} Kayıt
-                            </span>
-                        </CardDescription>
                         <CardDescription>
                             Kullanıcıları, yetkileri ve profilleri düzenleyin.
                         </CardDescription>
@@ -97,16 +93,6 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
                         )}>
                             Mesaj Yönetimi
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                            <span className={cn(
-                                "font-medium px-2 py-0.5 rounded-full text-xs",
-                                canAccessTexts
-                                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-                                    : "text-slate-500 bg-slate-200 dark:bg-slate-800"
-                            )}>
-                                {textsCount} Mesaj
-                            </span>
-                        </CardDescription>
                         <CardDescription>
                             {canAccessTexts
                                 ? "Tüm yıllık yazılarını inceleyin, filtreleyin ve yönetin."
@@ -202,14 +188,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
                             Kullanıcı Önerileri
                         </CardTitle>
                         <CardDescription className="flex items-center gap-2">
-                            {pendingSuggestionsCount > 0 ? (
-                                <span className="font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-full text-xs flex items-center gap-1 animate-pulse">
-                                    <Sparkles className="h-3 w-3" />
-                                    Yeni bir öneri var!
-                                </span>
-                            ) : (
-                                "Öğrencilerden gelen kategori önerilerini inceleyin."
-                            )}
+                            Öğrencilerden gelen kategori önerilerini inceleyin.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -222,7 +201,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
 
             {/* Mail Hatırlatma Kartı - Sadece SUPER_ADMIN ve üzeri */}
             {currentUserLevel >= ROLES.SUPER_ADMIN && (
-                <Link href="/admin/reminders" prefetch={false} className="group md:col-span-2">
+                <Link href="/admin/reminders" prefetch={false} className="group">
                     <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-emerald-500/50">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <CardHeader>

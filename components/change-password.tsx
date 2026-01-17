@@ -85,7 +85,7 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
                         </div>
                         <div>
                             <CardTitle className="text-lg">Şifre Belirle</CardTitle>
-                            <CardDescription>Google ile giriş yaptın. Yeni bir şifre belirlemek için e-posta gönder.</CardDescription>
+                            <CardDescription>Hesabında tanımlı bir şifre bulunmuyor. Şifre belirlemek için e-posta gönder.</CardDescription>
                         </div>
                     </div>
                 </CardHeader>

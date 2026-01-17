@@ -33,7 +33,8 @@ export default function SettingsPage() {
         checkUser()
     }, [router, supabase])
 
-    const isGoogleUser = userObj?.app_metadata?.provider === "google"
+    const isLinkedToGoogle = userObj?.identities?.some((i: any) => i.provider === "google")
+    const hasPassword = userObj?.identities?.some((i: any) => i.provider === "email")
 
     if (!mounted || isLoading) {
         return (
@@ -68,7 +69,7 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <h2 className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Güvenlik Ayarları</h2>
-                            {isGoogleUser && (
+                            {isLinkedToGoogle && (
                                 <Badge className="bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900 border-2 gap-1.5 shadow-sm">
                                     <img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="Google" />
                                     Google ile Bağlı
@@ -81,7 +82,7 @@ export default function SettingsPage() {
                         </p>
                     </div>
 
-                    <ChangePassword isGoogleUser={isGoogleUser} />
+                    <ChangePassword isGoogleUser={!hasPassword} />
 
                     <DeleteAccount />
 
