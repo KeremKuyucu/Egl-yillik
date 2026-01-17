@@ -8,13 +8,11 @@ import { ROLES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 interface AdminOverviewCardsProps {
-    usersCount: number
-    textsCount: number
     pendingSuggestionsCount?: number
     currentUserLevel: number
 }
 
-export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsCount = 0, currentUserLevel }: AdminOverviewCardsProps) {
+export function AdminOverviewCards({ pendingSuggestionsCount = 0, currentUserLevel }: AdminOverviewCardsProps) {
 
     const canAccessTexts = currentUserLevel >= ROLES.ADMIN
     const canAccessMail = currentUserLevel >= ROLES.SUPER_ADMIN

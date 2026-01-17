@@ -42,8 +42,8 @@ export default function CollapsibleCategories({ categories }: CollapsibleCategor
                         <div
                             key={item.category.id}
                             className={`relative rounded-xl p-3 border transition-all ${item.count > 0
-                                    ? 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30'
-                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-60'
+                                ? 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30'
+                                : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-60'
                                 }`}
                         >
                             <div className="flex items-center gap-2 mb-1">
@@ -55,8 +55,8 @@ export default function CollapsibleCategories({ categories }: CollapsibleCategor
                                 )}
                             </div>
                             <p className={`text-xs font-medium truncate ${item.count > 0
-                                    ? 'text-purple-700 dark:text-purple-300'
-                                    : 'text-slate-500 dark:text-slate-400'
+                                ? 'text-purple-700 dark:text-purple-300'
+                                : 'text-slate-500 dark:text-slate-400'
                                 }`}>
                                 {item.category.title}
                             </p>

@@ -12,17 +12,13 @@ export default async function AdminDashboardPage() {
     const { profile: currentProfile } = await requireAdmin();
 
     // Paralel veri çekme
-    const [statsResult, pendingSuggestionsResult] = await Promise.all([
-        supabase.rpc('get_admin_dashboard_stats'),
+    const [pendingSuggestionsResult] = await Promise.all([
         supabase
             .from("user_category_suggestions")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending")
     ])
 
-    const stats = statsResult.data
-    const usersCount = stats?.users || 0
-    const textsCount = stats?.texts || 0
     const pendingSuggestionsCount = pendingSuggestionsResult.count || 0
 
     const handleSignOut = async () => {
@@ -52,8 +48,6 @@ export default async function AdminDashboardPage() {
 
                 <div className="w-full max-w-5xl mx-auto">
                     <AdminOverviewCards
-                        usersCount={usersCount}
-                        textsCount={textsCount}
                         pendingSuggestionsCount={pendingSuggestionsCount}
                         currentUserLevel={currentProfile.level}
                     />

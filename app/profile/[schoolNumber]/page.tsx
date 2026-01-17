@@ -11,7 +11,6 @@ import Footer from "@/components/footer"
 import {
     ArrowLeft, FileText, Award, Users, Sparkles, Star, Zap, Heart, PenLine, Trophy, BarChart3, Gift, Shield
 } from "lucide-react"
-import CollapsibleCategories from "./collapsible-categories"
 
 const getBadge = (count: number) => {
     if (count >= 30) return { label: "Yıllık Efsanesi", color: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg shadow-purple-500/40", icon: <Star className="h-3 w-3 mr-1" /> }
@@ -31,47 +30,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect("/login")
 
-    // Okul numarasına göre profil bul
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("school_number", schoolNumber)
-        .single()
+    // Tek bir RPC çağrısı ile tüm profil verilerini ve istatistikleri al
+    const { data: stats, error: statsError } = await supabase.rpc('get_profile_page_data', {
+        target_school_number: schoolNumber
+    })
 
-    if (!profile) notFound()
-
-    // Bu kişinin yazdığı anılar
-    const { data: writtenTexts } = await supabase.from("texts").select("id, content").eq("author_id", profile.id)
-
-    // Ona yazılan anı sayısı
-    let receivedCount = 0
-    if (user.id === profile.id) {
-        try {
-            const { data, error } = await supabase.rpc('get_my_received_count')
-            if (!error) receivedCount = data || 0
-        } catch (e) {
-            console.error("Sayaç hatası:", e)
-        }
-    } else {
-        const { count } = await supabase.from("texts").select("id", { count: 'exact', head: true }).eq("recipient_id", profile.id)
-        receivedCount = count || 0
+    // Profil bulunamazsa 404
+    if (statsError || !stats || !stats.profile) {
+        console.error("Profil yükleme hatası:", statsError)
+        notFound()
     }
 
-    // Anket oylamaları (View üzerinden optimize edilmiş sorgu)
-    const { data: classVoteStats } = await supabase
-        .from("profile_vote_summary")
-        .select("category_id, vote_count")
-        .eq("voted_for_id", profile.id)
-        .eq("voter_class", profile.class)
-
-    const totalVotes = classVoteStats?.reduce((acc, curr) => acc + (curr.vote_count || 0), 0) || 0
-
-    const writtenCount = writtenTexts?.length || 0
+    const { profile, writtenCount = 0, receivedCount = 0, totalVotes = 0 } = stats
     const userBadge = getBadge(writtenCount)
 
     const isOwnProfile = user.id === profile.id
-
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300">
