@@ -1,6 +1,6 @@
 # 📚 EGL Yıllık 2026
 
-Eyüboğlu Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrenciler birbirlerine anılar yazabilir, sınıf anketlerine katılabilir ve mezuniyet gününde tüm hatıraları görebilir.
+Ertuğrulgazi Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrenciler birbirlerine anılar yazabilir, sınıf anketlerine katılabilir ve mezuniyet gününde tüm hatıraları görebilir.
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
