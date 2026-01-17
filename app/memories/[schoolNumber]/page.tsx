@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import Footer from "@/components/footer"
 import { ArrowLeft, Lock, Gift, Clock, Heart, Quote, Trophy } from "lucide-react"
-import CollapsibleCategories from "../../profile/[schoolNumber]/collapsible-categories"
+import CollapsibleCategories from "../../memories/[schoolNumber]/collapsible-categories"
 
 interface MemoriesPageProps {
     params: Promise<{ schoolNumber: string }>
