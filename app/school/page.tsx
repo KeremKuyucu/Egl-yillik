@@ -39,7 +39,7 @@ export default async function SchoolPage({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect("/login")
 
-    const { data: stats, error } = await supabase.rpc('get_all_school_stats')
+    const { data: stats, error } = await supabase.rpc('get_school_data')
 
     if (error) {
         console.error("Error fetching stats:", error)
@@ -78,12 +78,12 @@ export default async function SchoolPage({
                     <div className="flex items-center gap-2 sm:gap-4">
                         <Link href="/dashboard" prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2">
-                                <ArrowLeft className="h-4 w-4" />
+                                <ArrowLeft className="h-4 w-4" suppressHydrationWarning />
                                 <span className="hidden sm:inline">Panoya Dön</span>
                             </Button>
                         </Link>
                         <div className="flex items-center gap-2">
-                            <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                            <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" suppressHydrationWarning />
                             <h1 className="text-lg font-bold font-serif bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
                                 Okul Listesi
                             </h1>
@@ -97,7 +97,7 @@ export default async function SchoolPage({
                 {/* Search Bar */}
                 <div className="mb-12 max-w-lg mx-auto relative">
                     <form className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" suppressHydrationWarning />
                         <Input
                             name="q"
                             defaultValue={q}
@@ -120,7 +120,7 @@ export default async function SchoolPage({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {groupedStudents[className].map((student: any) => (
-                                    <Link href={`/profile/${student.school_number}`} prefetch={false} key={student.user_id}>
+                                    <Link href={`/profile/${student.school_number}`} prefetch={false} key={student.id}>
                                         <div className="group relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-4 h-full flex flex-col">
                                             <div className="flex items-center gap-4 mb-3">
                                                 <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(student.first_name)} flex items-center justify-center text-lg font-bold text-white shadow-md group-hover:scale-110 transition-transform`}>
@@ -141,14 +141,14 @@ export default async function SchoolPage({
                                                 <div>
                                                     <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
                                                     <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
-                                                        <PenLine className="h-3 w-3 text-indigo-500" />
+                                                        <PenLine className="h-3 w-3 text-indigo-500" suppressHydrationWarning />
                                                         {student.total_texts_written}
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazılan</p>
                                                     <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
-                                                        <Users className="h-3 w-3 text-emerald-500" />
+                                                        <Users className="h-3 w-3 text-emerald-500" suppressHydrationWarning />
                                                         {student.total_texts_received}
                                                     </div>
                                                 </div>
@@ -163,7 +163,7 @@ export default async function SchoolPage({
                     {sortedClasses.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
-                                <Search className="h-8 w-8 text-slate-400" />
+                                <Search className="h-8 w-8 text-slate-400" suppressHydrationWarning />
                             </div>
                             <h3 className="text-lg font-medium text-slate-900 dark:text-white">Sonuç bulunamadı</h3>
                             <p className="text-slate-500 max-w-xs mx-auto mt-2">Aradığınız kriterlere uygun öğrenci bulunamadı. Lütfen kontrol edip tekrar deneyin.</p>

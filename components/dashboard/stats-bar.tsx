@@ -20,7 +20,7 @@ export default function StatsBar({
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-indigo-200/50 dark:border-slate-700/50 p-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
-                        <PenLine className="h-5 w-5" />
+                        <PenLine className="h-5 w-5" suppressHydrationWarning />
                     </div>
                     <div>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white">{textsCount}</p>
@@ -32,7 +32,7 @@ export default function StatsBar({
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-emerald-200/50 dark:border-slate-700/50 p-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl text-white shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
-                        <MessageCircle className="h-5 w-5" />
+                        <MessageCircle className="h-5 w-5" suppressHydrationWarning />
                     </div>
                     <div>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalWords}</p>
@@ -44,7 +44,7 @@ export default function StatsBar({
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-purple-200/50 dark:border-slate-700/50 p-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
-                        <Vote className="h-5 w-5" />
+                        <Vote className="h-5 w-5" suppressHydrationWarning />
                     </div>
                     <div>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white">{votedCount}/{totalCategories}</p>
@@ -56,7 +56,7 @@ export default function StatsBar({
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl border border-amber-200/50 dark:border-slate-700/50 p-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl text-white shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="h-5 w-5" />
+                        <TrendingUp className="h-5 w-5" suppressHydrationWarning />
                     </div>
                     <div>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white">%{progressPercentage}</p>

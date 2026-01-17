@@ -25,14 +25,15 @@ export default function CollapsibleCategories({ categories }: CollapsibleCategor
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                suppressHydrationWarning
             >
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Tüm Kategoriler ({categories.length})
                 </span>
                 {isOpen ? (
-                    <ChevronUp className="h-4 w-4 text-slate-500" />
+                    <ChevronUp className="h-4 w-4 text-slate-500" suppressHydrationWarning />
                 ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                    <ChevronDown className="h-4 w-4 text-slate-500" suppressHydrationWarning />
                 )}
             </button>
 

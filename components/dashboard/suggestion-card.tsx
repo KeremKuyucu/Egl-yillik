@@ -25,7 +25,7 @@ export default function SuggestionCard({ classmates, writtenRecipientIds }: Sugg
 
                 <div className="relative p-6 flex flex-col items-center justify-center text-center z-10">
                     <div className="bg-emerald-100 dark:bg-emerald-900/50 p-4 rounded-2xl mb-4 text-emerald-600 dark:text-emerald-400 shadow-lg">
-                        <CheckCircle className="h-7 w-7" />
+                        <CheckCircle className="h-7 w-7" suppressHydrationWarning />
                     </div>
                     <p className="text-base font-bold text-emerald-800 dark:text-emerald-200">Tebrikler! 🎉</p>
                     <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2 font-medium">Sınıfı tamamladın!</p>
@@ -43,7 +43,7 @@ export default function SuggestionCard({ classmates, writtenRecipientIds }: Sugg
             <div className="relative p-6 z-10">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-600 dark:text-amber-400 shadow-md">
-                        <Sparkles className="h-5 w-5 animate-pulse" />
+                        <Sparkles className="h-5 w-5 animate-pulse" suppressHydrationWarning />
                     </div>
                     <h3 className="text-base font-bold text-amber-900 dark:text-amber-100">
                         Sıradaki: {suggestedClassmate.first_name}
@@ -57,7 +57,7 @@ export default function SuggestionCard({ classmates, writtenRecipientIds }: Sugg
                         size="sm"
                         className="w-full h-10 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 border-0 transition-all hover:scale-[1.02]"
                     >
-                        <UserPlus className="mr-2 h-4 w-4" />
+                        <UserPlus className="mr-2 h-4 w-4" suppressHydrationWarning />
                         Yazmaya Başla
                     </Button>
                 </Link>

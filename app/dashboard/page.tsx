@@ -41,22 +41,22 @@ const getBadge = (count: number) => {
   if (count >= 30) return {
     label: "Yıllık Efsanesi",
     color: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg shadow-purple-500/40",
-    icon: <Star className="h-3 w-3 mr-1" />
+    icon: <Star className="h-3 w-3 mr-1" suppressHydrationWarning />
   }
   if (count >= 15) return {
     label: "Hatıra Mimarı",
     color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-amber-500/40",
-    icon: <Zap className="h-3 w-3 mr-1" />
+    icon: <Zap className="h-3 w-3 mr-1" suppressHydrationWarning />
   }
   if (count >= 5) return {
     label: "Anı Yazarı",
     color: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/40",
-    icon: <Heart className="h-3 w-3 mr-1" />
+    icon: <Heart className="h-3 w-3 mr-1" suppressHydrationWarning />
   }
   return {
     label: "Yeni Üye",
     color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-md",
-    icon: <Sparkles className="h-3 w-3 mr-1" />
+    icon: <Sparkles className="h-3 w-3 mr-1" suppressHydrationWarning />
   }
 }
 

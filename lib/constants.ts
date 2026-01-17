@@ -46,6 +46,3 @@ export const AVAILABLE_LEVELS = [
     { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label },
     { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
 ] as const;
-
-// İstanbul saat dilimi sabiti
-export const ISTANBUL_TIMEZONE = 'Europe/Istanbul';

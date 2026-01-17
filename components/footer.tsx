@@ -44,7 +44,7 @@ const Footer = () => {
                             </p>
                         </div>
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 group-hover:scale-110 transition-all duration-300">
-                            <Github className="h-4 w-4 fill-white" />
+                            <Github className="h-4 w-4 fill-white" suppressHydrationWarning />
                         </div>
                     </Link>
                 </div>
@@ -67,12 +67,12 @@ const Footer = () => {
                                 prefetch={false}
                                 className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                             >
-                                <Github className="h-3 w-3" />
+                                <Github className="h-3 w-3" suppressHydrationWarning />
                                 Kaynak Kodu
                             </Link>
                             <span className="hidden sm:inline">•</span>
                             <span className="flex items-center gap-1.5">
-                                <Heart className="h-3 w-3 text-red-500" />
+                                <Heart className="h-3 w-3 text-red-500" suppressHydrationWarning />
                                 Sevgiyle Yapıldı
                             </span>
                         </div>

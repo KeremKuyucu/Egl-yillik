@@ -42,7 +42,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
                                 size="sm"
                                 className="h-7 px-2 sm:h-8 sm:px-3 border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 shadow-sm"
                             >
-                                <Shield className="h-3.5 w-3.5 sm:mr-1.5" />
+                                <Shield className="h-3.5 w-3.5 sm:mr-1.5" suppressHydrationWarning />
                                 <span className="hidden sm:inline">Admin</span>
                             </Button>
                         </Link>
@@ -70,7 +70,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
 
                     <Link href="/settings" prefetch={false}>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200" title="Ayarlar">
-                            <Settings className="h-4 w-4" />
+                            <Settings className="h-4 w-4" suppressHydrationWarning />
                         </Button>
                     </Link>
                     <ModeToggle />
@@ -81,7 +81,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
                             className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
                             title="Çıkış Yap"
                         >
-                            <LogOut className="h-4 w-4" />
+                            <LogOut className="h-4 w-4" suppressHydrationWarning />
                         </Button>
                     </form>
                 </div>

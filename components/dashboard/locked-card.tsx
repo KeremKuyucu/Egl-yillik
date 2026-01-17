@@ -10,13 +10,13 @@ export default function LockedCard({ receivedCount }: LockedCardProps) {
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 dark:from-black dark:via-indigo-950 dark:to-purple-950"></div>
 
             <div className="absolute -right-8 -bottom-8 text-white/5 group-hover:text-white/10 transition-all duration-500">
-                <Lock size={120} className="group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500" />
+                <Lock size={120} className="group-hover:rotate-12 group-hover:scale-110 transition-transform duration-500" suppressHydrationWarning />
             </div>
 
             <div className="relative z-10 p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-400/30">
-                        <ShieldAlert className="h-4 w-4 text-amber-400 animate-pulse" />
+                        <ShieldAlert className="h-4 w-4 text-amber-400 animate-pulse" suppressHydrationWarning />
                         <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider">Gizli Kasa</h3>
                     </div>
                 </div>
@@ -25,7 +25,7 @@ export default function LockedCard({ receivedCount }: LockedCardProps) {
                     <span className="text-base text-slate-200 font-medium mb-2">kişi senin için anı yazdı.</span>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/40 backdrop-blur-sm border border-amber-500/20 mt-4 shadow-lg">
-                    <Lock className="h-4 w-4 text-amber-400 animate-pulse" />
+                    <Lock className="h-4 w-4 text-amber-400 animate-pulse" suppressHydrationWarning />
                     <p className="text-sm text-slate-200 leading-relaxed font-medium">
                         Mezuniyet günü kilitler açılacak!
                     </p>
