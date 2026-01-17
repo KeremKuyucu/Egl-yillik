@@ -76,10 +76,9 @@ export default async function AdminSurveysPage() {
             }
         })
 
-        // Sırala ve ilk 5'i al
+        // Sırala ve tüm sonuçları göster
         const topVoted = Object.values(personVoteCounts)
             .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
 
         return {
             category,
@@ -99,7 +98,7 @@ export default async function AdminSurveysPage() {
             <header className="border-b border-white/20 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin">
+                        <Link href="/admin" prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="hidden sm:inline">Admin Panel</span>
@@ -154,7 +153,7 @@ export default async function AdminSurveysPage() {
                 </div>
 
                 {/* Kategori Sonuçları */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {categoryResults.map(({ category, totalVotes, topVoted }) => (
                         <div
                             key={category.id}
@@ -200,7 +199,7 @@ export default async function AdminSurveysPage() {
                                                     </div>
 
                                                     {/* Avatar */}
-                                                    <Link href={`/profile/${item.profile.school_number}`}>
+                                                    <Link href={`/profile/${item.profile.school_number}`} prefetch={false}>
                                                         <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${getColorFromName(item.profile.first_name)} hover:scale-105 transition-transform`}>
                                                             {getInitials(item.profile.first_name, item.profile.last_name)}
                                                         </div>
@@ -208,7 +207,7 @@ export default async function AdminSurveysPage() {
 
                                                     {/* İsim */}
                                                     <div className="flex-1 min-w-0">
-                                                        <Link href={`/profile/${item.profile.school_number}`} className="hover:text-purple-600 transition-colors">
+                                                        <Link href={`/profile/${item.profile.school_number}`} prefetch={false} className="hover:text-purple-600 transition-colors">
                                                             <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                                                                 {getFullName(item.profile.first_name, item.profile.last_name)}
                                                             </p>

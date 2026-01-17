@@ -141,7 +141,7 @@ export default function SignUpPage() {
             </span>
           </CardDescription>
           <div className="pt-4">
-            <Link href="/login">
+            <Link href="/login" prefetch={false}>
               <Button variant="outline" className="w-full">Giriş Sayfasına Dön</Button>
             </Link>
           </div>
@@ -341,7 +341,7 @@ export default function SignUpPage() {
           <CardFooter className="bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/30 dark:to-emerald-950/30 border-t p-3 justify-center">
             <div className="text-xs sm:text-sm text-muted-foreground">
               Hesabınız var mı?{" "}
-              <Link href="/login" className="font-semibold text-green-600 hover:text-green-700 underline underline-offset-2">
+              <Link href="/login" prefetch={false} className="font-semibold text-green-600 hover:text-green-700 underline underline-offset-2">
                 Giriş Yap
               </Link>
             </div>

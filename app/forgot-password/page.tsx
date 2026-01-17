@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
                             <p className="text-xs sm:text-sm text-muted-foreground mb-4 px-4">
                                 <span className="font-semibold text-foreground">{email}</span> adresine şifre sıfırlama linki gönderdik.
                             </p>
-                            <Link href="/login" className="w-full px-4">
+                            <Link href="/login" prefetch={false} className="w-full px-4">
                                 <Button variant="outline" className="w-full h-9 text-sm">
                                     Giriş Sayfasına Dön
                                 </Button>
@@ -122,6 +122,7 @@ export default function ForgotPasswordPage() {
                             <CardFooter className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/30 dark:to-orange-950/30 border-t p-3 justify-center">
                                 <Link
                                     href="/login"
+                                    prefetch={false}
                                     className="flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground font-medium"
                                 >
                                     <ArrowLeft className="mr-2 h-3.5 w-3.5" />

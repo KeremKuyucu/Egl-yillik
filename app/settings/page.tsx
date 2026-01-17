@@ -49,7 +49,7 @@ export default function SettingsPage() {
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard">
+                        <Link href="/dashboard" prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="hidden sm:inline">Geri Dön</span>

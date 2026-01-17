@@ -238,7 +238,7 @@ export default async function UsersAdminPage({
                                     </p>
                                 </div>
                             </div>
-                            <Link href="/admin">
+                            <Link href="/admin" prefetch={false}>
                                 <Button variant="outline" className="gap-2">
                                     <LayoutDashboard className="h-4 w-4" />
                                     Yönetim Paneli

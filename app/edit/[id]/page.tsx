@@ -77,7 +77,7 @@ export default async function EditTextPage({
           </div>
 
           {/* Mobile Action Button */}
-          <Link href="/dashboard">
+          <Link href="/dashboard" prefetch={false}>
             <Button
               variant="ghost"
               size="sm"

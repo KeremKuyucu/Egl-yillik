@@ -48,7 +48,7 @@ export default async function AddCustomPage() {
             {/* Header */}
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-                    <Link href="/surveys">
+                    <Link href="/surveys" prefetch={false}>
                         <Button variant="ghost" size="sm" className="gap-2">
                             <ArrowLeft className="h-4 w-4" />
                             <span className="hidden sm:inline">Anketler</span>

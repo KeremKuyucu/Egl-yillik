@@ -56,7 +56,7 @@ export default async function SurveysPage() {
             {/* Header */}
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-                    <Link href="/dashboard">
+                    <Link href="/dashboard" prefetch={false}>
                         <Button variant="ghost" size="sm" className="gap-2">
                             <ArrowLeft className="h-4 w-4" />
                             <span className="hidden sm:inline">Dashboard</span>
@@ -131,6 +131,7 @@ export default async function SurveysPage() {
                             <Link
                                 key={category.id}
                                 href={`/surveys/${category.id}`}
+                                prefetch={false}
                                 className="group"
                             >
                                 <div className={`relative overflow-hidden rounded-2xl border transition-all duration-300 ${isVoted
@@ -169,7 +170,7 @@ export default async function SurveysPage() {
                     })}
 
                     {/* Kendin Ekle Kartı */}
-                    <Link href="/surveys/add-custom" className="group">
+                    <Link href="/surveys/add-custom" prefetch={false} className="group">
                         <div className="relative overflow-hidden rounded-2xl border border-dashed border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-100/50 dark:hover:bg-purple-950/40 hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-300 shadow-lg backdrop-blur-xl p-5 h-full min-h-[160px] flex flex-col items-center justify-center text-center">
 
                             {/* Arka Plan Animasyonu */}

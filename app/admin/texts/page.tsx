@@ -242,6 +242,7 @@ export default async function AdminPage({
     return (
       <Link
         href={`/admin/texts?${newParams.toString()}`}
+        prefetch={false}
         className={`flex items-center gap-1 hover:text-foreground transition-all duration-300 ${isActive ? "text-foreground font-bold" : "text-muted-foreground"}`}
       >
         {label}
@@ -277,7 +278,7 @@ export default async function AdminPage({
               </p>
             </div>
           </div>
-          <Link href="/admin">
+          <Link href="/admin" prefetch={false}>
             <Button variant="outline" size="sm" className="border-indigo-200/50 bg-white/50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-all duration-300 backdrop-blur-sm">
               <LayoutDashboard className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Yönetim Paneli</span>
@@ -432,17 +433,17 @@ export default async function AdminPage({
                     <DropdownMenuLabel>Zaman Filtresi</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/texts?filter=all&q=${searchQuery}`} className="w-full cursor-pointer">
+                      <Link href={`/admin/texts?filter=all&q=${searchQuery}`} prefetch={false} className="w-full cursor-pointer">
                         <span className={filterTime === 'all' ? 'font-bold text-indigo-600' : ''}>Tüm Zamanlar</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/texts?filter=today&q=${searchQuery}`} className="w-full cursor-pointer">
+                      <Link href={`/admin/texts?filter=today&q=${searchQuery}`} prefetch={false} className="w-full cursor-pointer">
                         <span className={filterTime === 'today' ? 'font-bold text-indigo-600' : ''}>Bugün Yazılanlar</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/admin/texts?filter=week&q=${searchQuery}`} className="w-full cursor-pointer">
+                      <Link href={`/admin/texts?filter=week&q=${searchQuery}`} prefetch={false} className="w-full cursor-pointer">
                         <span className={filterTime === 'week' ? 'font-bold text-indigo-600' : ''}>Bu Hafta Yazılanlar</span>
                       </Link>
                     </DropdownMenuItem>
@@ -489,7 +490,7 @@ export default async function AdminPage({
                           <TableRow key={text.id} className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors">
                             {/* GÖNDEREN */}
                             <TableCell className="pl-6 py-4">
-                              <Link href={`/admin/users?q=${authorName}`} className="group/link flex items-center gap-3 w-fit">
+                              <Link href={`/admin/users?q=${authorName}`} prefetch={false} className="group/link flex items-center gap-3 w-fit">
                                 <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${getAvatarColor(authorName)} flex items-center justify-center text-xs font-bold text-white shadow-md group-hover/link:scale-110 transition-transform`}>
                                   {authorInitials}
                                 </div>
@@ -514,7 +515,7 @@ export default async function AdminPage({
 
                             {/* ALICI */}
                             <TableCell>
-                              <Link href={`/admin/users?q=${recipientName}`} className="group/link flex items-center gap-3 w-fit">
+                              <Link href={`/admin/users?q=${recipientName}`} prefetch={false} className="group/link flex items-center gap-3 w-fit">
                                 <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${getAvatarColor(recipientName)} flex items-center justify-center text-xs font-bold text-white shadow-md group-hover/link:scale-110 transition-transform`}>
                                   {recipientInitials}
                                 </div>

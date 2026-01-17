@@ -95,7 +95,7 @@ export default async function NewTextPage({
             </span>
           </div>
 
-          <Link href="/dashboard">
+          <Link href="/dashboard" prefetch={false}>
             <Button
               variant="ghost"
               size="sm"

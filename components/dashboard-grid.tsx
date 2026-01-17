@@ -74,7 +74,7 @@ export default function DashboardGrid({ texts }: { texts: Text[] }) {
                 <p className="text-sm text-muted-foreground mb-8 max-w-[280px]">
                     Ertuğrulgazi Lisesi hatıralarını ölümsüzleştirmek için ilk adımı at.
                 </p>
-                <Link href="/new">
+                <Link href="/new" prefetch={false}>
                     <Button variant="outline" className="border-border hover:bg-card hover:text-primary">
                         İlk Anını Paylaş
                     </Button>
@@ -114,13 +114,13 @@ export default function DashboardGrid({ texts }: { texts: Text[] }) {
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
                                 <CardHeader className="pb-3 pt-5 px-5 flex flex-row items-center gap-3 space-y-0">
-                                    <Link href={`/profile/${text.recipient_profile.school_number}`} className="hover:opacity-80 transition-opacity">
+                                    <Link href={`/profile/${text.recipient_profile.school_number}`} prefetch={false} className="hover:opacity-80 transition-opacity">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-inner ring-2 ring-background ${avatarColorClass}`}>
                                             {initials}
                                         </div>
                                     </Link>
                                     <div className="flex-1 overflow-hidden">
-                                        <Link href={`/profile/${text.recipient_profile.school_number}`} className="hover:text-primary transition-colors">
+                                        <Link href={`/profile/${text.recipient_profile.school_number}`} prefetch={false} className="hover:text-primary transition-colors">
                                             <h4 className="font-bold text-card-foreground truncate text-sm">
                                                 {fullName}
                                             </h4>
@@ -149,7 +149,7 @@ export default function DashboardGrid({ texts }: { texts: Text[] }) {
                                     <span className="text-[10px] text-muted-foreground font-medium flex items-center">
                                         {new Date(text.updated_at).toLocaleDateString("tr-TR", { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
-                                    <Link href={`/edit/${text.id}`}>
+                                    <Link href={`/edit/${text.id}`} prefetch={false}>
                                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:text-primary hover:bg-background group-hover:shadow-sm group-hover:pr-1 transition-all">
                                             Düzenle
                                             <ChevronRight className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />

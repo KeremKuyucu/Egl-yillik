@@ -76,7 +76,7 @@ export default async function SchoolPage({
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-2 sm:gap-4">
-                        <Link href="/dashboard">
+                        <Link href="/dashboard" prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="hidden sm:inline">Panoya Dön</span>
@@ -120,7 +120,7 @@ export default async function SchoolPage({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {groupedStudents[className].map((student: any) => (
-                                    <Link href={`/profile/${student.school_number}`} key={student.user_id}>
+                                    <Link href={`/profile/${student.school_number}`} prefetch={false} key={student.user_id}>
                                         <div className="group relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-4 h-full flex flex-col">
                                             <div className="flex items-center gap-4 mb-3">
                                                 <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(student.first_name)} flex items-center justify-center text-lg font-bold text-white shadow-md group-hover:scale-110 transition-transform`}>

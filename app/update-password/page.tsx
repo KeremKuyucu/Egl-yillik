@@ -110,12 +110,12 @@ export default function UpdatePasswordPage() {
                                 Bu şifre sıfırlama linki geçersiz veya süresi dolmuş. Lütfen yeni bir şifre sıfırlama isteği gönderin.
                             </p>
                             <div className="flex flex-col gap-2 w-full px-4">
-                                <Link href="/forgot-password" className="w-full">
+                                <Link href="/forgot-password" prefetch={false} className="w-full">
                                     <Button className="w-full h-9 text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600">
                                         Yeni Link İste
                                     </Button>
                                 </Link>
-                                <Link href="/login" className="w-full">
+                                <Link href="/login" prefetch={false} className="w-full">
                                     <Button variant="outline" className="w-full h-9 text-sm">
                                         Giriş Sayfasına Dön
                                     </Button>
@@ -263,6 +263,7 @@ export default function UpdatePasswordPage() {
                             <CardFooter className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/30 dark:to-teal-950/30 border-t p-3 justify-center">
                                 <Link
                                     href="/dashboard"
+                                    prefetch={false}
                                     className="text-xs sm:text-sm text-muted-foreground hover:text-foreground font-medium"
                                 >
                                     Dashboard'a Git

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -43,14 +44,11 @@ export default function RootLayout({
     <html lang="tr" suppressHydrationWarning>
       <body
         className={cn(
-          // 2. Değişiklik: bg-slate-50 yerine bg-background ve text-foreground
-          // Bu sayede sistem koyu moddaysa siyah, açık moddaysa beyaz olur.
           "min-h-screen bg-background text-foreground font-sans antialiased",
           geistSans.variable,
           geistMono.variable
         )}
       >
-        {/* 3. Ekleme: Tüm içeriği ThemeProvider ile sarmalıyoruz */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -60,6 +58,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>

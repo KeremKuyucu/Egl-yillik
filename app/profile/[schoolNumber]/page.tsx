@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ModeToggle } from "@/components/mode-toggle"
 import Footer from "@/components/footer"
 import {
-    ArrowLeft, FileText, Award, Users, Sparkles, Clock, Star, Zap, Heart, PenLine, Trophy, BarChart3, Lock, Gift, Shield
+    ArrowLeft, FileText, Award, Users, Sparkles, Star, Zap, Heart, PenLine, Trophy, BarChart3, Gift, Shield
 } from "lucide-react"
 import CollapsibleCategories from "./collapsible-categories"
 
@@ -71,11 +71,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     const isOwnProfile = user.id === profile.id
 
-    // Anıların açılacağı tarih (Mezuniyet günü: 26 Haziran 2026)
-    const unlockDate = new Date(2026, 5, 26) // Ay 0-indexed (5 = Haziran)
-    const now = new Date()
-    const isUnlocked = now >= unlockDate
-    const daysUntilUnlock = Math.max(0, Math.ceil((unlockDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground transition-colors duration-300">
@@ -86,7 +82,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-                    <Link href="/dashboard"><Button variant="ghost" size="sm" className="gap-2"><ArrowLeft className="h-4 w-4" /><span className="hidden sm:inline">Geri Dön</span></Button></Link>
+                    <Link href="/dashboard" prefetch={false}><Button variant="ghost" size="sm" className="gap-2"><ArrowLeft className="h-4 w-4" /><span className="hidden sm:inline">Geri Dön</span></Button></Link>
                     <div className="flex items-center gap-2">
                         <img src="/image.png" className="h-7 w-7 sm:h-9 sm:w-9" alt="Logo" />
                         <span className="text-lg font-bold font-serif bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">Profil</span>
@@ -136,7 +132,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                 </div>
 
                                 {!isOwnProfile && (
-                                    <Link href={`/new?recipientId=${profile.id}`}>
+                                    <Link href={`/new?recipientId=${profile.id}`} prefetch={false}>
                                         <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-purple-500/20">
                                             <PenLine className="mr-2 h-4 w-4" />Anı Yaz
                                         </Button>
@@ -171,37 +167,30 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                         </div>
                     </div>
 
-                    {/* Mezuniyet Mesajı ve Link */}
-                    <div className="rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-8 text-center">
-                        <div className="inline-flex p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mb-4">
-                            <Lock className="h-8 w-8" />
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                            Detaylı Bilgiler Kilitli
-                        </h3>
-                        <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-                            Detaylı bilgiler ve anket sonuçları mezuniyet gününde ({unlockDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}) açılacak.
-                        </p>
+                    {/* Anılar ve Sonuçlar */}
+                    {isOwnProfile && (
+                        <div className="rounded-2xl border border-indigo-200/50 dark:border-indigo-700/50 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/50 dark:to-purple-950/50 backdrop-blur-sm p-8 text-center">
+                            <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 text-indigo-600 dark:text-indigo-400 mb-4">
+                                <Gift className="h-8 w-8" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                Sana Yazılan Anılar
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                                Arkadaşlarının sana yazdığı anıları ve anket sonuçlarını görüntüle.
+                            </p>
 
-                        {(isUnlocked) && (
-                            <Link href={`/memories/${profile.school_number}`}>
+                            <Link href={`/memories/${profile.school_number}`} prefetch={false}>
                                 <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/20">
                                     <Gift className="mr-2 h-4 w-4" />
                                     Anıları ve Sonuçları Gör
                                 </Button>
                             </Link>
-                        )}
-
-                        {!isUnlocked && (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-medium">
-                                <Clock className="h-3 w-3" />
-                                <span>{daysUntilUnlock} gün kaldı</span>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <div className="text-center mt-8">
-                        <Link href="/surveys">
+                        <Link href="/surveys" prefetch={false}>
                             <Button variant="outline" className="border-slate-200 dark:border-slate-700">
                                 <Award className="mr-2 h-4 w-4" />Anketlere Git
                             </Button>

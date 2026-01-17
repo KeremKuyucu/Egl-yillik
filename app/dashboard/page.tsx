@@ -193,7 +193,7 @@ export default async function DashboardPage() {
 
           <div className="flex items-center gap-1.5 sm:gap-3">
             <RoleGuard minLevel={ROLES.ADMIN}>
-              <Link href="/admin">
+              <Link href="/admin" prefetch={false}>
                 <Button
                   variant="default"
                   size="sm"
@@ -207,7 +207,7 @@ export default async function DashboardPage() {
 
             <ModeToggle />
 
-            <Link href={`/profile/${userProfile?.school_number}`} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
+            <Link href={`/profile/${userProfile?.school_number}`} prefetch={false} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
               <span className="text-sm font-bold leading-none text-slate-800 dark:text-slate-100 truncate max-w-[120px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 {getFullName(userProfile?.first_name, userProfile?.last_name)}
               </span>
@@ -216,13 +216,13 @@ export default async function DashboardPage() {
               </span>
             </Link>
 
-            <Link href={`/profile/${userProfile?.school_number}`} className="md:hidden">
+            <Link href={`/profile/${userProfile?.school_number}`} prefetch={false} className="md:hidden">
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400">
                 <User className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
 
-            <Link href="/settings">
+            <Link href="/settings" prefetch={false}>
               <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 group transition-all">
                 <Settings className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform duration-300" />
               </Button>
@@ -384,7 +384,7 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* 2. Anket Tamamlama Oranı (Alt Alta) */}
-                <Link href="/surveys" className="group block hover:opacity-80 transition-opacity">
+                <Link href="/surveys" prefetch={false} className="group block hover:opacity-80 transition-opacity">
                   <div className="flex justify-between items-end mb-2">
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       <Vote className="h-4 w-4 text-emerald-500" />
@@ -545,7 +545,7 @@ export default async function DashboardPage() {
                       Sence bu kişi kim?
                     </p>
 
-                    <Link href={`/surveys/${featuredSurvey.id}`} className="block">
+                    <Link href={`/surveys/${featuredSurvey.id}`} prefetch={false} className="block">
                       <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 group-hover:scale-[1.02] transition-transform">
                         Seçimini Yap <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -572,7 +572,7 @@ export default async function DashboardPage() {
                   <p className="text-sm text-amber-700 dark:text-amber-300 font-medium mb-5 pl-1">
                     Ona güzel bir anı bırakmaya ne dersin?
                   </p>
-                  <Link href={`/new?recipientId=${suggestedClassmate.id}`}>
+                  <Link href={`/new?recipientId=${suggestedClassmate.id}`} prefetch={false}>
                     <Button
                       size="sm"
                       className="w-full h-10 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 border-0 transition-all hover:scale-[1.02]"
@@ -618,25 +618,25 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <Link href={`/profile/${userProfile?.school_number}`}>
+            <Link href={`/profile/${userProfile?.school_number}`} prefetch={false}>
               <Button variant="outline" className="w-full sm:w-auto border-2 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
                 <User className="mr-2 h-4 w-4" />
                 <span className="font-semibold">Profilim</span>
               </Button>
             </Link>
-            <Link href="/surveys">
+            <Link href="/surveys" prefetch={false}>
               <Button variant="outline" className="w-full sm:w-auto border-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
                 <Award className="mr-2 h-4 w-4" />
                 <span className="font-semibold">Anketler</span>
               </Button>
             </Link>
-            <Link href="/school">
+            <Link href="/school" prefetch={false}>
               <Button variant="outline" className="w-full sm:w-auto border-2 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
                 <Users className="mr-2 h-4 w-4" />
                 <span className="font-semibold">Okul Listesi</span>
               </Button>
             </Link>
-            <Link href="/new">
+            <Link href="/new" prefetch={false}>
               <Button className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 hover:shadow-2xl border-0">
                 <Plus className="mr-2 h-5 w-5" />
                 <span className="font-bold">Yeni Anı Yaz</span>

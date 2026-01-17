@@ -30,7 +30,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
     return (
         <div className="grid md:grid-cols-2 gap-6 w-full max-w-4xl">
             {/* Kullanıcı Yönetimi Kartı */}
-            <Link href="/admin/users" className="group">
+            <Link href="/admin/users" prefetch={false} className="group">
                 <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-pink-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-pink-500/50">
                     <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <CardHeader>
@@ -132,7 +132,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
             </Link>
 
             {/* Anket Sonuçları Kartı */}
-            <Link href="/admin/surveys" className="group">
+            <Link href="/admin/surveys" prefetch={false} className="group">
                 <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-purple-500/50">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <CardHeader>
@@ -155,7 +155,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
             </Link>
 
             {/* Kategori Yönetimi Kartı */}
-            <Link href="/admin/categories" className="group">
+            <Link href="/admin/categories" prefetch={false} className="group">
                 <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-amber-500/50">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <CardHeader>
@@ -178,7 +178,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
             </Link>
 
             {/* Kullanıcı Önerileri Kartı */}
-            <Link href="/admin/suggestions" className="group">
+            <Link href="/admin/suggestions" prefetch={false} className="group">
                 <Card className={cn(
                     "h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-cyan-500/50",
                     pendingSuggestionsCount > 0 && "ring-2 ring-red-500 shadow-red-500/20"
@@ -222,7 +222,7 @@ export function AdminOverviewCards({ usersCount, textsCount, pendingSuggestionsC
 
             {/* Mail Hatırlatma Kartı - Sadece SUPER_ADMIN ve üzeri */}
             {currentUserLevel >= ROLES.SUPER_ADMIN && (
-                <Link href="/admin/reminders" className="group md:col-span-2">
+                <Link href="/admin/reminders" prefetch={false} className="group md:col-span-2">
                     <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-emerald-500/50">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <CardHeader>

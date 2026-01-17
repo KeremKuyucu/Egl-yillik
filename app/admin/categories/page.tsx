@@ -35,7 +35,7 @@ export default async function AdminCategoriesPage() {
             <header className="border-b border-white/20 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl sticky top-0 z-50">
                 <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin">
+                        <Link href="/admin" prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="hidden sm:inline">Admin Panel</span>

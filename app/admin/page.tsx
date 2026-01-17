@@ -55,7 +55,7 @@ export default async function AdminDashboardPage() {
                             </p>
                         </div>
                     </div>
-                    <Link href="/dashboard">
+                    <Link href="/dashboard" prefetch={false}>
                         <Button variant="outline" size="sm" className="gap-2">
                             <LayoutDashboard className="h-4 w-4" />
                             <span className="hidden sm:inline">Öğrenci Görünümü</span>

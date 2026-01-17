@@ -32,6 +32,7 @@ const Footer = () => {
                         href="https://github.com/keremkuyucu"
                         target="_blank"
                         rel="noopener noreferrer"
+                        prefetch={false}
                         className="group flex items-center gap-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300 hover:-translate-y-1"
                     >
                         <div className="text-right">
@@ -63,6 +64,7 @@ const Footer = () => {
                                 href="https://github.com/keremkuyucu/egl-yillik"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                prefetch={false}
                                 className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                             >
                                 <Github className="h-3 w-3" />

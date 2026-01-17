@@ -169,7 +169,7 @@ export default function LoginPage() {
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-sm">Şifre</Label>
-                    <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                    <Link href="/forgot-password" prefetch={false} className="text-xs text-muted-foreground hover:text-primary">
                       Unuttum?
                     </Link>
                   </div>
@@ -252,7 +252,7 @@ export default function LoginPage() {
           <CardFooter className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30 border-t p-3 sm:p-4 justify-center">
             <div className="text-xs sm:text-sm text-muted-foreground">
               Hesabınız yok mu?{" "}
-              <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
+              <Link href="/signup" prefetch={false} className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
                 Kayıt Ol
               </Link>
             </div>

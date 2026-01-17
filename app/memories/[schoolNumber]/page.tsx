@@ -45,7 +45,7 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white flex flex-col">
                 <header className="border-b border-white/10 bg-black/30 backdrop-blur-2xl sticky top-0 z-50">
                     <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-                        <Link href={`/profile/${schoolNumber}`}>
+                        <Link href={`/profile/${schoolNumber}`} prefetch={false}>
                             <Button variant="ghost" size="sm" className="gap-2 text-white/80 hover:text-white hover:bg-white/10">
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="hidden sm:inline">Geri Dön</span>
@@ -85,7 +85,7 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
                             </div>
                         </div>
 
-                        <Link href={`/profile/${schoolNumber}`}>
+                        <Link href={`/profile/${schoolNumber}`} prefetch={false}>
                             <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Profile Dön
@@ -159,7 +159,7 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
 
             <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-                    <Link href={`/profile/${schoolNumber}`}>
+                    <Link href={`/profile/${schoolNumber}`} prefetch={false}>
                         <Button variant="ghost" size="sm" className="gap-2">
                             <ArrowLeft className="h-4 w-4" />
                             <span className="hidden sm:inline">Profile Dön</span>
@@ -242,13 +242,13 @@ export default async function MemoriesPage({ params }: MemoriesPageProps) {
                             <div key={memory.id} className="relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur-xl p-6">
                                 {/* Yazar Bilgisi */}
                                 <div className="flex items-center gap-4 mb-4">
-                                    <Link href={`/profile/${memory.author.school_number}`}>
+                                    <Link href={`/profile/${memory.author.school_number}`} prefetch={false}>
                                         <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg ${getColorFromName(memory.author.first_name)} hover:scale-105 transition-transform`}>
                                             {getInitials(memory.author.first_name, memory.author.last_name)}
                                         </div>
                                     </Link>
                                     <div>
-                                        <Link href={`/profile/${memory.author.school_number}`} className="hover:text-indigo-600 transition-colors">
+                                        <Link href={`/profile/${memory.author.school_number}`} prefetch={false} className="hover:text-indigo-600 transition-colors">
                                             <h3 className="font-bold text-slate-900 dark:text-white">
                                                 {getFullName(memory.author.first_name, memory.author.last_name)}
                                             </h3>
