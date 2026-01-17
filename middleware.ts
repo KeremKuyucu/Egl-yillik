@@ -1,8 +1,35 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr"
+import { NextResponse, type NextRequest } from "next/server"
+
+const publicPaths = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/update-password",
+  "/auth/callback"
+]
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next()
+  const { pathname } = request.nextUrl
+
+  // Static dosyalar
+  if (
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
+    /\.(png|jpg|jpeg|svg|gif|webp)$/.test(pathname)
+  ) {
+    return NextResponse.next()
+  }
+
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p))
+
+  // 🔓 Public sayfa → auth YOK
+  if (isPublicPath) {
+    return NextResponse.next()
+  }
+
+  // 🔒 Protected sayfa
+  const response = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,66 +37,28 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
+        setAll: cookies => {
+          cookies.forEach(c =>
+            response.cookies.set(c.name, c.value, c.options)
+          )
+        }
+      }
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
-
-  // Auth gerektirmeyen sayfalar
-  const publicPaths = [
-    '/login',
-    '/signup',
-    '/forgot-password',
-    '/update-password',
-    '/auth/callback',
-  ]
-
-  const isPublicPath = publicPaths.some((path) =>
-    pathname.startsWith(path)
-  )
-
-  // Root yönlendirme
-  if (pathname === '/') {
+  if (!data.user) {
     const url = request.nextUrl.clone()
-    url.pathname = user ? '/dashboard' : '/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Korumalı sayfa + user yok → login
-  if (!user && !isPublicPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  // Login sayfası + user var → dashboard
-  if (user && pathname === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = "/login"
     return NextResponse.redirect(url)
   }
 
   return response
 }
 
-/**
- * Middleware sadece GEREKEN yerde çalışır
- * - Statikler ❌
- * - Auth sayfaları ❌
- * - favicon ❌
- */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|login|signup|forgot-password|update-password|auth/callback).*)',
-  ],
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)"
+  ]
 }
