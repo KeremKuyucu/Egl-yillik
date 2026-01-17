@@ -22,7 +22,7 @@ export default function LockedCard({ receivedCount }: LockedCardProps) {
                 </div>
                 <div className="flex items-end gap-3 mb-2">
                     <span className="text-5xl font-bold font-serif text-white drop-shadow-2xl">{receivedCount}</span>
-                    <span className="text-base text-slate-200 font-medium mb-2">kişi sana yazdı</span>
+                    <span className="text-base text-slate-200 font-medium mb-2">kişi senin için anı yazdı.</span>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/40 backdrop-blur-sm border border-amber-500/20 mt-4 shadow-lg">
                     <Lock className="h-4 w-4 text-amber-400 animate-pulse" />

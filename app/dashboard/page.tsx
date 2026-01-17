@@ -14,12 +14,27 @@ import LockedCard from "@/components/dashboard/locked-card"
 import QuickActions from "@/components/dashboard/quick-actions"
 import { Heart, Star, Zap, Sparkles } from "lucide-react"
 
-const getGreeting = () => {
-  const hour = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', hour: 'numeric', hour12: false })
-  const hourNum = parseInt(hour, 10)
-  if (hourNum < 12) return "Günaydın"
-  if (hourNum < 18) return "Tünaydın"
-  return "İyi Akşamlar"
+const getDetailedGreeting = (userName: string) => {
+  const timeString = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', hour: 'numeric', hour12: false })
+  const hour = parseInt(timeString, 10)
+
+  const timeMap = [
+    { start: 0, end: 5, text: "İyi Geceler (Hala ayakta mısın?)", icon: "🌙" },
+    { start: 5, end: 12, text: "Günaydın", icon: "☀️" },
+    { start: 12, end: 17, text: "Tünaydın", icon: "🌤️" },
+    { start: 17, end: 21, text: "İyi Akşamlar", icon: "🌇" },
+    { start: 21, end: 24, text: "İyi Geceler", icon: "🌃" }
+  ]
+
+  const match = timeMap.find(t => hour >= t.start && hour < t.end)
+  const greeting = match ? match.text : "Merhaba"
+  const icon = match ? match.icon : "👋"
+
+  return {
+    full: `${greeting}, ${userName}`,
+    short: greeting,
+    icon: icon
+  }
 }
 
 const getBadge = (count: number) => {
@@ -99,6 +114,8 @@ export default async function DashboardPage() {
   const lastText = texts && texts.length > 0 ? texts[0] : null
   const lastTextDate = lastText ? new Date(lastText.updated_at) : null
 
+  const greetingData = getDetailedGreeting(userProfile?.first_name || "")
+
   const handleSignOut = async () => {
     "use server"
     const supabase = await createClient()
@@ -119,7 +136,7 @@ export default async function DashboardPage() {
 
       <DashboardHeader
         userProfile={userProfile}
-        greeting={getGreeting()}
+        greeting={greetingData.short}
         signOut={handleSignOut}
       />
 
@@ -140,7 +157,8 @@ export default async function DashboardPage() {
 
             <ProfileCard
               userProfile={userProfile}
-              greeting={getGreeting()}
+              greeting={greetingData.short}
+              greetingIcon={greetingData.icon}
               userBadge={userBadge}
               totalWords={totalWords}
               requiredWritten={requiredWritten}

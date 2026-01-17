@@ -15,6 +15,7 @@ interface ProfileCardProps {
         class: string
     }
     greeting: string
+    greetingIcon?: string
     userBadge: UserBadge
     totalWords: number
     requiredWritten: number
@@ -30,6 +31,7 @@ interface ProfileCardProps {
 export default function ProfileCard({
     userProfile,
     greeting,
+    greetingIcon,
     userBadge,
     totalWords,
     requiredWritten,
@@ -53,7 +55,7 @@ export default function ProfileCard({
             <div className="relative p-8 pb-6 z-10">
                 <div className="flex items-center justify-between mb-8">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 dark:bg-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-200 text-xs font-medium backdrop-blur-md shadow-sm transition-colors">
-                        <Clock className="w-3.5 h-3.5" />
+                        {greetingIcon ? <span className="text-base leading-none">{greetingIcon}</span> : <Clock className="w-3.5 h-3.5" />}
                         <span>{greeting}</span>
                     </div>
                 </div>
