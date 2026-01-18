@@ -56,7 +56,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     const userBadge = getBadge(writtenCount)
     const isOwnProfile = user.id === profile.id
-    const unlockDate = new Date(2026, 5, 26)
+    
+    // --- GÜNCELLENEN KISIM BAŞLANGICI ---
+    // Statik tarih yerine bugünün tarihine kalan günü ekleyerek hesaplıyoruz
+    const unlockDate = new Date()
+    unlockDate.setDate(unlockDate.getDate() + daysUntilUnlock)
+    // --- GÜNCELLENEN KISIM BİTİŞİ ---
+
     const canViewMemories = isUnlocked
 
     // Toplam anket oyları
@@ -380,3 +386,4 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
     )
 }
+
