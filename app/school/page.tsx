@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import Footer from "@/components/footer"
 import { ModeToggle } from "@/components/mode-toggle"
 import { getFullName, getInitials } from "@/lib/utils"
-import { ArrowLeft, Search, GraduationCap, Trophy, Users, PenLine } from "lucide-react"
+import { ArrowLeft, Search, GraduationCap, Trophy, Users, PenLine, Star } from "lucide-react"
 
 // User tablosu ile aynı renkler
 const avatarColors = [
@@ -64,6 +64,13 @@ export default async function SchoolPage({
         acc[className].push(student)
         return acc
     }, {})
+
+    // Sort students within each class by school_number
+    Object.keys(groupedStudents).forEach(className => {
+        groupedStudents[className].sort((a: any, b: any) =>
+            a.school_number.localeCompare(b.school_number, 'tr', { numeric: true })
+        )
+    })
 
     // Sort classes alphanumeric
     const sortedClasses = Object.keys(groupedStudents).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }))
@@ -137,7 +144,7 @@ export default async function SchoolPage({
                                             </div>
 
                                             {/* Stats */}
-                                            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-2 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
+                                            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
                                                 <div>
                                                     <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
                                                     <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
@@ -150,6 +157,13 @@ export default async function SchoolPage({
                                                     <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
                                                         <Users className="h-3 w-3 text-emerald-500" suppressHydrationWarning />
                                                         {student.total_texts_received}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Oy</p>
+                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
+                                                        <Star className="h-3 w-3 text-amber-500" suppressHydrationWarning />
+                                                        {student.total_votes || 0}
                                                     </div>
                                                 </div>
                                             </div>
