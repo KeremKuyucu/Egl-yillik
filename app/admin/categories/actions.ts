@@ -321,17 +321,15 @@ export async function deleteVotesForCategory(categoryId: string) {
         return { error: "Bu işlem için yetkiniz yok" }
     }
 
-    // Admin client kullan (RLS bypass)
-    const adminClient = createAdminClient()
 
     // Kategoriye ait oy sayısını al
-    const { count } = await adminClient
+    const { count } = await supabase
         .from("survey_votes")
         .select("id", { count: 'exact', head: true })
         .eq("category_id", categoryId)
 
     // Oyları sil - Admin client ile RLS bypass
-    const { error, data } = await adminClient
+    const { error, data } = await supabase
         .from("survey_votes")
         .delete()
         .eq("category_id", categoryId)
