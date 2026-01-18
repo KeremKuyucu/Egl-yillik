@@ -1,9 +1,9 @@
 // app/page.tsx
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 export default async function HomePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
 
   if (data.user) {
