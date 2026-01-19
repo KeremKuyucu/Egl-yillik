@@ -1,191 +1,132 @@
 # 📚 EGL Yıllık 2026
 
-Ertuğrulgazi Lisesi 2026 mezunları için dijital yıllık uygulaması. Öğrenciler birbirlerine anılar yazabilir, sınıf anketlerine katılabilir ve mezuniyet gününde tüm hatıraları görebilir.
+Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıcı dostu dijital yıllık platformu.
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React 19](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Supabase](https://img.shields.io/badge/Supabase-Database-green?logo=supabase)
-![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black?logo=vercel)
+![TailwindCSS v4](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwind-css)
 
 ## ✨ Özellikler
 
-### 👤 Kullanıcı Özellikleri
-- **Anı Yazma**: Sınıf arkadaşlarına kişisel anılar yazma
-- **Dashboard**: İlerleme takibi, istatistikler, geri sayım
-- **Profil Sayfası**: Kişisel istatistikler ve anket başarıları
-- **Hesap Yönetimi**: Şifre değiştirme, Google hesabı entegrasyonu ve hesap silme
-- **Gizli Kasa**: Sana yazılan anılar mezuniyet gününe kadar kilitli
-- **Tema Desteği**: Sistemle uyumlu otomatik karanlık/aydınlık mod ve hydration-safe UI
+### 👤 Kullanıcı Deneyimi
+- **Kişiselleştirilmiş Dashboard**: Günlük selamlamalar, anlık istatistikler ve geri sayım sayaçları.
+- **Profil Sistemi**: Kullanıcıların unvanları (badge) ve aktivite durumları.
+- **Anı Kutusu**: 
+  - Arkadaşlarına anı yazma/düzenleme.
+  - **Gizli Kasa**: Mezuniyet gününe kadar kilitli kalan, size yazılmış anılar.
+- **Oyunlaştırma (Gamification)**: Yazılan anı sayısına göre kazanılan rozetler:
+  - 🌟 **Yıllık Efsanesi** (30+ anı)
+  - ⚡ **Hatıra Mimarı** (15+ anı)
+  - ❤️ **Anı Yazarı** (5+ anı)
 
-### 🗳️ Anket Sistemi
-- **Dinamik Kategoriler**: Admin tarafından yönetilebilir anket kategorileri
-- **Sınıf Bazlı Oylama**: Her sınıf kendi içinde oy kullanır
-- **Özel Seçenek Ekleme**: Kullanıcılar özel seçenek ekleyebilir
-- **Gerçek Zamanlı Sonuçlar**: Canlı oy sayısı ve sıralama
+### 🗳️ Anket & Etkileşim
+- **Sınıf İçi Oylama**: "En komik", "En çalışkan" gibi kategorilerde oylama.
+- **Öneri Sistemi**: Kullanıcıların yeni anket kategorileri önerebilmesi.
+- **Canlı İstatistikler**: Katılım oranları ve anket durumları.
 
-### 🔒 Yetki Sistemi
-| Seviye | Rol | Yetkiler |
-|--------|-----|----------|
-| 0 | User | Yazma, oylama |
-| 50 | Admin | Kullanıcı yönetimi |
-| 100 | Super Admin | Tam yetki, kategori yönetimi |
-| 1000 | Owner | Sistem sahibi |
+### �️ Yönetim & Güvenlik
+- **Rol Tabanlı Erişim Kontrolü (RBAC)**:
+  - **User (0)**: Standart kullanıcı
+  - **Admin (50)**: Düzenleme yetkisi
+  - **Super Admin (100)**: İleri düzey yetkiler
+  - **Owner (1000)**: Tam sistem kontrolü
+- **Güvenlik**:
+  - Supabase Auth entegrasyonu.
+  - Row Level Security (RLS) ile veri güvenliği.
+  - Şifreli veri iletişimi.
+- **Bakım Modu**: Sistem güncellemeleri için özel kilit ekranı.
 
-### 📧 Bildirim Sistemi
-- **E-posta Hatırlatmaları**: Eksik yazısı olanlara otomatik ve manuel e-posta gönderimi
-- **Gelişmiş Şablonlar**: Cihaz uyumlu (Outlook, Gmail vs.) tablo tabanlı HTML e-postalar
-- **İlerleme Takibi**: E-posta içerisinde görsel ilerleme çubukları (progress bar)
-- **Güvenlik Mailleri**: Şifre sıfırlama ve kayıt onaylama mailleri (spam korumalı)
+## 🛠️ Teknoloji Yığını
 
-## 🛠️ Teknoloji Stack
+- **Framework**: Next.js 16 (App Router)
+- **Dil**: TypeScript
+- **UI Kütüphanesi**: React 19, Shadcn/ui, Radix UI
+- **Stil**: Tailwind CSS v4
+- **Veritabanı & Auth**: Supabase
+- **E-posta Servisi**: Resend
+- **Dağıtım**: Vercel
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS, shadcn/ui
-- **Database**: Supabase (PostgreSQL)
-- **Auth**: Supabase Auth
-- **E-posta**: Resend
-- **Deployment**: Vercel
-
-## 📁 Proje Yapısı
+## � Proje Yapısı
 
 ```
 app/
-├── dashboard/          # Ana kullanıcı paneli
-├── new/                # Yeni anı yazma
-├── edit/               # Anı düzenleme
-├── profile/            # Profil sayfaları
-├── surveys/            # Anket sistemi
-│   ├── [categoryId]/   # Kategori detay sayfası
-│   └── add-custom/     # Özel seçenek ekleme
-├── memories/           # Gelen anılar (kilitli)
-├── admin/              # Admin paneli
+├── (auth)/             # Kimlik doğrulama
+│   ├── login/          # Giriş sayfası
+│   ├── signup/         # Kayıt sayfası
+│   ├── forgot-password/# Şifre sıfırlama talebi
+│   └── update-password/# Yeni şifre belirleme
+├── (user)/             # Kullanıcı Arayüzü
+│   ├── dashboard/      # Ana kontrol paneli
+│   ├── profile/        # Profil ve gelen anılar
+│   │   └── [schoolNumber]/ # Kullanıcı detay sayfası
+│   ├── new/            # Yeni anı yazma sayfası
+│   ├── edit/           # Anı düzenleme sayfası
+│   ├── school/         # Okul/Sınıf listesi ve istatistikler
+│   ├── my-texts/       # Yazdığım anılar
+│   ├── surveys/        # Anket sistemi
+│   │   ├── [categoryId]/ # Kategori oy kullanma
+│   │   └── add-custom/   # Özel seçenek ekleme
+│   └── settings/       # Hesap ayarları
+├── admin/              # Yönetim Paneli
 │   ├── users/          # Kullanıcı yönetimi
-│   ├── categories/     # Kategori yönetimi
-│   ├── reminders/      # E-posta hatırlatmaları
-│   └── surveys/        # Anket sonuçları
-├── api/                # API routes
-├── auth/               # Auth callback ve redirect yönetimi
-├── login/              # Giriş sayfası
-├── signup/             # Kayıt sayfası
-├── settings/           # Kullanıcı hesap ayarları
-└── (root pages)        # Ana sayfa ve okul seçimleri
-
-components/             # Yeniden kullanılabilir bileşenler
-lib/                    # Yardımcı fonksiyonlar
-├── supabase/           # Supabase client'ları
-├── constants.ts        # Sabitler ve rol tanımları
-├── utils.ts            # Yardımcı fonksiyonlar
-└── survey-categories.ts# Anket kategori tipleri
+│   ├── texts/          # Tüm anılar ve içerik denetimi
+│   ├── suggestions/    # Kategori önerileri yönetimi
+│   ├── surveys/        # Anket sonuçları ve yönetimi
+│   ├── categories/     # Kategori tanımları
+│   ├── reminders/      # E-posta hatırlatma sistemi
+│   └── settings/       # Sistem ayarları (Dönem, mezuniyet tarihi)
+├── complete-profile/   # İlk giriş profil tamamlama
+├── maintenance/        # Bakım modu sayfası
+├── auth/               # Auth callback handler
+components/             # UI bileşenleri
+lib/                    # Yardımcı fonksiyonlar ve yapılandırmalar
 ```
 
-## 🚀 Kurulum
+## 🚀 Kurulum ve Geliştirme
 
-### Gereksinimler
-- Node.js 18+
-- npm veya pnpm
-- Supabase hesabı
-- Resend hesabı (e-posta için)
+Projenin yerel ortamda çalıştırılması için:
 
-### Adımlar
+1. **Repoyu Klonlayın:**
+   ```bash
+   git clone https://github.com/KeremKuyucu/Egl-yillik.git
+   cd Egl-yillik
+   ```
 
-1. **Repo'yu klonlayın:**
-```bash
-git clone https://github.com/KeremKuyucu/Egl-yillik.git
-cd Egl-yillik
-```
+2. **Bağımlılıkları Yükleyin:**
+   ```bash
+   npm install
+   # veya
+   pnpm install
+   ```
 
-2. **Bağımlılıkları yükleyin:**
-```bash
-npm install
-```
+3. **Çevresel Değişkenleri Ayarlayın:**
+   `.env.local` dosyasını oluşturun ve gerekli anahtarları ekleyin:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   RESEND_API_KEY=your_resend_api_key
+   ...
+   ```
 
-3. **Environment değişkenlerini ayarlayın:**
-```bash
-cp .env.example .env.local
-```
-
-`.env.local` dosyasını düzenleyin:
-```env
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_SUPABASE_URL=
-POSTGRES_DATABASE=
-POSTGRES_HOST=
-POSTGRES_PASSWORD=
-POSTGRES_PRISMA_URL=
-POSTGRES_URL=
-POSTGRES_URL_NON_POOLING=
-POSTGRES_USER=
-SUPABASE_ANON_KEY=
-SUPABASE_JWT_SECRET=
-SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SECRET_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_URL=
-VERCEL_OIDC_TOKEN=
-RESEND_API_KEY=r
-NEXT_PUBLIC_APP_URL=
-```
-
-4. **Supabase tablolarını oluşturun:**
-```bash
-# Migration dosyalarını Supabase SQL Editor'da çalıştırın
-supabase/migrations/001_initial.sql
-supabase/migrations/16.01.2026
-```
-
-5. **Geliştirme sunucusunu başlatın:**
-```bash
-npm run dev
-```
-
-## 📊 Veritabanı Şeması
-
-### Ana Tablolar
-- `profiles` - Kullanıcı profilleri
-- `texts` - Yazılan anılar
-- `survey_categories` - Anket kategorileri
-- `survey_votes` - Kullanıcı oyları
-- `survey_custom_options` - Özel seçenekler
-
-### Önemli RLS Politikaları
-- Kullanıcılar sadece kendi yazdıklarını görebilir
-- Anılar mezuniyet tarihine kadar alıcı tarafından görülemez
-- Oylar sadece aynı sınıftakiler arasında geçerli
-
-## 🔐 Güvenlik
-
-- **Row Level Security (RLS)**: Tüm tablolarda aktif
-- **Server-Side Auth**: Kritik işlemler sunucu tarafında
-- **Admin Client**: RLS bypass için ayrı admin client
-- **Rol Kontrolü**: Her endpoint'te seviye kontrolü
-
-## 📱 Responsive Tasarım
-
-- Mobil öncelikli tasarım
-- Tablet ve masaüstü optimizasyonu
-- Dark mode desteği
-- Modern glassmorphism UI
+4. **Sunucuyu Başlatın:**
+   ```bash
+   npm run dev
+   ```
+   Tarayıcıda `http://localhost:3000` adresine gidin.
 
 ## 🤝 Katkıda Bulunma
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+1. Bu repoyu fork'layın.
+2. Yeni bir feature branch oluşturun (`git checkout -b feature/yenilik`).
+3. Değişikliklerinizi commit'leyin (`git commit -m 'Yeni özellik eklendi'`).
+4. Branch'inizi push'layın (`git push origin feature/yenilik`).
+5. Bir Pull Request oluşturun.
 
-## 📄 Lisans
+##  Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır.
-
-## 👨‍💻 Geliştirici
-
-**Kerem Kuyucu**
-- GitHub: [@KeremKuyucu](https://github.com/KeremKuyucu)
+Bu proje GPL lisansı ile lisanslanmıştır.
 
 ---
-
-<p align="center">
-  Made with ❤️ for Eyüboğlu Lisesi 2026 Mezunları
-</p>
+**Geliştirici**: [Kerem Kuyucu](https://github.com/KeremKuyucu)
