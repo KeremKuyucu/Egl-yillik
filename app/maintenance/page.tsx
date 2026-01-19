@@ -1,8 +1,22 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { Construction, Lock } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 export default function MaintenancePage() {
+    const router = useRouter()
+
+    const handleAdminLogin = async () => {
+        // Mevcut oturumu kapat (Normal kullanıcılar takılabiliyor)
+        const supabase = createClient()
+        await supabase.auth.signOut()
+
+        // Login sayfasına yönlendir
+        router.push("/login")
+    }
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 text-center dark:bg-slate-950">
             <div className="relative mb-8">
@@ -22,12 +36,10 @@ export default function MaintenancePage() {
             </p>
 
             <div className="flex gap-4">
-                <Link href="/login">
-                    <Button variant="outline" className="gap-2">
-                        <Lock className="h-4 w-4" />
-                        Yönetici Girişi
-                    </Button>
-                </Link>
+                <Button variant="outline" className="gap-2" onClick={handleAdminLogin}>
+                    <Lock className="h-4 w-4" />
+                    Yönetici Girişi
+                </Button>
             </div>
         </div>
     )
