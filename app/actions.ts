@@ -2,26 +2,27 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { ROLES } from "@/lib/constants"
+
 import { isMessagingEnabled } from "@/lib/settings"
 
 export async function deleteTextAction(id: string) {
     const supabase = await createClient()
 
-    // Önce yetki kontrolü (Ekstra güvenlik)
+    // Kullanıcı kontrolü
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: "Unauthorized" }
 
-    const { data: profile } = await supabase.from("profiles").select("level").eq("id", user.id).single()
-    if (!profile || profile.level < ROLES.ADMIN) return { error: "Forbidden" }
-
-    // Soft delete: is_active = false yap (gerçek silme yapmıyoruz)
-    const { error } = await supabase
-        .from("texts")
-        .update({ is_active: false })
-        .eq("id", id)
+    // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)
+    const { data, error } = await supabase.rpc('soft_delete_text', {
+        target_text_id: id
+    })
 
     if (error) return { error: error.message }
+
+    // RPC'den dönen sonucu kontrol et
+    if (data && !data.success) {
+        return { error: data.error || "Silme işlemi başarısız" }
+    }
 
     revalidatePath("/admin/texts")
     return { success: true }
@@ -152,24 +153,19 @@ export async function deleteMyTextAction(id: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
-    // Yazının kullanıcıya ait olduğunu kontrol et
-    const { data: text } = await supabase
-        .from("texts")
-        .select("author_id")
-        .eq("id", id)
-        .single()
-
-    if (!text) return { error: "Yazı bulunamadı" }
-    if (text.author_id !== user.id) return { error: "Bu yazıyı silme yetkiniz yok" }
-
-    // Hard delete
-    const { error } = await supabase
-        .from("texts")
-        .delete()
-        .eq("id", id)
+    // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)
+    // Kullanıcı kendi yazısını silebilir veya admin her yazıyı silebilir
+    const { data, error } = await supabase.rpc('soft_delete_text', {
+        target_text_id: id
+    })
 
     if (error) return { error: error.message }
 
-    revalidatePath("/dashboard")
+    // RPC'den dönen sonucu kontrol et
+    if (data && !data.success) {
+        return { error: data.error || "Bu yazıyı silme yetkiniz yok" }
+    }
+
+    revalidatePath("/my-texts")
     return { success: true }
 }
