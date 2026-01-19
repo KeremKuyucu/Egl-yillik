@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
-import { ROLES } from '@/lib/constants';
+import { checkSuperAdmin } from '@/lib/auth';
 import { getDeadline } from '@/lib/settings';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -21,25 +21,20 @@ export async function sendReminderEmail(
     stats: any,
     surveyStats?: SurveyStats
 ) {
-    // Auth check
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) return { error: 'Not authenticated' };
-
-    const { data: profile } = await supabase.from('profiles').select('level').eq('id', user.id).single();
-    if (!profile || profile.level < ROLES.SUPER_ADMIN) {
-        return { error: 'Unauthorized' };
-    }
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin();
+    if (!auth.success) return { error: auth.error };
 
     if (!email) {
         return { error: 'Email not found for user' };
     }
 
+    const supabase = await createClient();
+
     // Son teslim tarihini veritabanından çek
     const deadlineData = await getDeadline();
     const deadline = deadlineData.display;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yillik.example.com';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
     // remaining_classmates hesapla (Supabase'den total_classmates ve messages_sent_to_classmates geliyor)
     const remainingClassmates = (stats.total_classmates || 0) - (stats.messages_sent_to_classmates || 0);

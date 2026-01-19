@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
 import Footer from "@/components/footer"
@@ -10,20 +11,31 @@ export default async function UserLayout({
 }) {
     const supabase = await createClient()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
     if (!user) {
         redirect("/login")
     }
 
     // Profil bilgisini çek
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single()
+
+    // Level bilgisini çek
+    const { data: levelData } = await supabase
+        .from("user_levels")
+        .select("level")
+        .eq("id", user.id)
+        .single()
+
+    // Birleştir
+    const profile = profileData ? {
+        ...profileData,
+        level: levelData?.level ?? 0
+    } : null
 
     const handleSignOut = async () => {
         "use server"

@@ -1,9 +1,8 @@
-// lib/actions.ts
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { ROLES } from "@/lib/constants"
+import { checkAdmin, getCurrentUser } from "@/lib/auth"
 
 interface UpdateUserProfileData {
     first_name: string
@@ -11,34 +10,26 @@ interface UpdateUserProfileData {
     school_number: string
     class: string
 }
+
 {/* Yapımcı GitHub:KeremKuyucu */ }
 export async function updateUserLevel(userId: string, newLevel: number) {
     try {
+        // Oturum kontrolü
+        const auth = await checkAdmin()
+        if (!auth.success) return { success: false, error: auth.error }
+
         const supabase = await createClient()
 
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-            return { success: false, error: "Oturum bulunamadı" }
-        }
-
-        if (userId === user.id) {
-            return { success: false, error: "Kendi seviyenizi değiştiremezsiniz" }
-        }
-
-        // RPC fonksiyonu ile level güncelle (RLS bypass, tüm yetki kontrolleri DB'de yapılır)
-        const { data, error } = await supabase.rpc('set_user_level', {
+        // RPC çağrısı - Tüm yetki ve mantık kontrolleri DB tarafında yapılacak
+        const { error } = await supabase.rpc('admin_update_user_level', {
             target_user_id: userId,
-            new_level_value: newLevel
+            new_level: newLevel
         })
 
         if (error) {
-            console.error("Level güncelleme RPC hatası:", error)
-            return { success: false, error: "Seviye güncellenirken bir hata oluştu" }
-        }
-
-        // RPC'den dönen sonucu kontrol et
-        if (data && !data.success) {
-            return { success: false, error: data.error || "Seviye güncellenirken bir hata oluştu" }
+            console.error("Level güncelleme hatası:", error)
+            // RPC'den dönen özel hataları kullanıcıya göster
+            return { success: false, error: error.message }
         }
 
         revalidatePath("/admin/users")
@@ -54,32 +45,15 @@ export async function updateUserProfile(
     data: UpdateUserProfileData
 ) {
     try {
+        // Merkezi admin kontrolü
+        const auth = await checkAdmin()
+        if (!auth.success) return { success: false, error: auth.error }
+
         const supabase = await createClient()
-
-        // Mevcut kullanıcıyı kontrol et
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-
-        if (!currentUser) {
-            return { success: false, error: "Yetkisiz erişim" }
-        }
-
-        // Mevcut kullanıcının seviyesini al
-        const { data: currentProfile } = await supabase
-            .from("profiles")
-            .select("level")
-            .eq("id", currentUser.id)
-            .single()
-
-        const currentUserLevel = currentProfile?.level ?? 0
-
-        // Moderatör yetkisi kontrolü
-        if (currentUserLevel < ROLES.ADMIN) {
-            return { success: false, error: "Bu işlem için yetkiniz yok" }
-        }
 
         // Düzenlenecek kullanıcının seviyesini kontrol et
         const { data: targetUser } = await supabase
-            .from("profiles")
+            .from("user_levels")
             .select("level")
             .eq("id", userId)
             .single()
@@ -89,12 +63,12 @@ export async function updateUserProfile(
         }
 
         // Kendinden düşük seviyedeki kullanıcıları düzenleyebilir
-        if (currentUserLevel <= (targetUser.level ?? 0)) {
+        if (auth.level <= (targetUser.level ?? 0)) {
             return { success: false, error: "Bu kullanıcıyı düzenleme yetkiniz yok" }
         }
 
         // Kendi profilini düzenleyemez
-        if (userId === currentUser.id) {
+        if (userId === auth.user.id) {
             return { success: false, error: "Kendi profilinizi düzenleyemezsiniz" }
         }
 

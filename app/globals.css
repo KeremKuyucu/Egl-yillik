@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Yapımcı GitHub:KeremKuyucu */
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

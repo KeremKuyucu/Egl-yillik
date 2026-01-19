@@ -58,7 +58,7 @@ export default function ClientRoleGuard({
             }
 
             const { data: profile } = await supabase
-                .from("profiles")
+                .from("user_levels")
                 .select("level")
                 .eq("id", user.id)
                 .single()
@@ -121,8 +121,6 @@ export interface UseRoleGuardResult {
     isAuthenticated: boolean
     /** Admin mi */
     isAdmin: boolean
-    /** Moderatör mü */
-    isModerator: boolean
     /** Süper Admin mi */
     isSuperAdmin: boolean
     /** Owner mı */
@@ -171,7 +169,7 @@ export function useRoleGuard(): UseRoleGuardResult {
             }
 
             const { data: profile } = await supabase
-                .from("profiles")
+                .from("user_levels")
                 .select("level")
                 .eq("id", user.id)
                 .single()
@@ -195,7 +193,6 @@ export function useRoleGuard(): UseRoleGuardResult {
         isLoading,
         isAuthenticated,
         isAdmin: level >= ROLES.ADMIN,
-        isModerator: level >= ROLES.MODERATOR,
         isSuperAdmin: level >= ROLES.SUPER_ADMIN,
         isOwner: level >= ROLES.OWNER,
         hasMinLevel: (minLevel: number) => level >= minLevel,

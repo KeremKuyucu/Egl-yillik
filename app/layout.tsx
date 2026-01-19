@@ -54,6 +54,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Yapımcı GitHub:KeremKuyucu */}
           {children}
           <Toaster />
           <Analytics />

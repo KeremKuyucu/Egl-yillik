@@ -1,24 +1,14 @@
 "use server"
 
 import { createClient } from '@/lib/supabase/server';
-import { ROLES } from '@/lib/constants';
+import { checkSuperAdmin } from '@/lib/auth';
 
 export async function updateGraduationDate(dateString: string) {
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin();
+    if (!auth.success) return { error: auth.error };
+
     const supabase = await createClient();
-
-    // Auth check
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Not authenticated' };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('level')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || profile.level < ROLES.SUPER_ADMIN) {
-        return { error: 'Unauthorized - Super Admin yetkisi gerekli' };
-    }
 
     // Validate date
     const date = new Date(dateString);
@@ -47,21 +37,11 @@ export async function updateGraduationDate(dateString: string) {
 }
 
 export async function updateDeadline(dateTimeString: string) {
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin();
+    if (!auth.success) return { error: auth.error };
+
     const supabase = await createClient();
-
-    // Auth check
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Not authenticated' };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('level')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || profile.level < ROLES.SUPER_ADMIN) {
-        return { error: 'Unauthorized - Super Admin yetkisi gerekli' };
-    }
 
     // Validate date
     const deadline = new Date(dateTimeString);
@@ -90,21 +70,11 @@ export async function updateDeadline(dateTimeString: string) {
 }
 
 export async function updateToggleSetting(key: string, value: boolean) {
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin();
+    if (!auth.success) return { error: auth.error };
+
     const supabase = await createClient();
-
-    // Auth check
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Not authenticated' };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('level')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || profile.level < ROLES.SUPER_ADMIN) {
-        return { error: 'Unauthorized - Super Admin yetkisi gerekli' };
-    }
 
     // Validate key
     const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'maintenance_mode'];

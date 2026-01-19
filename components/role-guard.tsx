@@ -1,6 +1,7 @@
 // components/role-guard.tsx
 import { createClient } from "@/lib/supabase/server"
-import { ROLES, RoleLevel, getLevelInfo } from "@/lib/constants"
+import { getCurrentUser } from "@/lib/auth"
+import { ROLES, getLevelInfo } from "@/lib/constants"
 import { ReactNode } from "react"
 
 interface RoleGuardProps {
@@ -61,8 +62,7 @@ export default async function RoleGuard({
     fallback,
     unauthenticatedFallback
 }: RoleGuardProps) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
     // Kullanıcı giriş yapmamışsa
     if (!user) {
@@ -72,8 +72,9 @@ export default async function RoleGuard({
             : (fallback ? <>{fallback}</> : null)
     }
 
+    const supabase = await createClient()
     const { data: profile } = await supabase
-        .from("profiles")
+        .from("user_levels")
         .select("level")
         .eq("id", user.id)
         .single()

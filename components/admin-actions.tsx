@@ -364,7 +364,7 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                     Meta
                 </Button>
             </DialogTrigger>
-            
+
             <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -386,7 +386,7 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.id}
                             </p>
                         </div>
-                        
+
                         {/* İsim Soyisim */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-medium text-slate-500 mb-0.5">İsim Soyisim</p>
@@ -394,7 +394,7 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.first_name} {profileData.last_name}
                             </p>
                         </div>
-                        
+
                         {/* Okul No */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-medium text-slate-500 mb-0.5">Okul No</p>
@@ -402,7 +402,7 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.school_number || "—"}
                             </p>
                         </div>
-                        
+
                         {/* Sınıf */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-medium text-slate-500 mb-0.5">Sınıf</p>
@@ -410,7 +410,7 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.class || "—"}
                             </p>
                         </div>
-                        
+
                         {/* Seviye - getLevelInfo yoksa direct profileData.level bas */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-medium text-slate-500 mb-0.5">Yetki Seviyesi</p>
@@ -418,13 +418,13 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.level}
                             </p>
                         </div>
-                        
+
                         {/* Son Aktif */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-medium text-slate-500 mb-0.5">Son Aktiflik</p>
                             <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
-                                {profileData.last_active 
-                                    ? new Date(profileData.last_active).toLocaleString('tr-TR') 
+                                {profileData.last_active
+                                    ? new Date(profileData.last_active).toLocaleString('tr-TR')
                                     : "—"}
                             </p>
                         </div>

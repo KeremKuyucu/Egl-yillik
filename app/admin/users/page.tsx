@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import Link from "next/link"
 import { Shield, Users, Crown, Sparkles, Star, LayoutDashboard, Hash, GraduationCap, TrendingUp, Clock } from "lucide-react"
 import { LevelSelector, SearchInput, EditUserButton, MetadataButton, UserFilterBar } from "@/components/admin-actions"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -77,35 +76,11 @@ export default async function UsersAdminPage({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-    // FIX 1: requireAdmin kontrolü en başta olmalı
-    await requireAdmin()
+    // Merkezi admin kontrolü - user ve level bilgisi döner
+    const { user: currentUser, level: currentUserLevel } = await requireAdmin()
 
     const params = await searchParams
     const supabase = await createClient()
-
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-
-    // FIX 2: currentUser null kontrolü
-    if (!currentUser) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Yetkisiz Erişim</CardTitle>
-                        <CardDescription>Bu sayfayı görüntülemek için giriş yapmalısınız.</CardDescription>
-                    </CardHeader>
-                </Card>
-            </div>
-        )
-    }
-
-    const { data: currentProfile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", currentUser.id)
-        .single()
-
-    const currentUserLevel = currentProfile?.level ?? 0
 
     // Filtre Parametreleri
     const searchQuery = (params.q as string) || ""
@@ -121,42 +96,60 @@ export default async function UsersAdminPage({
     // Benzersiz sınıfları al
     const classes = [...new Set(allProfiles?.map(p => p.class).filter(Boolean) || [])] as string[]
 
-    // 2. Kullanıcıları çek ve filtrele
-    let query = supabase
+    // 2. Kullanıcıları çek (level hariç)
+    let profileQuery = supabase
         .from("profiles")
-        .select("id, first_name, last_name, school_number, class, level, last_active")
-        .order("level", { ascending: false })
+        .select("id, first_name, last_name, school_number, class, last_active")
         .order("last_name")
 
-    // Server-side filtering
+    // Server-side sınıf filtresi
     if (classFilter && classFilter !== "all") {
-        query = query.eq("class", classFilter)
+        profileQuery = profileQuery.eq("class", classFilter)
     }
 
-    if (roleFilter === "admin") {
-        query = query.gte("level", ROLES.ADMIN)
-    } else if (roleFilter === "user") {
-        query = query.lt("level", ROLES.ADMIN)
-    }
+    const { data: profilesData, error: profilesError } = await profileQuery
 
-    const { data: users, error } = await query
+    // 3. Tüm kullanıcı level'larını çek
+    const { data: levelsData } = await supabase
+        .from("user_levels")
+        .select("id, level")
+
+    // Level haritası oluştur
+    const levelMap = new Map<string, number>()
+    levelsData?.forEach(l => levelMap.set(l.id, l.level))
 
     // FIX 3: Hata kontrolü ve kullanıcı dostu hata mesajı
-    if (error) {
-        console.error("Kullanıcı çekme hatası:", error)
+    if (profilesError) {
+        console.error("Kullanıcı çekme hatası:", profilesError)
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Card>
                     <CardHeader>
                         <CardTitle>Hata Oluştu</CardTitle>
-                        <CardDescription>Kullanıcılar yüklenirken bir hata oluştu: {error.message}</CardDescription>
+                        <CardDescription>Kullanıcılar yüklenirken bir hata oluştu: {profilesError.message}</CardDescription>
                     </CardHeader>
                 </Card>
             </div>
         )
     }
 
-    let filteredUsers = (users || []) as UserProfile[]
+    // Profilleri level ile birleştir
+    let usersWithLevel = (profilesData || []).map(p => ({
+        ...p,
+        level: levelMap.get(p.id) ?? 0
+    })) as UserProfile[]
+
+    // Level'a göre sırala (yüksekten düşüğe)
+    usersWithLevel.sort((a, b) => (b.level ?? 0) - (a.level ?? 0))
+
+    // Role filtresi (JS tarafında)
+    if (roleFilter === "admin") {
+        usersWithLevel = usersWithLevel.filter(u => (u.level ?? 0) >= ROLES.ADMIN)
+    } else if (roleFilter === "user") {
+        usersWithLevel = usersWithLevel.filter(u => (u.level ?? 0) < ROLES.ADMIN)
+    }
+
+    let filteredUsers = usersWithLevel
 
     // JS-side search
     if (searchQuery) {

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { checkAdmin } from "@/lib/auth"
 
 interface ApproveData {
     suggestionId: string
@@ -12,23 +13,11 @@ interface ApproveData {
 }
 
 export async function approveSuggestion(data: ApproveData) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     // Öneriyi al
     const { data: suggestion } = await supabase
@@ -104,7 +93,7 @@ export async function approveSuggestion(data: ApproveData) {
         .from("user_category_suggestions")
         .update({
             status: "approved",
-            reviewed_by: user.id,
+            reviewed_by: auth.user.id,
             reviewed_at: new Date().toISOString(),
             approved_category_id: finalCategoryId
         })
@@ -123,30 +112,18 @@ export async function approveSuggestion(data: ApproveData) {
 }
 
 export async function rejectSuggestion(suggestionId: string, adminNote: string = "") {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     const { error } = await supabase
         .from("user_category_suggestions")
         .update({
             status: "rejected",
             admin_note: adminNote || null,
-            reviewed_by: user.id,
+            reviewed_by: auth.user.id,
             reviewed_at: new Date().toISOString()
         })
         .eq("id", suggestionId)
@@ -162,23 +139,11 @@ export async function rejectSuggestion(suggestionId: string, adminNote: string =
 }
 
 export async function deleteSuggestion(suggestionId: string) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     const { error } = await supabase
         .from("user_category_suggestions")

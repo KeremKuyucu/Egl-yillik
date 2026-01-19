@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth"
 import DashboardGrid from "@/components/dashboard-grid"
 import SurveyCard, { SurveyCardSkeleton } from "@/components/dashboard/survey-card"
 import SuggestionCard from "@/components/dashboard/suggestion-card"
@@ -62,12 +63,9 @@ const getBadge = (count: number) => {
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
-  if (userError || !user) {
+  if (!user) {
     redirect("/login")
   }
 

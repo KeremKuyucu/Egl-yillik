@@ -103,7 +103,6 @@ export default function SignUpPage() {
           last_name: lastName,
           school_number: schoolNumber,
           class: classRoom,
-          level: ROLES.USER,
         })
 
         if (profileError) throw profileError

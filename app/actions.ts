@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/auth"
 
 import { isMessagingEnabled } from "@/lib/settings"
 
@@ -9,7 +10,7 @@ export async function deleteTextAction(id: string) {
     const supabase = await createClient()
 
     // Kullanıcı kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return { error: "Unauthorized" }
 
     // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)
@@ -37,7 +38,7 @@ export async function createTextAction(recipientId: string, content: string) {
         return { error: "Mesaj yazma şu anda kapalıdır. Lütfen daha sonra tekrar deneyin." }
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
     if (user.id === recipientId) {
@@ -114,7 +115,7 @@ export async function updateTextAction(id: string, content: string) {
         return { error: "Sistem kilitli: Yazı güncelleme kapalıdır." }
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
     // Yazının kullanıcıya ait olduğunu kontrol et
@@ -150,7 +151,7 @@ export async function deleteMyTextAction(id: string) {
         return { error: "Sistem kilitli: Yazı silme kapalıdır." }
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
     // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)

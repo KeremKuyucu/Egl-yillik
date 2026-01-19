@@ -149,7 +149,7 @@ export async function middleware(request: NextRequest) {
       } else {
         // Giriş yapmış kullanıcı, yetkisini kontrol et
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('user_levels')
           .select('level')
           .eq('id', user.id)
           .single()
@@ -170,6 +170,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
+// Yapımcı GitHub:KeremKuyucu
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)"

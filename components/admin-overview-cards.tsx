@@ -2,20 +2,36 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Users, MessageSquare, ArrowRight, Lock, Mail, Vote, Settings, Sparkles, Calendar } from "lucide-react"
+import { Users, MessageSquare, ArrowRight, Lock, Mail, Vote, Settings, Sparkles, Calendar, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { ROLES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+import { useRoleGuard } from "@/components/role-guard-client"
 
 interface AdminOverviewCardsProps {
     pendingSuggestionsCount?: number
-    currentUserLevel: number
 }
 
-export function AdminOverviewCards({ pendingSuggestionsCount = 0, currentUserLevel }: AdminOverviewCardsProps) {
+export function AdminOverviewCards({ pendingSuggestionsCount = 0 }: AdminOverviewCardsProps) {
+    // Merkezi hook ile level kontrolü
+    const { level, isLoading, isAdmin, isSuperAdmin } = useRoleGuard()
 
-    const canAccessTexts = currentUserLevel >= ROLES.ADMIN
-    const canAccessMail = currentUserLevel >= ROLES.SUPER_ADMIN
+    const canAccessTexts = isAdmin
+    const canAccessMail = isSuperAdmin
+
+    // Yüklenirken
+    if (isLoading) {
+        return (
+            <div className="grid md:grid-cols-2 gap-6 w-full">
+                {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="h-48 border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl animate-pulse">
+                        <CardContent className="flex items-center justify-center h-full">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        )
+    }
 
     const handleTextsClick = (e: React.MouseEvent) => {
         if (!canAccessTexts) {
@@ -198,7 +214,7 @@ export function AdminOverviewCards({ pendingSuggestionsCount = 0, currentUserLev
             </Link>
 
             {/* Mail Hatırlatma Kartı - Sadece SUPER_ADMIN ve üzeri */}
-            {currentUserLevel >= ROLES.SUPER_ADMIN && (
+            {isSuperAdmin && (
                 <Link href="/admin/reminders" prefetch={false} className="group">
                     <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-emerald-500/50">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -223,7 +239,7 @@ export function AdminOverviewCards({ pendingSuggestionsCount = 0, currentUserLev
             )}
 
             {/* Site Ayarları Kartı - Sadece SUPER_ADMIN ve üzeri */}
-            {currentUserLevel >= ROLES.SUPER_ADMIN && (
+            {isSuperAdmin && (
                 <Link href="/admin/settings" prefetch={false} className="group">
                     <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-violet-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-violet-500/50">
                         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

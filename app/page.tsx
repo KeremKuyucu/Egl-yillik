@@ -1,12 +1,11 @@
 // app/page.tsx
-import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export default async function HomePage() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
-  if (data.user) {
+  if (user) {
     redirect("/dashboard") // loginli kullanıcı dashboard’a
   } else {
     redirect("/login")     // loginli değilse login sayfasına

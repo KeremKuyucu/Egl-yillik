@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
 import { getColorFromName, getCategoryById, SurveyCategory } from "@/lib/survey-categories"
-import { getLevelInfo, ROLES } from "@/lib/constants"
+import { getLevelInfo } from "@/lib/constants"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,7 +27,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const { schoolNumber } = await params
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) redirect("/login")
 
     // Tek bir RPC çağrısı ile tüm verileri al

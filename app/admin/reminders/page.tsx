@@ -1,22 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { redirect } from "next/navigation"
-import { ROLES } from "@/lib/constants"
+import { requireSuperAdmin } from "@/lib/auth"
 import ReminderClientPage from "./client"
 
 export default async function ReminderPage() {
+    // Merkezi super admin kontrolü
+    await requireSuperAdmin()
+
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) redirect("/login")
-
-    // Check level from profiles table
-    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-    // Only SUPER_ADMIN and OWNER can access
-    if (!profile || profile.level < ROLES.SUPER_ADMIN) {
-        redirect("/dashboard")
-    }
 
     // Fetch all profiles
     const { data: profiles, error } = await supabase

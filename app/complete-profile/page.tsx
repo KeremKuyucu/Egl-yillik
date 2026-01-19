@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserCheck, Loader2, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ROLES } from "@/lib/constants"
+import { getCurrentUser } from "@/lib/auth"
 
 export default function CompleteProfilePage() {
     const [firstName, setFirstName] = useState("")
@@ -31,7 +31,7 @@ export default function CompleteProfilePage() {
     useEffect(() => {
         if (!mounted) return;
         const fetchUserData = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
+            const user = await getCurrentUser()
             if (!user) {
                 router.push("/login")
                 return
@@ -89,7 +89,7 @@ export default function CompleteProfilePage() {
         }
 
         try {
-            const { data: { user } } = await supabase.auth.getUser()
+            const user = await getSessionUser()
             if (!user) throw new Error("Oturum bulunamadı.")
 
             // Okul numarası kullanımda mı kontrol et
@@ -109,7 +109,6 @@ export default function CompleteProfilePage() {
                 last_name: lastName,
                 school_number: schoolNumber,
                 class: classRoom,
-                level: ROLES.USER,
             })
 
             if (profileError) throw profileError

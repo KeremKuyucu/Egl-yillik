@@ -17,7 +17,7 @@ export default async function AdminLayout({
 }: {
     children: React.ReactNode
 }) {
-    const { profile: currentProfile } = await requireAdmin()
+    const { profile: currentProfile, level: currentLevel } = await requireAdmin()
 
     const navItems = [
         { href: "/admin", label: "Genel Bakış", icon: ChartNoAxesCombined, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER] },
@@ -32,7 +32,7 @@ export default async function AdminLayout({
 
     // Filter items based on user role
     const availableNavItems = navItems.filter(item =>
-        item.roles.some(role => currentProfile.level >= role)
+        item.roles.some(role => currentLevel >= role)
     )
 
     return (
@@ -52,7 +52,7 @@ export default async function AdminLayout({
                                 </div>
                                 <div>
                                     <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-serif leading-none">
-                                        {currentProfile ? `${getLevelInfo(currentProfile.level).label} Paneli` : "Yönetim Paneli"}
+                                        {currentProfile ? `${getLevelInfo(currentLevel).label} Paneli` : "Yönetim Paneli"}
                                     </h1>
                                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
                                         <Sparkles className="h-2.5 w-2.5 text-amber-500" />

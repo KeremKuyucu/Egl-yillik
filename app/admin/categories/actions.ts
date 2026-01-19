@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { checkAdmin } from "@/lib/auth"
 
 interface CategoryFormData {
     id: string
@@ -60,23 +61,11 @@ async function shiftCategoriesFrom(supabase: any, fromOrder: number, excludeId?:
 }
 
 export async function addCategory(data: CategoryFormData) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     // Validation
     if (!data.id || !/^[a-z_]+$/.test(data.id)) {
@@ -125,8 +114,8 @@ export async function addCategory(data: CategoryFormData) {
             color: data.color,
             sort_order: data.sort_order || 0,
             is_active: true,
-            is_user_suggested: true, // Admin eklese bile öneri sistemine dahil ediyoruz
-            suggested_by: user.id
+            is_user_suggested: true,
+            suggested_by: auth.user.id
         })
         .select()
         .single()
@@ -137,7 +126,7 @@ export async function addCategory(data: CategoryFormData) {
     }
 
     // Admin tarafından eklendiği için otomatik olarak onaylanmış öneri kaydı oluştur
-    if (data) { // data artık insert edilen kategoriyi içeriyor
+    if (data) {
         const { error: suggestionError } = await supabase
             .from("user_category_suggestions")
             .insert({
@@ -146,8 +135,8 @@ export async function addCategory(data: CategoryFormData) {
                 description: data.description,
                 color: data.color,
                 status: 'approved',
-                suggested_by: user.id,
-                reviewed_by: user.id,
+                suggested_by: auth.user.id,
+                reviewed_by: auth.user.id,
                 reviewed_at: new Date().toISOString(),
                 approved_category_id: data.id,
                 admin_note: 'Admin tarafından doğrudan eklendi'
@@ -155,7 +144,6 @@ export async function addCategory(data: CategoryFormData) {
 
         if (suggestionError) {
             console.error("Auto suggestion create error:", suggestionError)
-            // Kritik değil, devam et
         }
     }
 
@@ -166,23 +154,11 @@ export async function addCategory(data: CategoryFormData) {
 }
 
 export async function toggleCategoryStatus(categoryId: string, newStatus: boolean) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     const { error } = await supabase
         .from("survey_categories")
@@ -201,23 +177,11 @@ export async function toggleCategoryStatus(categoryId: string, newStatus: boolea
 }
 
 export async function deleteCategory(categoryId: string) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     // Kategoriye ait oy var mı kontrol et
     const { data: votes } = await supabase
@@ -230,10 +194,7 @@ export async function deleteCategory(categoryId: string) {
         return { error: "Bu kategoride oylar var, önce oyları silmeniz gerekiyor veya kategoriyi pasife alın" }
     }
 
-
-
-
-    // Fix FK constraint issue manually: Kategori silinmeden önce ilgili önerilerin bağını kopar
+    // Fix FK constraint issue manually
     const { error: updateError } = await supabase
         .from("user_category_suggestions")
         .update({ approved_category_id: null })
@@ -241,7 +202,6 @@ export async function deleteCategory(categoryId: string) {
 
     if (updateError) {
         console.error("Update related suggestions error:", updateError)
-        // Kritik hata değil, devam etmeyi deneyebiliriz ama loglamak önemli
     }
 
     const { error } = await supabase
@@ -254,7 +214,6 @@ export async function deleteCategory(categoryId: string) {
         return { error: "Kategori silinirken hata oluştu" }
     }
 
-    // Sıra numaralarını yeniden düzenle
     await reorderCategories(supabase)
 
     revalidatePath("/admin/categories")
@@ -264,23 +223,11 @@ export async function deleteCategory(categoryId: string) {
 }
 
 export async function updateCategory(categoryId: string, data: Partial<CategoryFormData>) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
 
     // Eğer sıra numarası değişiyorsa, çakışma kontrolü yap
     if (data.sort_order !== undefined) {
@@ -291,7 +238,6 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
             .single()
 
         if (currentCategory && currentCategory.sort_order !== data.sort_order) {
-            // Yeni sıra numarasında başka kategori var mı?
             const { data: sameOrder } = await supabase
                 .from("survey_categories")
                 .select("id")
@@ -300,7 +246,6 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
                 .single()
 
             if (sameOrder) {
-                // Varsa, o sıradan itibaren kaydır
                 await shiftCategoriesFrom(supabase, data.sort_order, categoryId)
             }
         }
@@ -319,7 +264,6 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
         return { error: "Kategori güncellenirken hata oluştu" }
     }
 
-    // Sıra numaralarını yeniden düzenle (boşluk varsa kapat)
     await reorderCategories(supabase)
 
     revalidatePath("/admin/categories")
@@ -329,24 +273,11 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
 }
 
 export async function deleteVotesForCategory(categoryId: string) {
+    // Merkezi admin kontrolü
+    const auth = await checkAdmin()
+    if (!auth.success) return { error: auth.error }
+
     const supabase = await createClient()
-
-    // Admin kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    if (!profile || profile.level < 50) {
-        return { error: "Bu işlem için yetkiniz yok" }
-    }
-
 
     // Kategoriye ait oy sayısını al
     const { count } = await supabase
@@ -354,7 +285,7 @@ export async function deleteVotesForCategory(categoryId: string) {
         .select("id", { count: 'exact', head: true })
         .eq("category_id", categoryId)
 
-    // Oyları sil - Admin client ile RLS bypass
+    // Oyları sil
     const { error, data } = await supabase
         .from("survey_votes")
         .delete()

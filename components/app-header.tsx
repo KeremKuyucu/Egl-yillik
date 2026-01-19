@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { ROLES } from "@/lib/constants"
+import ClientRoleGuard from "./role-guard-client"
 
 interface AppHeaderProps {
     userProfile: any
@@ -69,14 +70,14 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                 {/* Right Side */}
                 <div className="flex items-center gap-2">
                     {/* Admin Button */}
-                    {userProfile?.level >= ROLES.ADMIN && (
+                    <ClientRoleGuard minLevel={ROLES.ADMIN}>
                         <Link href="/admin" className="hidden lg:flex">
                             <Button variant="outline" size="sm" className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/30">
                                 <Shield className="w-4 h-4" />
                                 <span className="hidden xl:inline">Yönetim</span>
                             </Button>
                         </Link>
-                    )}
+                    </ClientRoleGuard>
 
                     <Link href="/new" className="hidden sm:flex">
                         <Button size="sm" className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20 rounded-xl">
@@ -141,14 +142,14 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                                     </Link>
                                 </DropdownMenuItem>
 
-                                {userProfile?.level >= ROLES.ADMIN && (
+                                <ClientRoleGuard minLevel={ROLES.ADMIN} showLoader>
                                     <DropdownMenuItem asChild>
                                         <Link href="/admin" className="flex items-center gap-3 cursor-pointer text-rose-600 dark:text-rose-400">
                                             <Shield className="w-4 h-4" />
                                             Yönetim Paneli
                                         </Link>
                                     </DropdownMenuItem>
-                                )}
+                                </ClientRoleGuard>
 
                                 <DropdownMenuSeparator className="my-2" />
 

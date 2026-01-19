@@ -54,7 +54,6 @@ interface Profile {
   last_name: string
   school_number: string
   class: string
-  level: number
 }
 
 interface TextEntry {
@@ -90,26 +89,6 @@ function getAvatarColor(name: string): string {
   return avatarColors[charCode % avatarColors.length]
 }
 
-const getRoleBadge = (level: number) => {
-  // Sadece önemli rolleri göster (Kullanıcı hariç)
-  // Veya hepsini göster ama User silik olsun. User tablosundaki mantık:
-  const info = getLevelInfo(level);
-  if (level <= ROLES.USER) return null; // Normal kullanıcı için badge gösterme
-
-  const Icon = level >= ROLES.SUPER_ADMIN ? Shield : (level >= ROLES.ADMIN ? Star : Sparkles);
-  const isOwner = level >= ROLES.OWNER;
-
-  return (
-    <Badge
-      variant="outline"
-      className={`${info.badgeColor} h-4 px-1 text-[9px] gap-1 ml-1`}
-    >
-      {isOwner ? <Crown className="h-2 w-2" /> : Icon && <Icon className="h-2 w-2" />}
-      {info.label}
-    </Badge>
-  );
-};
-
 export default async function AdminPage({
   searchParams,
 }: {
@@ -119,7 +98,7 @@ export default async function AdminPage({
   const supabase = await createClient()
 
   // 1. Yetki Kontrolü
-  const { profile: currentProfile } = await requireAdmin();
+  await requireAdmin();
 
   // 2. Veri Çekme
   const searchQuery = (params.q as string) || ""
@@ -131,8 +110,8 @@ export default async function AdminPage({
       id,
       content,
       created_at,
-      author:profiles!texts_author_id_fkey (id, first_name, last_name, school_number, class, level),
-      recipient:profiles!texts_recipient_id_fkey (id, first_name, last_name, school_number, class, level)
+      author:profiles!texts_author_id_fkey (id, first_name, last_name, school_number, class),
+      recipient:profiles!texts_recipient_id_fkey (id, first_name, last_name, school_number, class)
     `)
     .order('created_at', { ascending: false })
 
@@ -466,7 +445,6 @@ export default async function AdminPage({
                               <div className="flex flex-col">
                                 <div className="flex items-center">
                                   <span className="font-semibold text-sm group-hover/link:text-indigo-600 transition-colors">{authorName}</span>
-                                  {getRoleBadge(author?.level || 0)}
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <Badge variant="outline" className="text-[9px] px-1 h-4 border-indigo-200 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800">
@@ -491,7 +469,6 @@ export default async function AdminPage({
                               <div className="flex flex-col">
                                 <div className="flex items-center">
                                   <span className="font-semibold text-sm group-hover/link:text-purple-600 transition-colors">{recipientName}</span>
-                                  {getRoleBadge(recipient?.level || 0)}
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <Badge variant="outline" className="text-[9px] px-1 h-4 border-purple-200 text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800">
