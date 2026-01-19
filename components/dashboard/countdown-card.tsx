@@ -1,10 +1,10 @@
 import { Clock } from "lucide-react"
 
 interface CountdownCardProps {
-    deadlineDate?: Date
+    deadlineDate: Date
 }
 
-export default function CountdownCard({ deadlineDate = new Date(2026, 1, 9, 23, 59, 59) }: CountdownCardProps) {
+export default function CountdownCard({ deadlineDate }: CountdownCardProps) {
     const now = new Date()
     const diffTime = deadlineDate.getTime() - now.getTime()
     const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))

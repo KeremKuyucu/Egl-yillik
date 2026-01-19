@@ -10,6 +10,7 @@ import StatsBar from "@/components/dashboard/stats-bar"
 import DashboardHeader from "@/components/dashboard/header"
 import ProfileCard from "@/components/dashboard/profile-card"
 import CountdownCard from "@/components/dashboard/countdown-card"
+import { getDeadline } from "@/lib/settings"
 import LockedCard from "@/components/dashboard/locked-card"
 import QuickActions from "@/components/dashboard/quick-actions"
 import { Heart, Star, Zap, Sparkles } from "lucide-react"
@@ -116,6 +117,9 @@ export default async function DashboardPage() {
 
   const greetingData = getDetailedGreeting(userProfile?.first_name || "")
 
+  // Son teslim tarihini veritabanından çek
+  const deadline = await getDeadline()
+
   const handleSignOut = async () => {
     "use server"
     const supabase = await createClient()
@@ -171,7 +175,7 @@ export default async function DashboardPage() {
               isSurveyComplete={isSurveyComplete}
             />
 
-            <CountdownCard />
+            <CountdownCard deadlineDate={deadline.date} />
           </div>
 
           {/* Right Column - Enhanced Cards */}

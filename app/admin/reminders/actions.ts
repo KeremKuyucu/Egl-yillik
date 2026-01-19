@@ -3,6 +3,7 @@
 import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
 import { ROLES } from '@/lib/constants';
+import { getDeadline } from '@/lib/settings';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -35,12 +36,16 @@ export async function sendReminderEmail(
         return { error: 'Email not found for user' };
     }
 
-    // Son teslim tarihi
-    const deadline = '9 Şubat 2026';
+    // Son teslim tarihini veritabanından çek
+    const deadlineData = await getDeadline();
+    const deadline = deadlineData.display;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yillik.example.com';
 
+    // remaining_classmates hesapla (Supabase'den total_classmates ve messages_sent_to_classmates geliyor)
+    const remainingClassmates = (stats.total_classmates || 0) - (stats.messages_sent_to_classmates || 0);
+
     // Durum hesaplamaları
-    const isTextComplete = stats.remaining_classmates === 0;
+    const isTextComplete = remainingClassmates === 0;
     const isSurveyComplete = surveyStats ? surveyStats.remaining === 0 : true;
     const isFullyComplete = isTextComplete && isSurveyComplete;
 
@@ -52,9 +57,9 @@ export async function sendReminderEmail(
     if (isFullyComplete) {
         subject = '✅ Tebrikler! Tüm Görevlerini Tamamladın';
     } else if (!isTextComplete && !isSurveyComplete) {
-        subject = `⏰ Hatırlatma: ${stats.remaining_classmates} Yazı ve ${surveyStats?.remaining || 0} Anket Bekliyor`;
+        subject = `⏰ Hatırlatma: ${remainingClassmates} Yazı ve ${surveyStats?.remaining || 0} Anket Bekliyor`;
     } else if (!isTextComplete) {
-        subject = `⏰ Hatırlatma: ${stats.remaining_classmates} Arkadaşına Yazı Yazman Gerekiyor`;
+        subject = `⏰ Hatırlatma: ${remainingClassmates} Arkadaşına Yazı Yazman Gerekiyor`;
     } else {
         subject = `🗳️ Hatırlatma: ${surveyStats?.remaining || 0} Anket Daha Doldurman Gerekiyor`;
     }
@@ -144,8 +149,8 @@ export async function sendReminderEmail(
                                                                         <span style="color: #64748b; font-size: 13px;">Kalan</span>
                                                                     </td>
                                                                     <td align="right" style="padding: 4px 0;">
-                                                                        <span style="color: ${stats.remaining_classmates > 0 ? '#dc2626' : '#059669'}; font-size: 13px; font-weight: 600;">
-                                                                            ${stats.remaining_classmates > 0 ? `${stats.remaining_classmates} kişi` : 'Yok!'}
+                                                                        <span style="color: ${remainingClassmates > 0 ? '#dc2626' : '#059669'}; font-size: 13px; font-weight: 600;">
+                                                                            ${remainingClassmates > 0 ? `${remainingClassmates} kişi` : 'Yok!'}
                                                                         </span>
                                                                     </td>
                                                                 </tr>
