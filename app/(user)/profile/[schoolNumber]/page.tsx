@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
-import { getColorFromName, getCategoryById } from "@/lib/survey-categories"
+import { getColorFromName, getCategoryById, SurveyCategory } from "@/lib/survey-categories"
 import { getLevelInfo, ROLES } from "@/lib/constants"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -241,7 +241,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                     {/* Top 3 Kartlar - Premium Design */}
                                     {topCategories.length > 0 && (
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                                            {topCategories.map((item, index) => (
+                                            {topCategories.map((item: { category: SurveyCategory, count: number }, index: number) => (
                                                 <div key={item.category.id} className="group relative">
                                                     <div className={`absolute -inset-0.5 bg-gradient-to-br ${item.category.color} rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity duration-300`} />
                                                     <div className={`relative overflow-hidden rounded-xl p-5 bg-gradient-to-br ${item.category.color} text-white shadow-xl`}>
