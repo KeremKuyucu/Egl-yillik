@@ -21,59 +21,24 @@ export async function updateUserLevel(userId: string, newLevel: number) {
             return { success: false, error: "Oturum bulunamadı" }
         }
 
-        // İşlemi yapan adminin seviyesini al
-        const { data: currentUserProfile } = await supabase
-            .from("profiles")
-            .select("level")
-            .eq("id", user.id)
-            .single()
-
-        const currentUserLevel = currentUserProfile?.level ?? 0
-
-        // Sadece Süper Adminler yetki değiştirebilir (İsteğe bağlı kural)
-        if (currentUserLevel < ROLES.SUPER_ADMIN) {
-            return { success: false, error: "Bu işlem için yetkiniz yok" }
-        }
-
-        // Hedef kullanıcının seviyesini al
-        const { data: targetUserProfile } = await supabase
-            .from("profiles")
-            .select("level")
-            .eq("id", userId)
-            .single()
-
-        const targetUserLevel = targetUserProfile?.level ?? 0
-
-        // Kural: Kendinden yüksek veya eşit rütbedekileri değiştiremezsin
-        if (targetUserLevel >= currentUserLevel) {
-            return {
-                success: false,
-                error: "Sizinle aynı veya daha yüksek seviyede olan kullanıcıların seviyesini değiştiremezsiniz"
-            }
-        }
-
-        // Kural: Kimseyi kendi seviyene veya üstüne çıkaramazsın
-        if (newLevel >= currentUserLevel) {
-            return {
-                success: false,
-                error: "Kullanıcıyı sizinle aynı veya daha yüksek seviyeye atayamazsınız"
-            }
-        }
-
-        // Kural: Kendini değiştiremezsin
         if (userId === user.id) {
             return { success: false, error: "Kendi seviyenizi değiştiremezsiniz" }
         }
 
-        // Güncelleme işlemi
-        const { error } = await supabase
-            .from("profiles")
-            .update({ level: newLevel })
-            .eq("id", userId)
+        // RPC fonksiyonu ile level güncelle (RLS bypass, tüm yetki kontrolleri DB'de yapılır)
+        const { data, error } = await supabase.rpc('set_user_level', {
+            target_user_id: userId,
+            new_level_value: newLevel
+        })
 
         if (error) {
-            console.error("Level güncelleme hatası:", error)
+            console.error("Level güncelleme RPC hatası:", error)
             return { success: false, error: "Seviye güncellenirken bir hata oluştu" }
+        }
+
+        // RPC'den dönen sonucu kontrol et
+        if (data && !data.success) {
+            return { success: false, error: data.error || "Seviye güncellenirken bir hata oluştu" }
         }
 
         revalidatePath("/admin/users")

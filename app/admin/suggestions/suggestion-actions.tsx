@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { approveSuggestion, rejectSuggestion, deleteSuggestion } from "./actions"
-import { Loader2, CheckCircle2, XCircle, Trash2, Edit, X } from "lucide-react"
+import { approveSuggestion, rejectSuggestion } from "./actions"
+import { Loader2, CheckCircle2, XCircle, Edit, X } from "lucide-react"
 
 interface Suggestion {
     id: string
@@ -22,7 +22,6 @@ interface SuggestionActionsProps {
 export default function SuggestionActions({ suggestion }: SuggestionActionsProps) {
     const [isApproving, setIsApproving] = useState(false)
     const [isRejecting, setIsRejecting] = useState(false)
-    const [isDeleting, setIsDeleting] = useState(false)
     const [showEditForm, setShowEditForm] = useState(false)
     const [showRejectForm, setShowRejectForm] = useState(false)
 
@@ -77,23 +76,7 @@ export default function SuggestionActions({ suggestion }: SuggestionActionsProps
         }
     }
 
-    const handleDelete = async () => {
-        if (!confirm("Bu öneriyi silmek istediğinize emin misiniz?")) return
 
-        setIsDeleting(true)
-        try {
-            const result = await deleteSuggestion(suggestion.id)
-            if (result.error) {
-                alert(result.error)
-            } else {
-                router.refresh()
-            }
-        } catch (e) {
-            alert("Bir hata oluştu")
-        } finally {
-            setIsDeleting(false)
-        }
-    }
 
     // Düzenleme Formu
     if (showEditForm) {
@@ -200,17 +183,6 @@ export default function SuggestionActions({ suggestion }: SuggestionActionsProps
                 className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
             >
                 <XCircle className="h-4 w-4" />
-            </Button>
-
-            {/* Sil */}
-            <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="text-slate-400 hover:text-red-600 hover:bg-red-50"
-            >
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
             </Button>
         </div>
     )
