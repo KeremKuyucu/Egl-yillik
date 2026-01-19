@@ -30,116 +30,106 @@ export default async function AdminCategoriesPage() {
     const categories: SurveyCategory[] = dbCategories || []
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-            {/* Header */}
-            <header className="border-b border-white/20 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl sticky top-0 z-50">
-                <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" prefetch={false}>
-                            <Button variant="ghost" size="sm" className="gap-2">
-                                <ArrowLeft className="h-4 w-4" />
-                                <span className="hidden sm:inline">Admin Panel</span>
-                            </Button>
-                        </Link>
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg text-white">
-                                <Settings className="h-5 w-5" />
-                            </div>
-                            <h1 className="text-lg font-bold text-slate-800 dark:text-white">Kategori Yönetimi</h1>
-                        </div>
-                    </div>
+        <div className="space-y-8">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg text-white shadow-lg shadow-purple-500/20">
+                    <Settings className="h-6 w-6" />
                 </div>
-            </header>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Kategori Yönetimi</h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        Anket kategorilerini ekleyin, düzenleyin veya listesini yönetin
+                    </p>
+                </div>
+            </div>
 
-            <main className="container mx-auto px-4 sm:px-6 py-8 space-y-8">
-                {/* Yeni Kategori Ekle */}
-                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        <Plus className="h-5 w-5 text-purple-600" />
-                        Yeni Kategori Ekle
+            {/* Yeni Kategori Ekle */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Plus className="h-5 w-5 text-purple-600" />
+                    Yeni Kategori Ekle
+                </h2>
+                <CategoryForm />
+            </div>
+
+            {/* Mevcut Kategoriler */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                        Mevcut Kategoriler ({categories.length})
                     </h2>
-                    <CategoryForm />
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Kategorileri düzenleyebilir veya pasife alabilirsiniz
+                    </p>
                 </div>
 
-                {/* Mevcut Kategoriler */}
-                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                            Mevcut Kategoriler ({categories.length})
-                        </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Kategorileri düzenleyebilir veya pasife alabilirsiniz
-                        </p>
-                    </div>
-
-                    {categories.length > 0 ? (
-                        <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                            {categories.map((category, index) => (
-                                <div
-                                    key={category.id}
-                                    className={`p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!category.is_active ? 'opacity-50' : ''
-                                        }`}
-                                >
-                                    {/* Sıra */}
-                                    <div className="flex items-center gap-2 text-slate-400">
-                                        <GripVertical className="h-5 w-5" />
-                                        <span className="text-sm font-medium w-6">{category.sort_order || index + 1}</span>
-                                    </div>
-
-                                    {/* Emoji & Renk */}
-                                    <div className={`text-3xl p-2 rounded-xl bg-gradient-to-br ${category.color} shadow-md`}>
-                                        {category.emoji}
-                                    </div>
-
-                                    {/* Bilgiler */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-slate-900 dark:text-white truncate">
-                                                {category.title}
-                                            </h3>
-                                            {!category.is_active && (
-                                                <span className="px-2 py-0.5 rounded-full text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
-                                                    Pasif
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                                            {category.description}
-                                        </p>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                                            ID: {category.id}
-                                        </p>
-                                    </div>
-
-                                    {/* Aksiyonlar */}
-                                    <CategoryActions category={category} />
+                {categories.length > 0 ? (
+                    <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                        {categories.map((category, index) => (
+                            <div
+                                key={category.id}
+                                className={`p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!category.is_active ? 'opacity-50' : ''
+                                    }`}
+                            >
+                                {/* Sıra */}
+                                <div className="flex items-center gap-2 text-slate-400">
+                                    <GripVertical className="h-5 w-5" />
+                                    <span className="text-sm font-medium w-6">{category.sort_order || index + 1}</span>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-8 text-center text-slate-500">
-                            <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Henüz kategori eklenmemiş</p>
-                            <p className="text-sm mt-1">Yukarıdaki formu kullanarak yeni kategori ekleyin</p>
-                        </div>
-                    )}
-                </div>
 
-                {/* Fallback Kategoriler (Eğer DB boşsa) */}
-                {categories.length === 0 && (
-                    <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-                        <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-2">
-                            📋 Varsayılan Kategorileri Yükle
-                        </h3>
-                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
-                            Veritabanında kategori bulunamadı. Supabase SQL Editor'da migration'ı çalıştırarak varsayılan kategorileri yükleyebilirsiniz.
-                        </p>
-                        <code className="block p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-xs text-amber-800 dark:text-amber-200 overflow-auto">
-                            supabase/migrations/002_dynamic_surveys.sql
-                        </code>
+                                {/* Emoji & Renk */}
+                                <div className={`text-3xl p-2 rounded-xl bg-gradient-to-br ${category.color} shadow-md`}>
+                                    {category.emoji}
+                                </div>
+
+                                {/* Bilgiler */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-slate-900 dark:text-white truncate">
+                                            {category.title}
+                                        </h3>
+                                        {!category.is_active && (
+                                            <span className="px-2 py-0.5 rounded-full text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                                                Pasif
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                        {category.description}
+                                    </p>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                        ID: {category.id}
+                                    </p>
+                                </div>
+
+                                {/* Aksiyonlar */}
+                                <CategoryActions category={category} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-8 text-center text-slate-500">
+                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Henüz kategori eklenmemiş</p>
+                        <p className="text-sm mt-1">Yukarıdaki formu kullanarak yeni kategori ekleyin</p>
                     </div>
                 )}
-            </main>
+            </div>
+
+            {/* Fallback Kategoriler (Eğer DB boşsa) */}
+            {categories.length === 0 && (
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
+                    <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-2">
+                        📋 Varsayılan Kategorileri Yükle
+                    </h3>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                        Veritabanında kategori bulunamadı. Supabase SQL Editor'da migration'ı çalıştırarak varsayılan kategorileri yükleyebilirsiniz.
+                    </p>
+                    <code className="block p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-xs text-amber-800 dark:text-amber-200 overflow-auto">
+                        supabase/migrations/002_dynamic_surveys.sql
+                    </code>
+                </div>
+            )}
         </div>
     )
 }

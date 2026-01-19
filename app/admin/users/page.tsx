@@ -207,227 +207,208 @@ export default async function UsersAdminPage({
 
     return (
         <RoleGuard minLevel={ROLES.ADMIN}>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
-                {/* Animated background blobs */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-pink-400/20 to-orange-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
-                </div>
-
-                {/* Header */}
-                <div className="relative z-10 border-b bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
-                    <div className="container mx-auto px-4 py-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-                                    <Users className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                            Kullanıcı Yönetimi
-                                        </h1>
-                                        <Badge variant="outline" className="gap-1">
-                                            <TrendingUp className="h-3 w-3" />
-                                            {totalUsers}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                                        <Shield className="h-4 w-4" />
-                                        {getLevelInfo(currentUserLevel).label} Paneli
-                                    </p>
-                                </div>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+                            <Users className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    Kullanıcı Yönetimi
+                                </h1>
+                                <Badge variant="outline" className="gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    {totalUsers}
+                                </Badge>
                             </div>
-                            <Link href="/admin" prefetch={false}>
-                                <Button variant="outline" className="gap-2">
-                                    <LayoutDashboard className="h-4 w-4" />
-                                    Yönetim Paneli
-                                </Button>
-                            </Link>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                                <Shield className="h-4 w-4" />
+                                {getLevelInfo(currentUserLevel).label} Paneli
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="relative z-10 container mx-auto px-4 py-8 space-y-6">
-                    {/* İstatistikler */}
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        {/* Toplam Kullanıcı */}
-                        <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Toplam</CardTitle>
-                                <Users className="h-4 w-4 text-blue-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-blue-600">{levelStats.total}</div>
-                                <p className="text-xs text-muted-foreground">Kayıtlı kullanıcı</p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Süper Adminler */}
-                        <Card className="border-2 border-purple-200 dark:border-purple-800 shadow-lg hover:shadow-xl transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Süper Admin</CardTitle>
-                                <Crown className="h-4 w-4 text-purple-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-purple-600">{levelStats.superAdmins}</div>
-                                <p className="text-xs text-muted-foreground">En yüksek yetki</p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Adminler */}
-                        <Card className="border-2 border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Admin</CardTitle>
-                                <Shield className="h-4 w-4 text-indigo-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-indigo-600">{levelStats.admins}</div>
-                                <p className="text-xs text-muted-foreground">Yönetim yetkisi</p>
-                            </CardContent>
-                        </Card>
-
-                        {/* Kullanıcılar */}
-                        <Card className="border-2 border-slate-200 dark:border-slate-800 shadow-lg hover:shadow-xl transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Kullanıcı</CardTitle>
-                                <GraduationCap className="h-4 w-4 text-slate-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-slate-600">{levelStats.users}</div>
-                                <p className="text-xs text-muted-foreground">Standart üye</p>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Kullanıcı Tablosu */}
-                    <Card className="shadow-xl border-2">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="text-2xl flex items-center gap-2">
-                                        <Star className="h-5 w-5 text-yellow-500" />
-                                        Kullanıcı Listesi
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {currentUserLevel >= ROLES.SUPER_ADMIN ? "Kullanıcıları yönetin." : "Kullanıcıları görüntüleyin."}
-                                    </CardDescription>
-                                </div>
-                                <Badge variant="secondary" className="gap-1">
-                                    <Hash className="h-3 w-3" />
-                                    {filteredUsers.length} sonuç
-                                </Badge>
-                            </div>
+                {/* İstatistikler */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {/* Toplam Kullanıcı */}
+                    <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Toplam</CardTitle>
+                            <Users className="h-4 w-4 text-blue-600" />
                         </CardHeader>
                         <CardContent>
-                            <UserFilterBar classes={classes} />
+                            <div className="text-2xl font-bold text-blue-600">{levelStats.total}</div>
+                            <p className="text-xs text-muted-foreground">Kayıtlı kullanıcı</p>
+                        </CardContent>
+                    </Card>
 
-                            <div className="rounded-lg border bg-card overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                            <TableHead className="w-[300px]">Kullanıcı</TableHead>
-                                            <TableHead>Okul No</TableHead>
-                                            <TableHead>Sınıf</TableHead>
-                                            <TableHead>Seviye</TableHead>
-                                            <TableHead>Son Aktif</TableHead>
-                                            <TableHead className="text-right">İşlemler</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody suppressHydrationWarning>
-                                        {filteredUsers.length > 0 ? (
-                                            filteredUsers.map((user) => {
-                                                const userLevel = user.level ?? 0
-                                                const canEditLevel = currentUserLevel > userLevel
-                                                const isCurrentUser = user.id === currentUser.id
-                                                const canEditProfile = currentUserLevel >= ROLES.ADMIN && (canEditLevel || isCurrentUser)
-                                                const avatarColor = getAvatarColor(user.first_name)
-                                                const initials = getInitials(user.first_name, user.last_name)
-                                                const { text: activeText, isRecent } = formatLastActive(user.last_active)
+                    {/* Süper Adminler */}
+                    <Card className="border-2 border-purple-200 dark:border-purple-800 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Süper Admin</CardTitle>
+                            <Crown className="h-4 w-4 text-purple-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-purple-600">{levelStats.superAdmins}</div>
+                            <p className="text-xs text-muted-foreground">En yüksek yetki</p>
+                        </CardContent>
+                    </Card>
 
-                                                return (
-                                                    <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-3">
-                                                                {/* Avatar */}
-                                                                <div className="relative">
-                                                                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-semibold text-sm shadow-md`}>
-                                                                        {initials}
-                                                                    </div>
-                                                                    {isCurrentUser && (
-                                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    <div className="font-medium flex items-center gap-2">
-                                                                        {getFullName(user.first_name, user.last_name)}
-                                                                        {isCurrentUser && (
-                                                                            <Badge variant="outline" className="text-xs">
-                                                                                Sizin Hesabınız
-                                                                            </Badge>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>{user.school_number}</TableCell>
-                                                        <TableCell>{user.class}</TableCell>
-                                                        <TableCell>{getLevelBadge(userLevel)}</TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-1.5">
-                                                                {isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
-                                                                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                <span className="text-sm">{activeText}</span>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                {canEditProfile && (
-                                                                    <EditUserButton
-                                                                        user={user}
-                                                                        currentUserLevel={currentUserLevel}
-                                                                    />
-                                                                )}
-                                                                {currentUserLevel >= ROLES.SUPER_ADMIN && canEditLevel && (
-                                                                    <LevelSelector
-                                                                        userId={user.id}
-                                                                        currentLevel={userLevel}
-                                                                        maxLevel={currentUserLevel}
-                                                                    />
-                                                                )}
-                                                                {currentUserLevel >= ROLES.SUPER_ADMIN && (
-                                                                    <MetadataButton userId={user.id} profileData={user} />
-                                                                )}
-                                                                {isCurrentUser && currentUserLevel < ROLES.SUPER_ADMIN && (
-                                                                    <span className="text-xs text-muted-foreground">Seviye değiştiremezsiniz</span>
-                                                                )}
-                                                                {!canEditProfile && !isCurrentUser && (
-                                                                    <span className="text-xs text-muted-foreground">Yetki yok</span>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )
-                                            })
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={6} className="h-64 text-center">
-                                                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                                                        <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                                                        <h3 className="font-semibold text-lg mb-2">Kullanıcı bulunamadı</h3>
-                                                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                                                            Arama kriterlerinizi değiştirip tekrar deneyin veya filtreleri temizleyin.
-                                                        </p>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                    {/* Adminler */}
+                    <Card className="border-2 border-indigo-200 dark:border-indigo-800 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Admin</CardTitle>
+                            <Shield className="h-4 w-4 text-indigo-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-indigo-600">{levelStats.admins}</div>
+                            <p className="text-xs text-muted-foreground">Yönetim yetkisi</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Kullanıcılar */}
+                    <Card className="border-2 border-slate-200 dark:border-slate-800 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Kullanıcı</CardTitle>
+                            <GraduationCap className="h-4 w-4 text-slate-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-slate-600">{levelStats.users}</div>
+                            <p className="text-xs text-muted-foreground">Standart üye</p>
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Kullanıcı Tablosu */}
+                <Card className="shadow-xl border-2">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-2xl flex items-center gap-2">
+                                    <Star className="h-5 w-5 text-yellow-500" />
+                                    Kullanıcı Listesi
+                                </CardTitle>
+                                <CardDescription>
+                                    {currentUserLevel >= ROLES.SUPER_ADMIN ? "Kullanıcıları yönetin." : "Kullanıcıları görüntüleyin."}
+                                </CardDescription>
+                            </div>
+                            <Badge variant="secondary" className="gap-1">
+                                <Hash className="h-3 w-3" />
+                                {filteredUsers.length} sonuç
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <UserFilterBar classes={classes} />
+
+                        <div className="rounded-lg border bg-card overflow-hidden">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-muted/50">
+                                        <TableHead className="w-[300px]">Kullanıcı</TableHead>
+                                        <TableHead>Okul No</TableHead>
+                                        <TableHead>Sınıf</TableHead>
+                                        <TableHead>Seviye</TableHead>
+                                        <TableHead>Son Aktif</TableHead>
+                                        <TableHead className="text-right">İşlemler</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody suppressHydrationWarning>
+                                    {filteredUsers.length > 0 ? (
+                                        filteredUsers.map((user) => {
+                                            const userLevel = user.level ?? 0
+                                            const canEditLevel = currentUserLevel > userLevel
+                                            const isCurrentUser = user.id === currentUser.id
+                                            const canEditProfile = currentUserLevel >= ROLES.ADMIN && (canEditLevel || isCurrentUser)
+                                            const avatarColor = getAvatarColor(user.first_name)
+                                            const initials = getInitials(user.first_name, user.last_name)
+                                            const { text: activeText, isRecent } = formatLastActive(user.last_active)
+
+                                            return (
+                                                <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Avatar */}
+                                                            <div className="relative">
+                                                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white font-semibold text-sm shadow-md`}>
+                                                                    {initials}
+                                                                </div>
+                                                                {isCurrentUser && (
+                                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-medium flex items-center gap-2">
+                                                                    {getFullName(user.first_name, user.last_name)}
+                                                                    {isCurrentUser && (
+                                                                        <Badge variant="outline" className="text-xs">
+                                                                            Sizin Hesabınız
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>{user.school_number}</TableCell>
+                                                    <TableCell>{user.class}</TableCell>
+                                                    <TableCell>{getLevelBadge(userLevel)}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
+                                                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                                            <span className="text-sm">{activeText}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {canEditProfile && (
+                                                                <EditUserButton
+                                                                    user={user}
+                                                                    currentUserLevel={currentUserLevel}
+                                                                />
+                                                            )}
+                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && canEditLevel && (
+                                                                <LevelSelector
+                                                                    userId={user.id}
+                                                                    currentLevel={userLevel}
+                                                                    maxLevel={currentUserLevel}
+                                                                />
+                                                            )}
+                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && (
+                                                                <MetadataButton profileData={user} />
+                                                            )}
+                                                            {isCurrentUser && currentUserLevel < ROLES.SUPER_ADMIN && (
+                                                                <span className="text-xs text-muted-foreground">Seviye değiştiremezsiniz</span>
+                                                            )}
+                                                            {!canEditProfile && !isCurrentUser && (
+                                                                <span className="text-xs text-muted-foreground">Yetki yok</span>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="h-64 text-center">
+                                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                                    <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                                                    <h3 className="font-semibold text-lg mb-2">Kullanıcı bulunamadı</h3>
+                                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                                        Arama kriterlerinizi değiştirip tekrar deneyin veya filtreleri temizleyin.
+                                                    </p>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </RoleGuard>
     )

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,7 +17,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Trash2, Save, Loader2, X, AlertTriangle, Undo2 } from "lucide-react"
+import { Trash2, Save, Loader2, AlertTriangle, Undo2 } from "lucide-react"
+import { updateTextAction, deleteMyTextAction } from "@/app/actions"
 
 interface EditTextFormProps {
   text: {
@@ -37,44 +37,41 @@ export default function EditTextForm({ text }: EditTextFormProps) {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error: updateError } = await supabase
-        .from("texts")
-        .update({
-          content,
-          updated_at: new Date().toISOString
-        })
-        .eq("id", text.id)
+      const result = await updateTextAction(text.id, content)
 
-      if (updateError) throw updateError
-
-      router.push("/dashboard")
-      router.refresh()
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Bir hata oluştu")
+      if (result.error) {
+        setError(result.error)
+      } else {
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Beklenmeyen bir hata oluştu")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleDelete = async () => {
-    const supabase = createClient()
     setIsDeleting(true)
     setError(null)
 
     try {
-      const { error: deleteError } = await supabase.from("texts").delete().eq("id", text.id)
+      const result = await deleteMyTextAction(text.id)
 
-      if (deleteError) throw deleteError
-
-      router.push("/dashboard")
-      router.refresh()
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Bir hata oluştu")
+      if (result.error) {
+        setError(result.error)
+        setIsDeleting(false)
+      } else {
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Beklenmeyen bir hata oluştu")
       setIsDeleting(false)
     }
   }
@@ -101,7 +98,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive border border-destructive/20 flex items-center gap-2">
+        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive border border-destructive/20 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
           <AlertTriangle className="h-4 w-4" />
           {error}
         </div>

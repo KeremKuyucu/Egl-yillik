@@ -91,18 +91,19 @@ export default function ProfileCard({
             {/* Progress Section */}
             <div className="relative bg-slate-50/80 dark:bg-[#0b1021]/60 backdrop-blur-md border-t border-indigo-100 dark:border-indigo-500/20 p-8 z-10 flex flex-col gap-6 transition-colors">
                 {/* 1. Yazı Tamamlama Oranı */}
-                <div>
+                {/* 1. Yazı Tamamlama Oranı */}
+                <Link href="/my-texts" prefetch={false} className="group block hover:opacity-80 transition-opacity">
                     <div className="flex justify-between items-end mb-2">
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 transition-colors">
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             <PenLine className="h-4 w-4 text-indigo-400" suppressHydrationWarning />
-                            Yazı Görevi
+                            Yazı Görevi <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-xs text-indigo-400 font-normal">(Görüntüle)</span>
                         </span>
                         <div className="text-right">
                             <span className="text-xl font-bold text-indigo-400">{requiredWritten}</span>
                             <span className="text-xs text-slate-500 font-medium">/{requiredTotal}</span>
                         </div>
                     </div>
-                    <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                    <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 cursor-pointer">
                         <div
                             className={`h-full transition-all duration-1000 ease-out rounded-full relative overflow-hidden ${isRequiredComplete
                                 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-[0_0_15px_rgba(99,102,241,0.5)]'
@@ -112,7 +113,7 @@ export default function ProfileCard({
                         >
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* 2. Anket Tamamlama Oranı */}
                 <Link href="/surveys" prefetch={false} className="group block hover:opacity-80 transition-opacity">
