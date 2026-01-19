@@ -107,7 +107,7 @@ export async function updateToggleSetting(key: string, value: boolean) {
     }
 
     // Validate key
-    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled'];
+    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'maintenance_mode'];
     if (!allowedKeys.includes(key)) {
         return { error: 'Geçersiz ayar anahtarı' };
     }
@@ -115,7 +115,8 @@ export async function updateToggleSetting(key: string, value: boolean) {
     const descriptions: Record<string, string> = {
         messaging_enabled: 'Mesaj yazma özelliği açık/kapalı',
         voting_enabled: 'Oylama/anket özelliği açık/kapalı',
-        registration_enabled: 'Yeni kayıt özelliği açık/kapalı'
+        registration_enabled: 'Yeni kayıt özelliği açık/kapalı',
+        maintenance_mode: 'Bakım modu açık/kapalı'
     };
 
     // Upsert the setting
@@ -154,7 +155,8 @@ export async function getSettingsAction() {
                 graduation_date: new Date(2026, 6, 26).toISOString(),
                 messaging_enabled: 'true',
                 voting_enabled: 'true',
-                registration_enabled: 'true'
+                registration_enabled: 'true',
+                maintenance_mode: 'false'
             }
         };
     }
@@ -164,7 +166,8 @@ export async function getSettingsAction() {
         graduation_date: new Date(2026, 6, 26).toISOString(),
         messaging_enabled: 'true',
         voting_enabled: 'true',
-        registration_enabled: 'true'
+        registration_enabled: 'true',
+        maintenance_mode: 'false'
     };
 
     data?.forEach((item) => {

@@ -119,6 +119,54 @@ export async function middleware(request: NextRequest) {
     return redirect("/login")
   }
 
+  // --- MAINTENANCE MODE CHECK ---
+  // Site settings tablosundan maintenance_mode ayarını kontrol et
+  // Public ve anonim erişimleri kısıtlamak için burada kontrol yapıyoruz
+  // Not: Bu işlem her istekte DB çağrısı yapar. Performans için cache mekanizması düşünülebilir.
+  const { data: maintenanceSetting } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'maintenance_mode')
+    .single()
+
+  const isMaintenanceMode = maintenanceSetting?.value === 'true'
+
+  // Bakım modu aktifse ve kullanıcı admin değilse /maintenance sayfasına yönlendir
+  if (isMaintenanceMode) {
+    // İzin verilen pathler (Login ve statik dosyalar hariç hepsi engellenir)
+    // /login ve /maintenance her zaman erişilebilir olmalı
+    const isAllowedDuringMaintenance =
+      pathname === "/maintenance" ||
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/auth") ||
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/static");
+
+    if (!isAllowedDuringMaintenance) {
+      if (!user) {
+        // Giriş yapmamış kullanıcı direkt bakım moduna
+        return redirect("/maintenance")
+      } else {
+        // Giriş yapmış kullanıcı, yetkisini kontrol et
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('level')
+          .eq('id', user.id)
+          .single()
+
+        // Level 100 (Super Admin) ve üzeri erişebilir
+        if (!profile || (profile.level < 100)) {
+          return redirect("/maintenance")
+        }
+      }
+    }
+  } else {
+    // Bakım modu kapalıysa ve kullanıcı /maintenance sayfasına gitmeye çalışıyorsa ana sayfaya at
+    if (pathname === "/maintenance") {
+      return redirect("/")
+    }
+  }
+
   return response
 }
 

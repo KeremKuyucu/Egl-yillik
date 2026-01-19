@@ -19,8 +19,12 @@ export default function LoginPage() {
   const [isRecoveryLoading, setIsRecoveryLoading] = useState(true)
   const router = useRouter()
 
+  const [isMounted, setIsMounted] = useState(false)
+
   useEffect(() => {
+    setIsMounted(true)
     const handleRecoveryToken = async () => {
+      // ... same logic ...
       const hash = window.location.hash
       if (hash && hash.includes('type=recovery')) {
         const supabase = createClient()
@@ -46,66 +50,16 @@ export default function LoginPage() {
     handleRecoveryToken()
   }, [router])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-
-      router.push("/dashboard")
-      router.refresh()
-    } catch (error: any) {
-      console.error("Giriş sırasında bir hata oluştu:", error)
-
-      let message = "Giriş yapılamadı."
-      const errorMessage = error.message?.toLowerCase() || ""
-
-      if (errorMessage.includes("invalid login credentials")) {
-        message = "E-posta adresi veya şifre hatalı."
-      } else if (errorMessage.includes("email not confirmed")) {
-        message = "E-posta adresiniz henüz onaylanmamış."
-      } else if (errorMessage.includes("too many requests")) {
-        message = "Çok fazla deneme yaptınız, lütfen bekleyin."
-      } else if (error.message) {
-        message = `Hata: ${error.message}`
-      }
-
-      setError(message)
-      setIsLoading(false)
-    }
-  }
-
-  const handleGoogleLogin = async () => {
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (error) throw error
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Google ile giriş yapılamadı.")
-      setIsLoading(false)
-    }
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted) {
+    return null
   }
 
   if (isRecoveryLoading) {
     return (
       <div className="flex w-full h-64 items-center justify-center">
         <div className="flex items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-blue-600" suppressHydrationWarning />
           <span className="text-muted-foreground">Yükleniyor...</span>
         </div>
       </div>

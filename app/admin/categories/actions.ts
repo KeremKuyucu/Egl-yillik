@@ -124,12 +124,39 @@ export async function addCategory(data: CategoryFormData) {
             description: data.description,
             color: data.color,
             sort_order: data.sort_order || 0,
-            is_active: true
+            is_active: true,
+            is_user_suggested: true, // Admin eklese bile öneri sistemine dahil ediyoruz
+            suggested_by: user.id
         })
+        .select()
+        .single()
 
     if (error) {
         console.error("Add category error:", error)
         return { error: "Kategori eklenirken hata oluştu: " + error.message }
+    }
+
+    // Admin tarafından eklendiği için otomatik olarak onaylanmış öneri kaydı oluştur
+    if (data) { // data artık insert edilen kategoriyi içeriyor
+        const { error: suggestionError } = await supabase
+            .from("user_category_suggestions")
+            .insert({
+                title: data.title,
+                emoji: data.emoji,
+                description: data.description,
+                color: data.color,
+                status: 'approved',
+                suggested_by: user.id,
+                reviewed_by: user.id,
+                reviewed_at: new Date().toISOString(),
+                approved_category_id: data.id,
+                admin_note: 'Admin tarafından doğrudan eklendi'
+            })
+
+        if (suggestionError) {
+            console.error("Auto suggestion create error:", suggestionError)
+            // Kritik değil, devam et
+        }
     }
 
     revalidatePath("/admin/categories")
