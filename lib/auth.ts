@@ -23,7 +23,6 @@ export const getAuthContext = cache(async () => {
     const supabase = await createClient()
 
     const { data: { session } } = await supabase.auth.getSession()
-
     if (!session?.user) {
         return { user: null, level: 0, profile: null }
     }
@@ -31,9 +30,17 @@ export const getAuthContext = cache(async () => {
     const user = session.user
     const metadata = user.user_metadata as JWTProfile | undefined
 
+    const { data: levelRow } = await supabase
+        .from("user_levels")
+        .select("level")
+        .eq("id", user.id)
+        .single()
+
+    const level = levelRow?.level ?? 0
+
     return {
         user,
-        level: metadata.level,
+        level,
         profile: metadata ? {
             id: user.id,
             email: metadata.email,
@@ -42,7 +49,7 @@ export const getAuthContext = cache(async () => {
             display_name: metadata.display_name,
             class: metadata.class,
             school_number: metadata.school_number,
-            level: metadata.level,
+            level, // 🔴 JWT DEĞİL DB
         } : null
     }
 })
