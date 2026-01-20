@@ -1,98 +1,69 @@
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { requireSuperAdmin } from "@/lib/auth"
 import ReminderClientPage from "./client"
+import type { BulkStatsRPCResponse, UserWithStats } from "@/types/reminder"
 
 export default async function ReminderPage() {
-    // Merkezi super admin kontrolü
     await requireSuperAdmin()
 
-    const supabase = await createClient()
+    // Admin client kullan (service_role key ile)
+    const supabase = await createClient();
 
-    // Fetch all profiles
-    const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order('class', { ascending: true })
-        .order('first_name', { ascending: true })
+    // ✅ TEK BİR RPC ÇAĞRISI - Email dahil tüm veriler birleşik geliyor
+    const { data: usersData, error: rpcError } = await supabase
+        .rpc('get_bulk_user_stats') as { data: BulkStatsRPCResponse[] | null, error: any }
 
-    if (error) {
-        return <div className="p-10 text-red-500">Hata: {error.message} - Profilleri çekerken sorun oluştu.</div>
+    if (rpcError) {
+        return (
+            <div className="p-8 text-red-500">
+                <h2 className="text-xl font-bold mb-2">Hata</h2>
+                <p>{rpcError.message}</p>
+                <pre className="mt-4 p-4 bg-red-50 rounded text-xs overflow-auto">
+                    {JSON.stringify(rpcError, null, 2)}
+                </pre>
+            </div>
+        )
     }
 
-    // Toplam anket kategorisi sayısını al
-    const { data: categories } = await supabase
-        .from("survey_categories")
-        .select("id")
-        .eq("is_active", true)
-
-    const totalCategories = categories?.length || 0
-
-    // Her kullanıcının anket oylarını al
-    const { data: allVotes } = await supabase
-        .from("survey_votes")
-        .select("voter_id, category_id")
-
-    // Kullanıcı bazlı oy sayısı haritası
-    const userSurveyVotes: Record<string, Set<string>> = {}
-    if (allVotes) {
-        for (const vote of allVotes) {
-            if (!userSurveyVotes[vote.voter_id]) {
-                userSurveyVotes[vote.voter_id] = new Set()
-            }
-            userSurveyVotes[vote.voter_id].add(vote.category_id)
-        }
+    if (!usersData || usersData.length === 0) {
+        return (
+            <div className="p-8 text-center">
+                <h2 className="text-xl font-bold mb-2">Kullanıcı Bulunamadı</h2>
+                <p className="text-slate-600">Sistemde hiç aktif kullanıcı yok.</p>
+            </div>
+        )
     }
 
-    // Auth Users'dan emailleri çek
-    const adminClient = createAdminClient()
-    const { data: { users: authUsers }, error: authError } = await adminClient.auth.admin.listUsers({
-        perPage: 1000
-    })
+    // ✅ Email artık RPC'den geliyor, ayrı çekmeye gerek yok!
+    // Verileri frontend formatına dönüştür
+    const users: UserWithStats[] = usersData.map((user) => ({
+        id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        class: user.class,
+        level: user.level,
+        email: user.email,
 
-    if (authError) {
-        console.error("Auth users fetch error:", authError)
-    }
+        // Yazı istatistikleri
+        stats: {
+            user_id: user.user_id,
+            class: user.class,
+            total_classmates: user.total_classmates,
+            messages_sent_to_classmates: user.messages_sent_to_classmates,
+            remaining_classmates: user.remaining_classmates,
+            completion_percentage: user.text_completion_percentage
+        },
 
-    const userEmails = new Map(authUsers?.map(u => [u.id, u.email]) || [])
+        // Anket istatistikleri
+        surveyStats: {
+            total: user.total_survey_categories,
+            completed: user.completed_surveys,
+            remaining: user.remaining_surveys,
+            percentage: user.survey_completion_percentage
+        },
 
-    // Fetch stats for each user
-    const usersWithStats = await Promise.all(
-        profiles.map(async (p: any) => {
-            let stats = null
-            let statsError = null
+        statsError: null
+    }))
 
-            try {
-                const { data, error } = await supabase.rpc('get_user_class_stats', { target_user_id: p.id })
-                if (error) {
-                    statsError = error.message
-                } else {
-                    stats = data
-                }
-            } catch (e: any) {
-                statsError = e.message
-            }
-
-            // Anket istatistikleri
-            const votedCategories = userSurveyVotes[p.id]?.size || 0
-            const surveyStats = {
-                total: totalCategories,
-                completed: votedCategories,
-                remaining: totalCategories - votedCategories,
-                percentage: totalCategories > 0 ? Math.round((votedCategories / totalCategories) * 100) : 0
-            }
-
-            return {
-                ...p,
-                // Email auth.users'dan geliyor
-                email: userEmails.get(p.id) || null,
-                stats,
-                statsError,
-                surveyStats
-            }
-        })
-    )
-
-    return <ReminderClientPage users={usersWithStats} totalCategories={totalCategories} />
+    return <ReminderClientPage users={users} />
 }
-

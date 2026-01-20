@@ -27,18 +27,28 @@ import {
 import Link from "next/link"
 import { getColorFromName } from "@/lib/survey-categories"
 
+import { UserWithStats, FilterStatus, FilterClass, EmailStatus } from "@/types/reminder"
+import { requireSuperAdmin } from "@/lib/auth"
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+    Cell
+} from 'recharts'
+
 interface ReminderClientPageProps {
-    users: any[]
-    totalCategories: number
+    users: UserWithStats[]
 }
 
-type FilterStatus = 'all' | 'texts_incomplete' | 'texts_complete' | 'survey_incomplete' | 'any_incomplete'
-type FilterClass = 'all' | '12A' | '12B' | '12C' | '12D' | '12E' | '12F'
-
-export default function ReminderClientPage({ users, totalCategories }: ReminderClientPageProps) {
+export default function ReminderClientPage({ users }: ReminderClientPageProps) {
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [isSending, setIsSending] = useState(false)
-    const [results, setResults] = useState<Record<string, 'success' | 'error' | 'pending'>>({})
+    const [results, setResults] = useState<Record<string, EmailStatus>>({})
     const [searchQuery, setSearchQuery] = useState("")
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
     const [filterClass, setFilterClass] = useState<FilterClass>('all')
@@ -323,38 +333,96 @@ export default function ReminderClientPage({ users, totalCategories }: ReminderC
 
             {/* Sınıf Bazlı İstatistikler */}
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-lg">
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-purple-500" />
-                    Sınıf Bazlı Durum
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                    {Object.entries(stats.byClass).sort().map(([className, data]) => (
-                        <button
-                            key={className}
-                            onClick={() => setFilterClass(filterClass === className as FilterClass ? 'all' : className as FilterClass)}
-                            className={`p-3 rounded-xl border transition-all ${filterClass === className
-                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/30 ring-2 ring-purple-500/20'
-                                : 'border-slate-200 dark:border-slate-700 hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                }`}
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-purple-500" />
+                        Sınıf Bazlı İstatistikler
+                    </h3>
+                    {filterClass !== 'all' && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilterClass('all')}
+                            className="text-xs h-7 hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
-                            <p className="font-bold text-slate-900 dark:text-white">{className}</p>
-                            <div className="mt-2 space-y-1">
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-slate-500 flex items-center gap-1">
-                                        <PenLine className="h-3 w-3" />
-                                    </span>
-                                    <span className="text-emerald-600 font-medium">{data.textsComplete}/{data.total}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-slate-500 flex items-center gap-1">
-                                        <Vote className="h-3 w-3" />
-                                    </span>
-                                    <span className="text-purple-600 font-medium">{data.surveysComplete}/{data.total}</span>
-                                </div>
-                            </div>
-                        </button>
-                    ))}
+                            Filtreyi Temizle ({filterClass})
+                        </Button>
+                    )}
                 </div>
+
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={Object.entries(stats.byClass)
+                                .sort()
+                                .map(([className, data]) => ({
+                                    name: className,
+                                    'Makale': data.textsComplete,
+                                    'Anket': data.surveysComplete,
+                                    'Toplam': data.total
+                                }))}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            onClick={(data) => {
+                                if (data && data.activeLabel) {
+                                    setFilterClass(filterClass === data.activeLabel as FilterClass ? 'all' : data.activeLabel as FilterClass)
+                                }
+                            }}
+                            className="cursor-pointer"
+                        >
+                            <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                stroke="#888888"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fill: '#6b7280' }}
+                            />
+                            <YAxis
+                                stroke="#888888"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fill: '#6b7280' }}
+                            />
+                            <Tooltip
+                                cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                contentStyle={{
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                                }}
+                            />
+                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                            <Bar
+                                dataKey="Makale"
+                                name="Yazı Tamamlanan"
+                                fill="#10b981"
+                                radius={[4, 4, 0, 0]}
+                                barSize={20}
+                            />
+                            <Bar
+                                dataKey="Anket"
+                                name="Anket Tamamlanan"
+                                fill="#8b5cf6"
+                                radius={[4, 4, 0, 0]}
+                                barSize={20}
+                            />
+                            <Bar
+                                dataKey="Toplam"
+                                name="Toplam Öğrenci"
+                                fill="#cbd5e1"
+                                radius={[4, 4, 0, 0]}
+                                barSize={20}
+                                opacity={0.3}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+                <p className="text-center text-xs text-slate-400 mt-4">
+                    Detaylarını görmek veya filtrelemek için bir sınıfın sütununa tıklayın
+                </p>
             </div>
 
             {/* Filtreler ve Arama */}
@@ -511,10 +579,10 @@ export default function ReminderClientPage({ users, totalCategories }: ReminderC
                                 {/* İsim ve Email */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <p className="font-semibold text-slate-900 dark:text-white truncate">
+                                        <p className="font-semibold text-slate-900 dark:text-white">
                                             {user.first_name} {user.last_name}
                                         </p>
-                                        <Badge variant="outline" className="text-xs shrink-0">
+                                        <Badge variant="outline" className="text-xs shrink-0 hidden sm:inline-flex">
                                             {user.class}
                                         </Badge>
                                     </div>
@@ -524,7 +592,7 @@ export default function ReminderClientPage({ users, totalCategories }: ReminderC
                                 </div>
 
                                 {/* Yazı İstatistiği */}
-                                <div className="hidden sm:flex flex-col items-center gap-1 min-w-[80px]">
+                                <div className="flex flex-col items-center gap-1 min-w-[70px] sm:min-w-[80px]">
                                     <div className="flex items-center gap-1.5">
                                         <PenLine className={`h-3.5 w-3.5 ${isTextComplete ? 'text-emerald-500' : 'text-amber-500'}`} />
                                         <span className={`text-sm font-bold ${isTextComplete ? 'text-emerald-600' : 'text-amber-600'}`}>
@@ -542,7 +610,7 @@ export default function ReminderClientPage({ users, totalCategories }: ReminderC
                                 </div>
 
                                 {/* Anket İstatistiği */}
-                                <div className="hidden sm:flex flex-col items-center gap-1 min-w-[80px]">
+                                <div className="flex flex-col items-center gap-1 min-w-[70px] sm:min-w-[80px]">
                                     <div className="flex items-center gap-1.5">
                                         <Vote className={`h-3.5 w-3.5 ${isSurveyComplete ? 'text-purple-500' : 'text-purple-400'}`} />
                                         <span className={`text-sm font-bold ${isSurveyComplete ? 'text-purple-600' : 'text-purple-400'}`}>
@@ -559,27 +627,7 @@ export default function ReminderClientPage({ users, totalCategories }: ReminderC
                                     )}
                                 </div>
 
-                                {/* Durum Badges - Mobil */}
-                                <div className="flex sm:hidden gap-1">
-                                    {isTextComplete ? (
-                                        <div className="p-1 rounded bg-emerald-100 dark:bg-emerald-900/30">
-                                            <PenLine className="h-3 w-3 text-emerald-600" />
-                                        </div>
-                                    ) : (
-                                        <div className="p-1 rounded bg-amber-100 dark:bg-amber-900/30">
-                                            <PenLine className="h-3 w-3 text-amber-600" />
-                                        </div>
-                                    )}
-                                    {isSurveyComplete ? (
-                                        <div className="p-1 rounded bg-purple-100 dark:bg-purple-900/30">
-                                            <Vote className="h-3 w-3 text-purple-600" />
-                                        </div>
-                                    ) : (
-                                        <div className="p-1 rounded bg-purple-50 dark:bg-purple-900/10">
-                                            <Vote className="h-3 w-3 text-purple-300" />
-                                        </div>
-                                    )}
-                                </div>
+
 
                                 {/* Gönderim Durumu */}
                                 <div className="w-8 flex justify-center">

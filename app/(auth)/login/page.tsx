@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Loader2, AlertCircle, LogIn } from "lucide-react"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -25,14 +26,36 @@ export default function LoginPage() {
     setIsMounted(true)
 
     // URL'deki hata parametrelerini kontrol et (OAuth redirect hataları)
+    // URL'deki hata parametrelerini kontrol et (OAuth redirect hataları)
     const searchParams = new URLSearchParams(window.location.search)
-    const errorDescription = searchParams.get('error_description')
+    let errorDescription = searchParams.get('error_description')
+    let error = searchParams.get('error')
+
+    // Hash params kontrol et (bazen hatalar buraya düşer)
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      if (hashParams.get('error_description')) {
+        errorDescription = hashParams.get('error_description')
+      }
+      if (hashParams.get('error')) {
+        error = hashParams.get('error')
+      }
+    }
+
+    // Öncelik error_description (daha açıklayıcı)
     if (errorDescription) {
       if (errorDescription.includes('Database error saving new user')) {
+        toast.error('Kayıtlar şu an kapalıdır. Google ile yeni üyelik oluşturulamaz.')
         setError('Kayıtlar şu an kapalıdır. Google ile yeni üyelik oluşturulamaz.')
       } else {
-        setError(translateAuthError(errorDescription))
+        const translated = translateAuthError(errorDescription)
+        toast.error(translated)
+        setError(translated)
       }
+    } else if (error) {
+      const translated = translateAuthError(error)
+      toast.error(translated)
+      setError(translated)
     }
 
     const handleRecoveryToken = async () => {
