@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
+import { getAuthContext } from "@/lib/auth"
+import { notFound } from "next/navigation"
 import { getCategoryById, FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,10 +14,14 @@ interface SurveyCategoryPageProps {
 
 export default async function SurveyCategoryPage({ params }: SurveyCategoryPageProps) {
     const { categoryId } = await params
-    const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect("/login")
+    // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
+    const { user, profile: userProfile } = await getAuthContext()
+
+    // TypeScript için null check
+    if (!user || !userProfile) {
+        return null
+    }
 
     // Sistem kontrolü
     const votingEnabled = await isVotingEnabled()
@@ -41,6 +46,8 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
         )
     }
 
+    const supabase = await createClient()
+
     // Kategoriyi Supabase'den çek
     const { data: dbCategory } = await supabase
         .from("survey_categories")
@@ -52,15 +59,6 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
     // Supabase'den kategori bulunamadıysa fallback'e bak
     const category: SurveyCategory | undefined = dbCategory || getCategoryById(categoryId, FALLBACK_CATEGORIES)
     if (!category) notFound()
-
-    // Kullanıcı profili
-    const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-
-    if (!userProfile) redirect("/login")
 
     // SADECE sınıf arkadaşlarını al (kendisi hariç)
     const { data: classmates } = await supabase

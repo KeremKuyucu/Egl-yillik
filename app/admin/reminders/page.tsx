@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { requireSuperAdmin } from "@/lib/auth"
 import ReminderClientPage from "./client"
 
@@ -9,7 +8,7 @@ export default async function ReminderPage() {
 
     const supabase = await createClient()
 
-    // Fetch all profiles
+    // Fetch all profiles (email artık profiles'da)
     const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -20,26 +19,8 @@ export default async function ReminderPage() {
         return <div className="p-10 text-red-500">Hata: {error.message} - Profilleri çekerken sorun oluştu.</div>
     }
 
-    // Fetch all auth users using admin client to get emails
-    const adminClient = createAdminClient()
-    const { data: authUsersData, error: authError } = await adminClient.auth.admin.listUsers({
-        perPage: 1000
-    })
-
-    if (authError) {
-        console.error("Auth users fetch error:", authError)
-    }
-
-    // Create a map of user_id -> email
-    const emailMap: Record<string, string> = {}
-    if (authUsersData?.users) {
-        for (const authUser of authUsersData.users) {
-            emailMap[authUser.id] = authUser.email || ''
-        }
-    }
-
     // Toplam anket kategorisi sayısını al
-    const { data: categories } = await adminClient
+    const { data: categories } = await supabase
         .from("survey_categories")
         .select("id")
         .eq("is_active", true)
@@ -47,7 +28,7 @@ export default async function ReminderPage() {
     const totalCategories = categories?.length || 0
 
     // Her kullanıcının anket oylarını al
-    const { data: allVotes } = await adminClient
+    const { data: allVotes } = await supabase
         .from("survey_votes")
         .select("voter_id, category_id")
 
@@ -69,8 +50,7 @@ export default async function ReminderPage() {
             let statsError = null
 
             try {
-                // Call the requested function with admin client (bypasses JWT check)
-                const { data, error } = await adminClient.rpc('get_user_class_stats', { target_user_id: p.id })
+                const { data, error } = await supabase.rpc('get_user_class_stats', { target_user_id: p.id })
                 if (error) {
                     statsError = error.message
                 } else {
@@ -91,7 +71,7 @@ export default async function ReminderPage() {
 
             return {
                 ...p,
-                email: emailMap[p.id] || null,
+                // Email artık profile'dan geliyor
                 stats,
                 statsError,
                 surveyStats
@@ -101,3 +81,4 @@ export default async function ReminderPage() {
 
     return <ReminderClientPage users={usersWithStats} totalCategories={totalCategories} />
 }
+

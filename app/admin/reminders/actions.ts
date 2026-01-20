@@ -1,7 +1,6 @@
 "use server"
 
 import { Resend } from 'resend';
-import { createClient } from '@/lib/supabase/server';
 import { checkSuperAdmin } from '@/lib/auth';
 import { getDeadline } from '@/lib/settings';
 
@@ -28,8 +27,6 @@ export async function sendReminderEmail(
     if (!email) {
         return { error: 'Email not found for user' };
     }
-
-    const supabase = await createClient();
 
     // Son teslim tarihini veritabanından çek
     const deadlineData = await getDeadline();
@@ -61,7 +58,7 @@ export async function sendReminderEmail(
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'EGL Yıllık <info@keremkk.com.tr>',
+            from: 'EGL Yıllık <egl@keremkk.com.tr>',
             to: [email],
             subject,
             html: `

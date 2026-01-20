@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"

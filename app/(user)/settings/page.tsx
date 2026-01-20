@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShieldCheck, Loader2, KeyRound } from "lucide-react"
 import { useRouter } from "next/navigation"
 import ChangePassword from "@/components/change-password"
-import DeleteAccount from "@/components/delete-account"
 import { Badge } from "@/components/ui/badge"
 import { Mail } from "lucide-react"
 
@@ -71,8 +70,6 @@ export default function SettingsPage() {
                 </div>
 
                 <ChangePassword isGoogleUser={!hasPassword} />
-
-                <DeleteAccount />
 
                 <Card className="border-2 border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
                     <CardHeader>

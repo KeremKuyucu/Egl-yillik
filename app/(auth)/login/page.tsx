@@ -23,6 +23,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     setIsMounted(true)
+
+    // URL'deki hata parametrelerini kontrol et (OAuth redirect hataları)
+    const searchParams = new URLSearchParams(window.location.search)
+    const errorDescription = searchParams.get('error_description')
+    if (errorDescription) {
+      if (errorDescription.includes('Database error saving new user')) {
+        setError('Kayıtlar şu an kapalıdır. Google ile yeni üyelik oluşturulamaz.')
+      } else {
+        setError(translateAuthError(errorDescription))
+      }
+    }
+
     const handleRecoveryToken = async () => {
       // ... same logic ...
       const hash = window.location.hash
@@ -49,6 +61,15 @@ export default function LoginPage() {
 
     handleRecoveryToken()
   }, [router])
+
+  // Yardımcı hata çeviri fonksiyonu
+  const translateAuthError = (message: string) => {
+    const lower = message.toLowerCase()
+    if (lower.includes("invalid login credentials")) return "E-posta adresi veya şifre hatalı."
+    if (lower.includes("email not confirmed")) return "E-posta adresiniz henüz onaylanmamış."
+    if (lower.includes("too many requests")) return "Çok fazla deneme yaptınız, lütfen bekleyin."
+    return message
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

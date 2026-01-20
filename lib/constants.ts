@@ -10,17 +10,17 @@ export const ROLES = {
 export const ROLE_DETAILS = {
     [ROLES.OWNER]: {
         label: "Owner",
-        description: "Tam Yetki: Veritabanı silme, admin atama, her şeyi yönetme.",
+        description: "Tam Yetki: Süper Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
         badgeColor: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/50 animate-pulse"
     },
     [ROLES.SUPER_ADMIN]: {
         label: "Süper Admin",
-        description: "Yüksek Yetki: Admin ve Moderatör atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
+        description: "Yüksek Yetki: Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
         badgeColor: "bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 hover:from-red-700 hover:to-orange-700 shadow-md shadow-red-500/50"
     },
     [ROLES.ADMIN]: {
         label: "Admin",
-        description: "Yönetim: Moderatör atayabilir, içerikleri yönetebilir, kullanıcıları düzenleyebilir.",
+        description: "Yönetim: İçerikleri yönetebilir, kullanıcıları düzenleyebilir.",
         badgeColor: "bg-gradient-to-r from-amber-600 to-yellow-600 text-white border-0 hover:from-amber-700 hover:to-yellow-700 shadow-md shadow-amber-500/50"
     },
     [ROLES.USER]: {

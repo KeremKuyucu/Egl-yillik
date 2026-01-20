@@ -24,6 +24,9 @@ function getAvatarColor(name: string): string {
     return avatarColors[charCode % avatarColors.length]
 }
 
+// Sabit sınıf listesi
+const CLASSES = ["12A", "12B", "12C", "12D", "12E", "12F"]
+
 export default async function SchoolPage({
     searchParams,
 }: {
@@ -54,23 +57,16 @@ export default async function SchoolPage({
         )
     }
 
-    // Group by class
-    const groupedStudents = students.reduce((acc: any, student: any) => {
-        const className = student.class || "Diğer"
-        if (!acc[className]) acc[className] = []
-        acc[className].push(student)
-        return acc
-    }, {})
-
-    // Sort students within each class by school_number
-    Object.keys(groupedStudents).forEach(className => {
-        groupedStudents[className].sort((a: any, b: any) =>
-            a.school_number.localeCompare(b.school_number, 'tr', { numeric: true })
-        )
+    // Group by class using static list
+    const groupedStudents: Record<string, any[]> = {}
+    CLASSES.forEach(cls => {
+        groupedStudents[cls] = students
+            .filter((s: any) => s.class === cls)
+            .sort((a: any, b: any) => a.school_number.localeCompare(b.school_number, 'tr', { numeric: true }))
     })
 
-    // Sort classes alphanumeric
-    const sortedClasses = Object.keys(groupedStudents).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }))
+    // Show all classes (even if empty)
+    const sortedClasses = CLASSES
 
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">

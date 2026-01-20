@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface UserProfile {
     id: string
+    email: string | null
     first_name: string
     last_name: string
     school_number: string
@@ -99,7 +100,7 @@ export default async function UsersAdminPage({
     // 2. Kullanıcıları çek (level hariç)
     let profileQuery = supabase
         .from("profiles")
-        .select("id, first_name, last_name, school_number, class, last_active")
+        .select("id, email, first_name, last_name, school_number, class, last_active")
         .order("last_name")
 
     // Server-side sınıf filtresi

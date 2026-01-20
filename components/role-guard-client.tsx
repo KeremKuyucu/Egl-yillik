@@ -2,20 +2,13 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
-import { ROLES, getLevelInfo } from "@/lib/constants"
+import { checkPermission, getRoleInfo, type PermissionOptions, type RoleInfo } from "@/lib/auth-utils"
+import { ROLES } from "@/lib/constants"
 import { ReactNode, useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 
-interface ClientRoleGuardProps {
+interface ClientRoleGuardProps extends PermissionOptions {
     children: ReactNode
-    /** Minimum seviye (dahil) - varsayılan ADMIN */
-    minLevel?: number
-    /** Maksimum seviye (dahil) - belirtilmezse üst limit yok */
-    maxLevel?: number
-    /** Tam olarak bu seviyede olmalı */
-    exactLevel?: number
-    /** Ters mantık: koşul SAĞLANMAZSA göster */
-    inverse?: boolean
     /** Yetki yoksa gösterilecek içerik */
     fallback?: ReactNode
     /** Yüklenirken gösterilecek içerik */
@@ -26,11 +19,17 @@ interface ClientRoleGuardProps {
 
 /**
  * Client-side rol/yetki kontrolü yapan bileşen.
- * Real-time güncellemeler ve dinamik kontroller için kullanışlıdır.
+ * JWT user_metadata'dan level bilgisi alır - DB sorgusu yapmaz.
  * 
  * @example
  * <ClientRoleGuard minLevel={ROLES.ADMIN} showLoader>
  *   <AdminPanel />
+ * </ClientRoleGuard>
+ * 
+ * @example
+ * // Ters mantık ile kullanım
+ * <ClientRoleGuard minLevel={ROLES.ADMIN} inverse fallback={<AdminBadge />}>
+ *   <UserContent />
  * </ClientRoleGuard>
  */
 export default function ClientRoleGuard({
@@ -47,7 +46,7 @@ export default function ClientRoleGuard({
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const checkPermission = async () => {
+        const check = async () => {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
 
@@ -57,36 +56,15 @@ export default function ClientRoleGuard({
                 return
             }
 
-            const { data: profile } = await supabase
-                .from("user_levels")
-                .select("level")
-                .eq("id", user.id)
-                .single()
-
-            const userLevel = profile?.level ?? 0
-
-            let permitted = false
-
-            if (exactLevel !== undefined) {
-                permitted = userLevel === exactLevel
-            } else {
-                const meetsMinLevel = userLevel >= minLevel
-                const meetsMaxLevel = maxLevel === undefined || userLevel <= maxLevel
-                permitted = meetsMinLevel && meetsMaxLevel
-            }
-
-            if (inverse) {
-                permitted = !permitted
-            }
-
-            setHasPermission(permitted)
+            const userLevel = user.user_metadata?.level ?? 0
+            // Ortak permission check fonksiyonunu kullan
+            setHasPermission(checkPermission(userLevel, { minLevel, maxLevel, exactLevel, inverse }))
             setIsLoading(false)
         }
 
-        checkPermission()
+        check()
     }, [minLevel, maxLevel, exactLevel, inverse])
 
-    // Yüklenme durumu
     if (isLoading) {
         if (loadingFallback) return <>{loadingFallback}</>
         if (showLoader) {
@@ -110,31 +88,14 @@ export default function ClientRoleGuard({
 // useRoleGuard HOOK
 // ============================================
 
-export interface UseRoleGuardResult {
-    /** Kullanıcı seviyesi */
-    level: number
-    /** Rol etiketi (Admin, Moderatör, vb.) */
-    label: string
-    /** Yükleniyor mu */
+export interface UseRoleGuardResult extends RoleInfo {
     isLoading: boolean
-    /** Giriş yapmış mı */
     isAuthenticated: boolean
-    /** Admin mi */
-    isAdmin: boolean
-    /** Süper Admin mi */
-    isSuperAdmin: boolean
-    /** Owner mı */
-    isOwner: boolean
-    /** Belirtilen minimum seviyeye sahip mi */
-    hasMinLevel: (minLevel: number) => boolean
-    /** Belirtilen aralıkta mı */
-    isInRange: (min: number, max: number) => boolean
-    /** Tam olarak bu seviyede mi */
-    isExactLevel: (level: number) => boolean
 }
 
 /**
  * Client-side rol kontrolü için React hook.
+ * JWT user_metadata'dan level bilgisi alır - DB sorgusu yapmaz.
  * 
  * @example
  * const { isAdmin, isLoading, hasMinLevel } = useRoleGuard()
@@ -159,7 +120,7 @@ export function useRoleGuard(): UseRoleGuardResult {
     })
 
     useEffect(() => {
-        const fetchUserLevel = async () => {
+        const fetchLevel = async () => {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
 
@@ -168,35 +129,23 @@ export function useRoleGuard(): UseRoleGuardResult {
                 return
             }
 
-            const { data: profile } = await supabase
-                .from("user_levels")
-                .select("level")
-                .eq("id", user.id)
-                .single()
-
             setState({
-                level: profile?.level ?? 0,
+                level: user.user_metadata?.level ?? 0,
                 isLoading: false,
                 isAuthenticated: true
             })
         }
 
-        fetchUserLevel()
+        fetchLevel()
     }, [])
 
     const { level, isLoading, isAuthenticated } = state
-    const roleDetails = getLevelInfo(level)
+    // Ortak getRoleInfo fonksiyonunu kullan
+    const roleInfo = getRoleInfo(level)
 
     return {
-        level,
-        label: roleDetails.label,
+        ...roleInfo,
         isLoading,
-        isAuthenticated,
-        isAdmin: level >= ROLES.ADMIN,
-        isSuperAdmin: level >= ROLES.SUPER_ADMIN,
-        isOwner: level >= ROLES.OWNER,
-        hasMinLevel: (minLevel: number) => level >= minLevel,
-        isInRange: (min: number, max: number) => level >= min && level <= max,
-        isExactLevel: (targetLevel: number) => level === targetLevel
+        isAuthenticated
     }
 }

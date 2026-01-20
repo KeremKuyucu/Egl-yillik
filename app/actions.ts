@@ -45,28 +45,16 @@ export async function createTextAction(recipientId: string, content: string) {
         return { error: "Kendinize mesaj yazamazsınız" }
     }
 
-    // Alıcının var olduğunu kontrol et
-    const { data: recipient } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", recipientId)
-        .single()
-
-    if (!recipient) {
-        return { error: "Alıcı bulunamadı" }
-    }
-
     // Kullanıcının daha önce bu kişiye mesaj yazıp yazmadığını kontrol et (Aktif veya Pasif)
     const { data: existingText } = await supabase
         .from("texts")
         .select("id, is_active")
         .eq("author_id", user.id)
         .eq("recipient_id", recipientId)
-        .maybeSingle() // unique constraint olduğu için en fazla 1 kayıt olabilir
+        .maybeSingle()
 
     if (existingText) {
         if (existingText.is_active) {
-            // Aktif mesaj varsa hata dön
             return { error: "Bu kişiye zaten bir mesaj yazdınız" }
         } else {
             // Pasif (silinmiş) mesaj varsa, onu güncelle ve tekrar aktif yap
@@ -94,11 +82,15 @@ export async function createTextAction(recipientId: string, content: string) {
         author_id: user.id,
         recipient_id: recipientId,
         content: content,
-        is_active: true // Varsayılan true ama açıkça belirtelim
+        is_active: true
     })
 
     if (error) {
         console.error("Text creation error:", error)
+        // Foreign key hatası = alıcı bulunamadı
+        if (error.code === "23503") {
+            return { error: "Alıcı bulunamadı" }
+        }
         return { error: "Mesaj kaydedilirken bir hata oluştu" }
     }
 

@@ -115,21 +115,6 @@ export default async function AdminCategoriesPage() {
                     </div>
                 )}
             </div>
-
-            {/* Fallback Kategoriler (Eğer DB boşsa) */}
-            {categories.length === 0 && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-                    <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-2">
-                        📋 Varsayılan Kategorileri Yükle
-                    </h3>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
-                        Veritabanında kategori bulunamadı. Supabase SQL Editor'da migration'ı çalıştırarak varsayılan kategorileri yükleyebilirsiniz.
-                    </p>
-                    <code className="block p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-xs text-amber-800 dark:text-amber-200 overflow-auto">
-                        supabase/migrations/002_dynamic_surveys.sql
-                    </code>
-                </div>
-            )}
         </div>
     )
 }

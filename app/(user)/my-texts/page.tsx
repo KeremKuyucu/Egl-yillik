@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getAuthContext } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import DashboardGrid from "@/components/dashboard-grid"
@@ -8,26 +9,14 @@ import { PenLine, Plus } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export default async function MyTextsPage() {
-    const supabase = await createClient()
+    // JWT'den user ve profile bilgilerini al
+    const { user, profile } = await getAuthContext()
 
-    const {
-        data: { user },
-        error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (!user) {
         redirect("/login")
     }
 
-    const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("first_name, last_name, class, school_number")
-        .eq("id", user.id)
-        .single()
-
-    if (!userProfile) {
-        redirect("/complete-profile")
-    }
+    const supabase = await createClient()
 
     // Tüm yazdığı anıları getir
     const { data: texts, error: textsError } = await supabase

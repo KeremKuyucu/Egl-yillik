@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { getAuthContext } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { isVotingEnabled } from "@/lib/settings"
 
@@ -32,18 +33,12 @@ export async function submitSurveyVote(
         return { error: "Geçersiz veya pasif kategori" }
     }
 
-    // Kullanıcı kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
+    // JWT'den kullanıcı ve profil bilgilerini al
+    const { user, profile: userProfile } = await getAuthContext()
+
     if (!user) {
         return { error: "Oturum açmanız gerekiyor" }
     }
-
-    // Kullanıcı profili (sınıf bilgisi için)
-    const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("class")
-        .eq("id", user.id)
-        .single()
 
     if (!userProfile) {
         return { error: "Kullanıcı profili bulunamadı" }

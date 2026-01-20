@@ -386,12 +386,26 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                                 {profileData.id}
                             </p>
                         </div>
+                        {/* Seviye */}
+                        <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                            <p className="text-[10px] font-medium text-slate-500 mb-0.5">Email</p>
+                            <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                {profileData.email}
+                            </p>
+                        </div>
 
                         {/* İsim Soyisim */}
                         <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] font-medium text-slate-500 mb-0.5">İsim Soyisim</p>
+                            <p className="text-[10px] font-medium text-slate-500 mb-0.5">İsim</p>
                             <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
-                                {profileData.first_name} {profileData.last_name}
+                                {profileData.first_name}
+                            </p>
+                        </div>
+
+                        <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                            <p className="text-[10px] font-medium text-slate-500 mb-0.5">Soyisim</p>
+                            <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                {profileData.last_name}
                             </p>
                         </div>
 
@@ -429,19 +443,6 @@ export function MetadataButton({ profileData }: MetadataButtonProps) {
                             </p>
                         </div>
                     </div>
-
-                    {/* JSON Görüntüleyici */}
-                    <details className="group">
-                        <summary className="cursor-pointer text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors py-2 select-none flex items-center gap-1">
-                            <Database className="w-3 h-3" />
-                            Ham JSON Verisi
-                        </summary>
-                        <div className="mt-2 p-3 rounded-lg bg-slate-950 border border-slate-800">
-                            <pre className="text-[10px] font-mono text-green-400 overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                                {JSON.stringify(profileData, null, 2)}
-                            </pre>
-                        </div>
-                    </details>
                 </div>
 
                 <DialogFooter>

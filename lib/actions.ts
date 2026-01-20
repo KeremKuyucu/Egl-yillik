@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkAdmin, getCurrentUser } from "@/lib/auth"
+import { checkAdmin } from "@/lib/auth"
 
 interface UpdateUserProfileData {
     first_name: string

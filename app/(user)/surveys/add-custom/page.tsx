@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { getAuthContext } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import AddCustomClient from "./client"
@@ -11,17 +11,15 @@ import {
 } from "lucide-react"
 
 export default async function AddCustomPage() {
+    // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
+    const { user, profile } = await getAuthContext()
+
+    // TypeScript için null check
+    if (!user || !profile) {
+        return null
+    }
+
     const supabase = await createClient()
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect("/login")
-
-    // Kullanıcı profilini al
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("class, first_name, last_name")
-        .eq("id", user.id)
-        .single()
 
     // Kullanıcının bekleyen önerilerini çek
     const { data: myPendingSuggestions } = await supabase
@@ -102,8 +100,8 @@ export default async function AddCustomPage() {
 
                 {/* Form Card */}
                 <AddCustomClient
-                    userClass={profile?.class || ""}
-                    userName={`${profile?.first_name || ""} ${profile?.last_name || ""}`}
+                    userClass={profile.class}
+                    userName={`${profile.first_name} ${profile.last_name}`}
                 />
             </div>
         </div>

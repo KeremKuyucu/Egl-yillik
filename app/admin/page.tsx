@@ -2,14 +2,12 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
 import { AdminOverviewCards } from "@/components/admin-overview-cards"
 
-import { redirect } from "next/navigation"
-
 export const dynamic = "force-dynamic"
 
 export default async function AdminDashboardPage() {
-    const supabase = await createClient()
+    const { profile: currentUserProfile } = await requireAdmin()
 
-    const { level: currentUserLevel, profile: currentUserProfile } = await requireAdmin();
+    const supabase = await createClient()
 
     // Paralel veri çekme
     const [pendingSuggestionsResult] = await Promise.all([
@@ -20,8 +18,6 @@ export default async function AdminDashboardPage() {
     ])
 
     const pendingSuggestionsCount = pendingSuggestionsResult.count || 0
-
-
 
     return (
         <div className="space-y-8 py-4 md:py-12">
@@ -37,7 +33,6 @@ export default async function AdminDashboardPage() {
             <div className="w-full max-w-6xl mx-auto px-2 md:px-0">
                 <AdminOverviewCards
                     pendingSuggestionsCount={pendingSuggestionsCount}
-                    currentUserLevel={currentUserLevel}
                 />
             </div>
 

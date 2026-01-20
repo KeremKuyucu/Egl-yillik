@@ -1,8 +1,13 @@
 // lib/auth.ts
+// Server-side auth fonksiyonları
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { ROLES } from "@/lib/constants"
 import { cache } from "react"
+
+// Ortak type ve utility'leri re-export et (checkPermission, getRoleInfo, types)
+export * from "@/lib/auth-utils"
+import type { JWTProfile } from "@/lib/auth-utils"
 
 // ============================================
 // CORE DATA FETCHING (CACHED)
@@ -11,38 +16,34 @@ import { cache } from "react"
 /**
  * Request Memoization (React Cache) kullanarak
  * bir istek döngüsü içinde veriyi sadece 1 kez çeker.
- * * getUser ve DB sorgularını paralel (Promise.all) atarak
- * yanıt süresini (latency) düşürür.
+ * 
+ * JWT'deki user_metadata'dan level ve profile bilgilerini alır.
+ * Veritabanı sorgusu yapmaz - çok daha hızlı!
  */
 export const getAuthContext = cache(async () => {
     const supabase = await createClient()
-    
-    // 1. Adım: Kullanıcıyı çek
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
         return { user: null, level: 0, profile: null }
     }
 
-    // 2. Adım: Level ve Profile verisini PARALEL çek (Waterfall'u engelle)
-    // İki ayrı await yerine Promise.all kullanarak aynı anda başlatıyoruz.
-    const [levelResult, profileResult] = await Promise.all([
-        supabase
-            .from("user_levels")
-            .select("level")
-            .eq("id", user.id)
-            .single(),
-        supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single()
-    ])
+    const metadata = user.user_metadata as JWTProfile | undefined
 
     return {
         user,
-        level: levelResult.data?.level ?? 0,
-        profile: profileResult.data
+        level: metadata?.level ?? 0,
+        profile: metadata ? {
+            id: user.id,
+            email: metadata.email,
+            first_name: metadata.first_name,
+            last_name: metadata.last_name,
+            display_name: metadata.display_name,
+            class: metadata.class,
+            school_number: metadata.school_number,
+            level: metadata.level ?? 0,
+        } : null
     }
 })
 
@@ -63,7 +64,6 @@ export async function getCurrentUser() {
 // ============================================
 
 export async function requireLevel(minLevel: number) {
-    // Merkezi cache fonksiyonunu kullanıyoruz
     const { user, level, profile } = await getAuthContext()
 
     if (!user) {
@@ -71,14 +71,12 @@ export async function requireLevel(minLevel: number) {
     }
 
     if (level < minLevel) {
-        // Yetkisiz giriş denemesi loglanabilir veya dashboard'a atılır
         redirect("/dashboard")
     }
 
     return { user, level, profile }
 }
 
-// Hazır fonksiyonlar (Higher Order Function kullanımına gerek yok, direkt çağırıyoruz)
 export const requireAdmin = () => requireLevel(ROLES.ADMIN)
 export const requireUser = () => requireLevel(ROLES.USER)
 export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN)
@@ -92,16 +90,11 @@ export type AuthResult = {
     success: true;
     user: { id: string; email?: string };
     level: number;
-    // Profile opsiyonel olarak eklenebilir, ihtiyaç varsa
 } | {
     success: false;
     error: string;
 }
 
-/**
- * Server Action'larda redirect yerine hata objesi döner.
- * Yine aynı cached veriyi kullanır, veritabanını yormaz.
- */
 export async function checkLevel(minLevel: number): Promise<AuthResult> {
     const { user, level } = await getAuthContext()
 
@@ -119,3 +112,4 @@ export async function checkLevel(minLevel: number): Promise<AuthResult> {
 export const checkAdmin = () => checkLevel(ROLES.ADMIN)
 export const checkSuperAdmin = () => checkLevel(ROLES.SUPER_ADMIN)
 export const checkOwner = () => checkLevel(ROLES.OWNER)
+

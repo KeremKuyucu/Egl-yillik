@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { getAuthContext } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/app-header"
 import Footer from "@/components/footer"
@@ -9,33 +9,12 @@ export default async function UserLayout({
 }: {
     children: React.ReactNode
 }) {
-    const supabase = await createClient()
-
-    const user = await getCurrentUser()
+    // JWT'den user ve profile bilgilerini al (DB sorgusu yok!)
+    const { user, profile } = await getAuthContext()
 
     if (!user) {
         redirect("/login")
     }
-
-    // Profil bilgisini çek
-    const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single()
-
-    // Level bilgisini çek
-    const { data: levelData } = await supabase
-        .from("user_levels")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    // Birleştir
-    const profile = profileData ? {
-        ...profileData,
-        level: levelData?.level ?? 0
-    } : null
 
     const handleSignOut = async () => {
         "use server"

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getAuthContext } from "@/lib/auth"
 import NewTextForm from "@/components/new-text-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,15 +20,13 @@ export default async function NewTextPage({
   searchParams: Promise<{ recipientId?: string }>
 }) {
   const { recipientId } = await searchParams
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
+  const { user, profile: userProfile } = await getAuthContext()
 
-  if (authError || !user) {
-    redirect("/login")
+  // TypeScript için null check (middleware zaten kontrol ediyor)
+  if (!user || !userProfile) {
+    return null
   }
 
   // Sistem kontrolü
@@ -54,16 +52,7 @@ export default async function NewTextPage({
     )
   }
 
-  // Kullanıcı profili
-  const { data: userProfile, error: profileError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
-  if (profileError || !userProfile) {
-    redirect("/login")
-  }
+  const supabase = await createClient()
 
   // Diğer tüm profiller
   const { data: allProfiles } = await supabase

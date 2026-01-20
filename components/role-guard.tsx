@@ -1,27 +1,19 @@
 // components/role-guard.tsx
-import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
-import { ROLES, getLevelInfo } from "@/lib/constants"
+import { getAuthContext, checkPermission, type PermissionOptions } from "@/lib/auth"
+import { ROLES } from "@/lib/constants"
 import { ReactNode } from "react"
 
-interface RoleGuardProps {
+interface RoleGuardProps extends PermissionOptions {
     children: ReactNode
-    /** Minimum seviye (dahil) - varsayılan ADMIN */
-    minLevel?: number
-    /** Maksimum seviye (dahil) - belirtilmezse üst limit yok */
-    maxLevel?: number
-    /** Tam olarak bu seviyede olmalı */
-    exactLevel?: number
-    /** Ters mantık: koşul SAĞLANMAZSA göster */
-    inverse?: boolean
     /** Yetki yoksa gösterilecek içerik */
     fallback?: ReactNode
-    /** Kullanıcı giriş yapmamışsa gösterilecek içerik (fallback'ten farklı olabilir) */
+    /** Kullanıcı giriş yapmamışsa gösterilecek içerik */
     unauthenticatedFallback?: ReactNode
 }
 
 /**
  * Server-side rol/yetki kontrolü yapan bileşen.
+ * JWT'den level bilgisi alır - DB sorgusu yapmaz.
  * 
  * @example
  * // Sadece ADMIN ve üstü görebilir
@@ -42,12 +34,6 @@ interface RoleGuardProps {
  * </RoleGuard>
  * 
  * @example
- * // ADMIN ile SUPER_ADMIN arasındakiler (dahil)
- * <RoleGuard minLevel={ROLES.ADMIN} maxLevel={ROLES.SUPER_ADMIN}>
- *   <StaffPanel />
- * </RoleGuard>
- * 
- * @example
  * // Ters mantık: ADMIN DEĞİLSE göster
  * <RoleGuard minLevel={ROLES.ADMIN} inverse>
  *   <NonAdminContent />
@@ -62,7 +48,7 @@ export default async function RoleGuard({
     fallback,
     unauthenticatedFallback
 }: RoleGuardProps) {
-    const user = await getCurrentUser()
+    const { user, level } = await getAuthContext()
 
     // Kullanıcı giriş yapmamışsa
     if (!user) {
@@ -72,68 +58,14 @@ export default async function RoleGuard({
             : (fallback ? <>{fallback}</> : null)
     }
 
-    const supabase = await createClient()
-    const { data: profile } = await supabase
-        .from("user_levels")
-        .select("level")
-        .eq("id", user.id)
-        .single()
-
-    const userLevel = profile?.level ?? 0
-
-    // Yetki kontrolü
-    let hasPermission = false
-
-    if (exactLevel !== undefined) {
-        // Tam seviye eşleşmesi
-        hasPermission = userLevel === exactLevel
-    } else {
-        // Min/Max aralık kontrolü
-        const meetsMinLevel = userLevel >= minLevel
-        const meetsMaxLevel = maxLevel === undefined || userLevel <= maxLevel
-        hasPermission = meetsMinLevel && meetsMaxLevel
-    }
-
-    // Ters mantık
-    if (inverse) {
-        hasPermission = !hasPermission
-    }
+    // Ortak permission check fonksiyonunu kullan
+    const hasPermission = checkPermission(level, { minLevel, maxLevel, exactLevel, inverse })
 
     if (!hasPermission) {
         return fallback ? <>{fallback}</> : null
     }
 
     return <>{children}</>
-}
-
-// ============================================
-// YARDIMCI TİPLER VE FONKSİYONLAR
-// ============================================
-
-export interface UserRoleInfo {
-    level: number
-    label: string
-    isAdmin: boolean
-    isSuperAdmin: boolean
-    isOwner: boolean
-    hasMinLevel: (minLevel: number) => boolean
-    isInRange: (min: number, max: number) => boolean
-}
-
-/**
- * Kullanıcı seviyesinden detaylı rol bilgisi üretir
- */
-export function getUserRoleInfo(level: number): UserRoleInfo {
-    const roleDetails = getLevelInfo(level)
-    return {
-        level,
-        label: roleDetails.label,
-        isAdmin: level >= ROLES.ADMIN,
-        isSuperAdmin: level >= ROLES.SUPER_ADMIN,
-        isOwner: level >= ROLES.OWNER,
-        hasMinLevel: (minLevel: number) => level >= minLevel,
-        isInRange: (min: number, max: number) => level >= min && level <= max
-    }
 }
 
 // ============================================
@@ -146,7 +78,6 @@ interface SimpleGuardProps {
     inverse?: boolean
 }
 
-/** Sadece Admin ve üstü */
 export async function AdminGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
         <RoleGuard minLevel={ROLES.ADMIN} fallback={fallback} inverse={inverse}>
@@ -155,7 +86,6 @@ export async function AdminGuard({ children, fallback, inverse }: SimpleGuardPro
     )
 }
 
-/** Sadece Süper Admin ve üstü */
 export async function SuperAdminGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
         <RoleGuard minLevel={ROLES.SUPER_ADMIN} fallback={fallback} inverse={inverse}>
@@ -164,7 +94,6 @@ export async function SuperAdminGuard({ children, fallback, inverse }: SimpleGua
     )
 }
 
-/** Sadece Owner */
 export async function OwnerGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
         <RoleGuard minLevel={ROLES.OWNER} fallback={fallback} inverse={inverse}>
@@ -173,15 +102,9 @@ export async function OwnerGuard({ children, fallback, inverse }: SimpleGuardPro
     )
 }
 
-/** Sadece Staff (Moderatör ile Süper Admin arası, Owner hariç) */
 export async function StaffGuard({ children, fallback, inverse }: SimpleGuardProps) {
     return (
-        <RoleGuard
-            minLevel={ROLES.ADMIN}
-            maxLevel={ROLES.SUPER_ADMIN}
-            fallback={fallback}
-            inverse={inverse}
-        >
+        <RoleGuard minLevel={ROLES.ADMIN} maxLevel={ROLES.SUPER_ADMIN} fallback={fallback} inverse={inverse}>
             {children}
         </RoleGuard>
     )
