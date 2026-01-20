@@ -53,27 +53,6 @@ CREATE TABLE IF NOT EXISTS public.survey_categories (
 
 ALTER TABLE public.survey_categories ENABLE ROW LEVEL SECURITY;
 
--- 1.3 SURVEY_CUSTOM_OPTIONS TABLOSU
-CREATE TABLE IF NOT EXISTS public.survey_custom_options (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    category_id TEXT NOT NULL REFERENCES survey_categories(id) ON DELETE CASCADE,
-    option_text TEXT NOT NULL,
-    created_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    class TEXT NOT NULL,
-    vote_count INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    UNIQUE(category_id, option_text, class),
-    CONSTRAINT survey_custom_options_class_check CHECK (
-        class = ANY(ARRAY['12A', '12B', '12C', '12D', '12E', '12F'])
-    )
-);
-
-CREATE INDEX IF NOT EXISTS idx_survey_custom_options_category ON public.survey_custom_options(category_id);
-CREATE INDEX IF NOT EXISTS idx_survey_custom_options_class ON public.survey_custom_options(class);
-ALTER TABLE public.survey_custom_options ENABLE ROW LEVEL SECURITY;
-
 -- 1.4 SURVEY_VOTES TABLOSU
 CREATE TABLE IF NOT EXISTS public.survey_votes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

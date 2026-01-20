@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { getFullName, getInitials } from "@/lib/utils"
 import { Search, GraduationCap, Users, PenLine, Star } from "lucide-react"
+import { CLASSES } from "@/lib/constants"
 
 // User tablosu ile aynı renkler
 const avatarColors = [
@@ -24,8 +25,7 @@ function getAvatarColor(name: string): string {
     return avatarColors[charCode % avatarColors.length]
 }
 
-// Sabit sınıf listesi
-const CLASSES = ["12A", "12B", "12C", "12D", "12E", "12F"]
+// Sınıf listesi (constants'tan import edildi)
 
 export default async function SchoolPage({
     searchParams,

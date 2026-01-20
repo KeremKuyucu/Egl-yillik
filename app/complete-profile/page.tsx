@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserCheck, Loader2, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CLASSES } from "@/lib/constants"
 
 export default function CompleteProfilePage() {
     const [firstName, setFirstName] = useState("")
@@ -189,7 +190,7 @@ export default function CompleteProfilePage() {
                                                 <SelectValue placeholder="Seç" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {["12A", "12B", "12C", "12D", "12E", "12F"].map((cls) => (
+                                                {CLASSES.map((cls) => (
                                                     <SelectItem key={cls} value={cls}>
                                                         {cls.replace("12", "12-")}
                                                     </SelectItem>

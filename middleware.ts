@@ -121,7 +121,6 @@ export async function middleware(request: NextRequest) {
 
   // --- MAINTENANCE MODE CHECK ---
   // Site settings tablosundan maintenance_mode ayarını kontrol et
-  // Public ve anonim erişimleri kısıtlamak için burada kontrol yapıyoruz
   // Not: Bu işlem her istekte DB çağrısı yapar. Performans için cache mekanizması düşünülebilir.
   const { data: maintenanceSetting } = await supabase
     .from('site_settings')
@@ -147,15 +146,11 @@ export async function middleware(request: NextRequest) {
         // Giriş yapmamış kullanıcı direkt bakım moduna
         return redirect("/maintenance")
       } else {
-        // Giriş yapmış kullanıcı, yetkisini kontrol et
-        const { data: profile } = await supabase
-          .from('user_levels')
-          .select('level')
-          .eq('id', user.id)
-          .single()
+        // JWT token'dan level bilgisini al (DB sorgusu yok - performans)
+        const userLevel = user.user_metadata?.level ?? 0
 
         // Level 100 (Super Admin) ve üzeri erişebilir
-        if (!profile || (profile.level < 100)) {
+        if (userLevel < 100) {
           return redirect("/maintenance")
         }
       }

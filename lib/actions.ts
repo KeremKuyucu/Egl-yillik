@@ -45,48 +45,25 @@ export async function updateUserProfile(
     data: UpdateUserProfileData
 ) {
     try {
-        // Merkezi admin kontrolü
-        const auth = await checkAdmin()
-        if (!auth.success) return { success: false, error: auth.error }
-
         const supabase = await createClient()
 
-        // Düzenlenecek kullanıcının seviyesini kontrol et
-        const { data: targetUser } = await supabase
-            .from("user_levels")
-            .select("level")
-            .eq("id", userId)
-            .single()
+        // RPC çağrısı - Tüm yetki ve mantık kontrolleri DB tarafında yapılacak
+        const { data: result, error } = await supabase.rpc('admin_update_user_profile', {
+            target_user_id: userId,
+            new_first_name: data.first_name,
+            new_last_name: data.last_name,
+            new_school_number: data.school_number,
+            new_class: data.class
+        })
 
-        if (!targetUser) {
-            return { success: false, error: "Kullanıcı bulunamadı" }
+        if (error) {
+            console.error("Profil güncelleme hatası:", error)
+            return { success: false, error: error.message }
         }
 
-        // Kendinden düşük seviyedeki kullanıcıları düzenleyebilir
-        if (auth.level <= (targetUser.level ?? 0)) {
-            return { success: false, error: "Bu kullanıcıyı düzenleme yetkiniz yok" }
-        }
-
-        // Kendi profilini düzenleyemez
-        if (userId === auth.user.id) {
-            return { success: false, error: "Kendi profilinizi düzenleyemezsiniz" }
-        }
-
-        // Profili güncelle
-        const { error: updateError } = await supabase
-            .from("profiles")
-            .update({
-                first_name: data.first_name,
-                last_name: data.last_name,
-                school_number: data.school_number,
-                class: data.class,
-                updated_at: new Date().toISOString(),
-            })
-            .eq("id", userId)
-
-        if (updateError) {
-            console.error("Profil güncelleme hatası:", updateError)
-            return { success: false, error: "Profil güncellenirken bir hata oluştu" }
+        // RPC'den dönen sonucu kontrol et
+        if (result && !result.success) {
+            return { success: false, error: result.error }
         }
 
         // Sayfayı yenile

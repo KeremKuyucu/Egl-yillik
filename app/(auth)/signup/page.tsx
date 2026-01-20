@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserPlus, Loader2, AlertCircle, CheckCircle2, Lock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ROLES } from "@/lib/constants"
+import { ROLES, CLASSES } from "@/lib/constants"
 import { checkRegistrationEnabled } from "./actions"
 
 export default function SignUpPage() {
@@ -250,7 +250,7 @@ export default function SignUpPage() {
                     <SelectValue placeholder="Seç" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["12A", "12B", "12C", "12D", "12E", "12F", "12G"].map((cls) => (
+                    {CLASSES.map((cls) => (
                       <SelectItem key={cls} value={cls}>
                         {cls.replace("12", "12-")}
                       </SelectItem>

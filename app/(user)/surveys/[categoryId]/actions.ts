@@ -105,7 +105,5 @@ export async function submitSurveyVote(
 
     revalidatePath("/surveys")
     revalidatePath(`/surveys/${categoryId}`)
-    revalidatePath(`/profile/${votedForId}`)
-
     return { success: true }
 }

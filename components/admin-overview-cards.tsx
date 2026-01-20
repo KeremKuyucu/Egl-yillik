@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Users, MessageSquare, ArrowRight, Lock, Mail, Vote, Settings, Sparkles, Calendar, Loader2 } from "lucide-react"
+import { Users, MessageSquare, MessageSquarePlus, ArrowRight, Lock, Mail, Vote, Settings, Sparkles, Calendar, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useRoleGuard } from "@/components/role-guard-client"
@@ -212,6 +212,31 @@ export function AdminOverviewCards({ pendingSuggestionsCount = 0 }: AdminOvervie
                     </CardContent>
                 </Card>
             </Link>
+
+            {/* Geri Bildirimler Kartı - Sadece SUPER_ADMIN ve üzeri */}
+            {isSuperAdmin && (
+                <Link href="/admin/feedback" prefetch={false} className="group">
+                    <Card className="h-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-rose-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-rose-500/50">
+                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <CardHeader>
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white shadow-lg shadow-rose-500/30 mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <MessageSquarePlus className="h-6 w-6" />
+                            </div>
+                            <CardTitle className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                                Geri Bildirimler
+                            </CardTitle>
+                            <CardDescription>
+                                Kullanıcılardan gelen hata, öneri ve şikayetleri inceleyin.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center text-sm font-medium text-rose-600 dark:text-rose-400 group-hover:translate-x-2 transition-transform">
+                                Panele Git <ArrowRight className="ml-2 h-4 w-4" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            )}
 
             {/* Mail Hatırlatma Kartı - Sadece SUPER_ADMIN ve üzeri */}
             {isSuperAdmin && (

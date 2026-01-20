@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import RoleGuard from "@/components/role-guard"
-import { ROLES, getLevelInfo } from "@/lib/constants"
+import { ROLES, getLevelInfo, CLASSES } from "@/lib/constants"
 import { getFullName, getInitials } from "@/lib/utils"
 import { requireAdmin } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -88,77 +88,37 @@ export default async function UsersAdminPage({
     const classFilter = (params.class as string) || ""
     const roleFilter = (params.role as string) || ""
 
-    // 1. Tüm sınıfları çek (Filtreleme dropdown'ı için)
-    const { data: allProfiles } = await supabase
-        .from("profiles")
-        .select("class")
-        .order("class")
+    // Sınıf listesi (constants'tan)
+    const classes = [...CLASSES]
 
-    // Benzersiz sınıfları al
-    const classes = [...new Set(allProfiles?.map(p => p.class).filter(Boolean) || [])] as string[]
+    const { data: usersData, error: usersError } = await supabase.rpc('get_admin_users_list', {
+        class_filter: classFilter && classFilter !== "all" ? classFilter : null,
+        search_query: searchQuery || null
+    })
 
-    // 2. Kullanıcıları çek (level hariç)
-    let profileQuery = supabase
-        .from("profiles")
-        .select("id, first_name, last_name, school_number, class, last_active")
-        .order("last_name")
-
-    // Server-side sınıf filtresi
-    if (classFilter && classFilter !== "all") {
-        profileQuery = profileQuery.eq("class", classFilter)
-    }
-
-    const { data: profilesData, error: profilesError } = await profileQuery
-
-    // 3. Tüm kullanıcı level'larını çek
-    const { data: levelsData } = await supabase
-        .from("user_levels")
-        .select("id, level")
-
-    // Level haritası oluştur
-    const levelMap = new Map<string, number>()
-    levelsData?.forEach(l => levelMap.set(l.id, l.level))
-
-    // FIX 3: Hata kontrolü ve kullanıcı dostu hata mesajı
-    if (profilesError) {
-        console.error("Kullanıcı çekme hatası:", profilesError)
+    // Hata kontrolü
+    if (usersError) {
+        console.error("Kullanıcı çekme hatası:", usersError)
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Card>
                     <CardHeader>
                         <CardTitle>Hata Oluştu</CardTitle>
-                        <CardDescription>Kullanıcılar yüklenirken bir hata oluştu: {profilesError.message}</CardDescription>
+                        <CardDescription>Kullanıcılar yüklenirken bir hata oluştu: {usersError.message}</CardDescription>
                     </CardHeader>
                 </Card>
             </div>
         )
     }
 
-    // Profilleri level ile birleştir
-    let usersWithLevel = (profilesData || []).map(p => ({
-        ...p,
-        level: levelMap.get(p.id) ?? 0
-    })) as UserProfile[]
-
-    // Level'a göre sırala (yüksekten düşüğe)
-    usersWithLevel.sort((a, b) => (b.level ?? 0) - (a.level ?? 0))
+    // Kullanıcıları hazırla
+    let filteredUsers = (usersData || []) as UserProfile[]
 
     // Role filtresi (JS tarafında)
     if (roleFilter === "admin") {
-        usersWithLevel = usersWithLevel.filter(u => (u.level ?? 0) >= ROLES.ADMIN)
+        filteredUsers = filteredUsers.filter(u => (u.level ?? 0) >= ROLES.ADMIN)
     } else if (roleFilter === "user") {
-        usersWithLevel = usersWithLevel.filter(u => (u.level ?? 0) < ROLES.ADMIN)
-    }
-
-    let filteredUsers = usersWithLevel
-
-    // JS-side search
-    if (searchQuery) {
-        const q = searchQuery.toLowerCase()
-        filteredUsers = filteredUsers.filter(u =>
-            `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
-            u.school_number.toLowerCase().includes(q)
-        )
+        filteredUsers = filteredUsers.filter(u => (u.level ?? 0) < ROLES.ADMIN)
     }
 
     const totalUsers = filteredUsers.length
@@ -316,7 +276,7 @@ export default async function UsersAdminPage({
                                             const userLevel = user.level ?? 0
                                             const canEditLevel = currentUserLevel > userLevel
                                             const isCurrentUser = user.id === currentUser.id
-                                            const canEditProfile = currentUserLevel >= ROLES.ADMIN && (canEditLevel || isCurrentUser)
+                                            const canEditProfile = currentUserLevel >= ROLES.ADMIN && canEditLevel
                                             const avatarColor = getAvatarColor(user.first_name)
                                             const initials = getInitials(user.first_name, user.last_name)
                                             const { text: activeText, isRecent } = formatLastActive(user.last_active)

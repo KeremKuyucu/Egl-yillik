@@ -77,16 +77,10 @@ export type FilterStatus =
     | 'any_incomplete'
 
 /**
- * Sınıf filtreleri
+ * Sınıf filtreleri (constants'tan import)
  */
-export type FilterClass =
-    | 'all'
-    | '12A'
-    | '12B'
-    | '12C'
-    | '12D'
-    | '12E'
-    | '12F'
+import { FilterClassType } from '@/lib/constants'
+export type FilterClass = FilterClassType
 
 /**
  * Email gönderim durumları

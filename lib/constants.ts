@@ -46,3 +46,12 @@ export const AVAILABLE_LEVELS = [
     { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label },
     { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
 ] as const;
+
+// Sınıf listesi
+export const CLASSES = ['12A', '12B', '12C', '12D', '12E', '12F'] as const;
+
+// Sınıf tipi
+export type ClassType = typeof CLASSES[number];
+
+// Filtre için 'all' dahil sınıf tipi
+export type FilterClassType = 'all' | ClassType;

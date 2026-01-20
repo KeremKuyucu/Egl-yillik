@@ -3,7 +3,6 @@ import { getCurrentUser } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
 import { getColorFromName, getCategoryById, SurveyCategory } from "@/lib/survey-categories"
-import { getLevelInfo } from "@/lib/constants"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -114,12 +113,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-medium text-sm backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/30">
                                         #{profile.school_number}
                                     </span>
-                                    {profile.level > 0 && (
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold backdrop-blur-sm ${getLevelInfo(profile.level).badgeColor}`}>
-                                            <Shield className="h-3 w-3" suppressHydrationWarning />
-                                            {getLevelInfo(profile.level).label}
-                                        </span>
-                                    )}
                                 </div>
                             </div>
 
