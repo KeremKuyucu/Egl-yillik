@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Shield, Users, Crown, Sparkles, Star, LayoutDashboard, Hash, GraduationCap, TrendingUp, Clock } from "lucide-react"
-import { LevelSelector, SearchInput, EditUserButton, MetadataButton, UserFilterBar } from "@/components/admin-actions"
+import { LevelSelector, SearchInput, EditUserButton, UserFilterBar } from "@/components/admin-actions"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface UserProfile {
@@ -100,7 +100,7 @@ export default async function UsersAdminPage({
     // 2. Kullanıcıları çek (level hariç)
     let profileQuery = supabase
         .from("profiles")
-        .select("id, email, first_name, last_name, school_number, class, last_active")
+        .select("id, first_name, last_name, school_number, class, last_active")
         .order("last_name")
 
     // Server-side sınıf filtresi
@@ -370,9 +370,6 @@ export default async function UsersAdminPage({
                                                                     currentLevel={userLevel}
                                                                     maxLevel={currentUserLevel}
                                                                 />
-                                                            )}
-                                                            {currentUserLevel >= ROLES.SUPER_ADMIN && (
-                                                                <MetadataButton profileData={user} />
                                                             )}
                                                             {isCurrentUser && currentUserLevel < ROLES.SUPER_ADMIN && (
                                                                 <span className="text-xs text-muted-foreground">Seviye değiştiremezsiniz</span>

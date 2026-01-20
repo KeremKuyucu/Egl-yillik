@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireSuperAdmin } from "@/lib/auth"
 import ReminderClientPage from "./client"
 
@@ -8,7 +9,7 @@ export default async function ReminderPage() {
 
     const supabase = await createClient()
 
-    // Fetch all profiles (email artık profiles'da)
+    // Fetch all profiles
     const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -43,6 +44,18 @@ export default async function ReminderPage() {
         }
     }
 
+    // Auth Users'dan emailleri çek
+    const adminClient = createAdminClient()
+    const { data: { users: authUsers }, error: authError } = await adminClient.auth.admin.listUsers({
+        perPage: 1000
+    })
+
+    if (authError) {
+        console.error("Auth users fetch error:", authError)
+    }
+
+    const userEmails = new Map(authUsers?.map(u => [u.id, u.email]) || [])
+
     // Fetch stats for each user
     const usersWithStats = await Promise.all(
         profiles.map(async (p: any) => {
@@ -71,7 +84,8 @@ export default async function ReminderPage() {
 
             return {
                 ...p,
-                // Email artık profile'dan geliyor
+                // Email auth.users'dan geliyor
+                email: userEmails.get(p.id) || null,
                 stats,
                 statsError,
                 surveyStats
