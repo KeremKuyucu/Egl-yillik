@@ -33,7 +33,7 @@ export const getAuthContext = cache(async () => {
 
     return {
         user,
-        level: dbLevel,
+        level: metadata.level,
         profile: metadata ? {
             id: user.id,
             email: metadata.email,
