@@ -1,7 +1,7 @@
 // components/footer.tsx
 import React from 'react';
 import Link from 'next/link';
-import { Heart, Shield, Github } from 'lucide-react';
+import { Heart, Github } from 'lucide-react';
 
 const Footer = () => {
     return (
@@ -57,9 +57,8 @@ const Footer = () => {
                             © 2026 EGL Yıllık. Tüm hakları saklıdır.
                         </p>
 
-                        {/* Güvenlik Rozetleri */}
+                        {/* Linkler */}
                         <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                            <span className="hidden sm:inline">•</span>
                             <Link
                                 href="https://github.com/keremkuyucu/egl-yillik"
                                 target="_blank"
@@ -70,7 +69,7 @@ const Footer = () => {
                                 <Github className="h-3 w-3" suppressHydrationWarning />
                                 Kaynak Kodu
                             </Link>
-                            <span className="hidden sm:inline">•</span>
+                            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
                             <span className="flex items-center gap-1.5">
                                 <Heart className="h-3 w-3 text-red-500" suppressHydrationWarning />
                                 Sevgiyle Yapıldı

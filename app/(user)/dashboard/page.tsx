@@ -9,10 +9,10 @@ import SuggestionCard from "@/components/dashboard/suggestion-card"
 import StatsBar from "@/components/dashboard/stats-bar"
 import ProfileCard from "@/components/dashboard/profile-card"
 import CountdownCard from "@/components/dashboard/countdown-card"
-import { getDeadline, getGraduationDate } from "@/lib/settings"
+import { getDeadline, getGraduationDate, isMaintenanceMode } from "@/lib/settings"
 import LockedCard from "@/components/dashboard/locked-card"
 import QuickActions from "@/components/dashboard/quick-actions"
-import { Heart, Star, Zap, Sparkles } from "lucide-react"
+import { Heart, Star, Zap, Sparkles, AlertTriangle } from "lucide-react"
 
 const getDetailedGreeting = (userName: string) => {
   const timeString = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', hour: 'numeric', hour12: false })
@@ -117,9 +117,31 @@ export default async function DashboardPage() {
   const deadline = await getDeadline()
   const graduationDate = await getGraduationDate()
 
+  // Bakım modu kontrolü
+  const maintenanceMode = await isMaintenanceMode()
+
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
+
+      {/* Bakım Modu Uyarı Banner */}
+      {maintenanceMode && (
+        <div className="mb-6 rounded-xl bg-gradient-to-r from-amber-500/90 via-orange-500/90 to-amber-500/90 p-4 shadow-lg shadow-amber-500/20 backdrop-blur-sm animate-pulse">
+          <div className="flex items-center justify-center gap-3">
+            <AlertTriangle className="h-6 w-6 text-white" />
+            <div className="text-center">
+              <p className="font-bold text-white text-lg">
+                ⚠️ Bakım Modu Aktif
+              </p>
+              <p className="text-white/90 text-sm">
+                Sistem şu an bakım modunda. Sadece yöneticiler erişebilir.
+              </p>
+            </div>
+            <AlertTriangle className="h-6 w-6 text-white" />
+          </div>
+        </div>
+      )}
+
 
       <StatsBar
         textsCount={texts?.length || 0}

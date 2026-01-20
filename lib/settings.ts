@@ -107,6 +107,10 @@ export async function isRegistrationEnabled(): Promise<boolean> {
     return getBooleanSetting('registration_enabled', true);
 }
 
+export async function isMaintenanceMode(): Promise<boolean> {
+    return getBooleanSetting('maintenance_mode', false);
+}
+
 // Tüm ayarları bir kerede çekmek için
 export async function getAllSettings(): Promise<Record<string, string>> {
     try {

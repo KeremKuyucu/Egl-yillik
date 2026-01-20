@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import FeedbackButton from "@/components/feedback-button"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -56,6 +57,7 @@ export default function RootLayout({
         >
           {/* Yapımcı GitHub:KeremKuyucu */}
           {children}
+          <FeedbackButton />
           <Toaster />
           <Analytics />
         </ThemeProvider>
