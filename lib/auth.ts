@@ -31,15 +31,6 @@ export const getAuthContext = cache(async () => {
     const user = session.user
     const metadata = user.user_metadata as JWTProfile | undefined
 
-    // Level'ı DB'den çek (JWT stale olabilir)
-    const { data: levelData } = await supabase
-        .from('user_levels')
-        .select('level')
-        .eq('id', user.id)
-        .single()
-
-    const dbLevel = levelData?.level ?? 0
-
     return {
         user,
         level: dbLevel,
@@ -51,7 +42,7 @@ export const getAuthContext = cache(async () => {
             display_name: metadata.display_name,
             class: metadata.class,
             school_number: metadata.school_number,
-            level: dbLevel,
+            level: metadata.level,
         } : null
     }
 })
