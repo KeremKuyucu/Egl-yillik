@@ -77,7 +77,7 @@ export async function updateToggleSetting(key: string, value: boolean) {
     const supabase = await createClient();
 
     // Validate key
-    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'maintenance_mode'];
+    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'maintenance_mode', 'announcement_enabled'];
     if (!allowedKeys.includes(key)) {
         return { error: 'Geçersiz ayar anahtarı' };
     }
@@ -86,7 +86,8 @@ export async function updateToggleSetting(key: string, value: boolean) {
         messaging_enabled: 'Mesaj yazma özelliği açık/kapalı',
         voting_enabled: 'Oylama/anket özelliği açık/kapalı',
         registration_enabled: 'Yeni kayıt özelliği açık/kapalı',
-        maintenance_mode: 'Bakım modu açık/kapalı'
+        maintenance_mode: 'Bakım modu açık/kapalı',
+        announcement_enabled: 'Duyuru bannerı açık/kapalı'
     };
 
     // Upsert the setting
@@ -109,6 +110,43 @@ export async function updateToggleSetting(key: string, value: boolean) {
     return { success: true };
 }
 
+export async function updateTextSetting(key: string, value: string) {
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin();
+    if (!auth.success) return { error: auth.error };
+
+    const supabase = await createClient();
+
+    // Validate key
+    const allowedKeys = ['announcement_message'];
+    if (!allowedKeys.includes(key)) {
+        return { error: 'Geçersiz ayar anahtarı' };
+    }
+
+    const descriptions: Record<string, string> = {
+        announcement_message: 'Site genelinde gösterilecek duyuru metni'
+    };
+
+    // Upsert the setting
+    const { error } = await supabase
+        .from('site_settings')
+        .upsert({
+            key,
+            value,
+            description: descriptions[key],
+            updated_at: new Date().toISOString()
+        }, {
+            onConflict: 'key'
+        });
+
+    if (error) {
+        console.error('Text setting update error:', error);
+        return { error: error.message };
+    }
+
+    return { success: true };
+}
+
 export async function getSettingsAction() {
     const supabase = await createClient();
 
@@ -116,29 +154,25 @@ export async function getSettingsAction() {
         .from('site_settings')
         .select('key, value');
 
-    if (error) {
-        // Return defaults if table doesn't exist yet
-        return {
-            success: true,
-            data: {
-                deadline: new Date(2026, 1, 9, 23, 59, 59).toISOString(),
-                graduation_date: new Date(2026, 6, 26).toISOString(),
-                messaging_enabled: 'true',
-                voting_enabled: 'true',
-                registration_enabled: 'true',
-                maintenance_mode: 'false'
-            }
-        };
-    }
-
+    // Default settings
     const settings: Record<string, string> = {
         deadline: new Date(2026, 1, 9, 23, 59, 59).toISOString(),
         graduation_date: new Date(2026, 6, 26).toISOString(),
         messaging_enabled: 'true',
         voting_enabled: 'true',
         registration_enabled: 'true',
-        maintenance_mode: 'false'
+        maintenance_mode: 'false',
+        announcement_enabled: 'false',
+        announcement_message: ''
     };
+
+    if (error) {
+        // Return defaults if table doesn't exist yet or error
+        return {
+            success: true,
+            data: settings
+        };
+    }
 
     data?.forEach((item) => {
         settings[item.key] = item.value;

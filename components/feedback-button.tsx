@@ -82,7 +82,9 @@ export default function FeedbackButton() {
                     className="fixed bottom-6 right-6 z-50 group flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-full border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-600 hover:scale-105 transition-all duration-300"
                     aria-label="Geri Bildirim Gönder"
                 >
-                    <MessageSquarePlus className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform duration-300" />
+                    <span suppressHydrationWarning>
+                        <MessageSquarePlus className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform duration-300" />
+                    </span>
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300 hidden sm:inline">
                         Geri Bildirim
                     </span>

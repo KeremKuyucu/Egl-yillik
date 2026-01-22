@@ -10,6 +10,7 @@ interface ApproveData {
     emoji: string
     description: string
     color: string
+    adminNote?: string
 }
 
 export async function approveSuggestion(data: ApproveData) {
@@ -93,6 +94,7 @@ export async function approveSuggestion(data: ApproveData) {
         .from("user_category_suggestions")
         .update({
             status: "approved",
+            admin_note: data.adminNote || null,
             reviewed_by: auth.user.id,
             reviewed_at: new Date().toISOString(),
             approved_category_id: finalCategoryId

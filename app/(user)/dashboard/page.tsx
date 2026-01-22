@@ -142,7 +142,6 @@ export default async function DashboardPage() {
         </div>
       )}
 
-
       <StatsBar
         textsCount={texts?.length || 0}
         totalWords={totalWords}

@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Calendar, Save, Loader2, CheckCircle, AlertCircle, MessageSquare, Vote, UserPlus, GraduationCap, LockOpen, Construction } from "lucide-react"
+import { Calendar, Save, Loader2, AlertCircle, MessageSquare, Vote, UserPlus, GraduationCap, LockOpen, Construction, Megaphone } from "lucide-react"
 import { toast } from "sonner"
-import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate } from "@/app/admin/settings/actions"
+import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate, updateTextSetting } from "@/app/admin/settings/actions"
 
 export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true)
@@ -30,6 +30,13 @@ export default function AdminSettingsPage() {
     const [votingEnabled, setVotingEnabled] = useState(true)
     const [registrationEnabled, setRegistrationEnabled] = useState(true)
     const [maintenanceMode, setMaintenanceMode] = useState(false)
+    const [announcementEnabled, setAnnouncementEnabled] = useState(false)
+
+    // Announcement States
+    const [savingAnnouncement, setSavingAnnouncement] = useState(false)
+    const [announcementMessage, setAnnouncementMessage] = useState("")
+
+
 
     useEffect(() => {
         loadSettings()
@@ -61,6 +68,11 @@ export default function AdminSettingsPage() {
                 setVotingEnabled(settings.voting_enabled !== 'false')
                 setRegistrationEnabled(settings.registration_enabled !== 'false')
                 setMaintenanceMode(settings.maintenance_mode === 'true')
+                setAnnouncementEnabled(settings.announcement_enabled === 'true')
+
+                // Text Settings
+                setAnnouncementMessage(settings.announcement_message || "")
+                setAnnouncementMessage(settings.announcement_message || "")
             }
         } catch (error) {
             toast.error("Ayarlar yüklenirken hata oluştu")
@@ -139,7 +151,8 @@ export default function AdminSettingsPage() {
                     messaging_enabled: 'Mesaj yazma',
                     voting_enabled: 'Oylama',
                     registration_enabled: 'Kayıt',
-                    maintenance_mode: 'Bakım modu'
+                    maintenance_mode: 'Bakım modu',
+                    announcement_enabled: 'Duyuru bannerı'
                 }
                 toast.success(`${labels[key]} ${value ? 'açıldı' : 'kapatıldı'}`)
             } else {
@@ -147,6 +160,20 @@ export default function AdminSettingsPage() {
             }
         } finally {
             setSavingToggle(null)
+        }
+    }
+
+    const handleSaveAnnouncement = async () => {
+        setSavingAnnouncement(true)
+        try {
+            const result = await updateTextSetting('announcement_message', announcementMessage)
+            if (result.success) {
+                toast.success("Duyuru metni güncellendi")
+            } else {
+                toast.error("Hata", { description: result.error })
+            }
+        } finally {
+            setSavingAnnouncement(false)
         }
     }
 
@@ -328,6 +355,66 @@ export default function AdminSettingsPage() {
                 </Card>
             </div>
 
+
+
+            {/* Announcement Settings Card */}
+            <Card className="border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5" />
+
+                <CardHeader className="relative pb-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                            <Megaphone className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                                Duyuru ve Bildirimler
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                                Tüm kullanıcılara görünecek duyurular
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="relative space-y-4 pt-2">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                        <div>
+                            <div className="font-semibold text-sm text-slate-900 dark:text-white">
+                                Duyuru Bannerı
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                                {announcementEnabled ? 'Aktif: Site tepesinde görünür' : 'Pasif: Görünmez'}
+                            </div>
+                        </div>
+                        <Switch
+                            checked={announcementEnabled}
+                            onCheckedChange={(checked) => handleToggleChange('announcement_enabled', checked, setAnnouncementEnabled)}
+                            disabled={savingToggle === 'announcement_enabled'}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="announcement" className="text-xs">Duyuru Metni</Label>
+                        <Input
+                            id="announcement"
+                            placeholder="Örn: Yıllık yazıları için son gün 9 Şubat!"
+                            value={announcementMessage}
+                            onChange={(e) => setAnnouncementMessage(e.target.value)}
+                        />
+                        <Button
+                            onClick={handleSaveAnnouncement}
+                            disabled={savingAnnouncement}
+                            size="sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            {savingAnnouncement ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                            Metni Kaydet
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* System Toggles Card */}
             <Card className="border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5" />
@@ -468,6 +555,6 @@ export default function AdminSettingsPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import FeedbackButton from "@/components/feedback-button"
 import "./globals.css"
+import AnnouncementBanner from "@/components/announcement-banner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {/* Yapımcı GitHub:KeremKuyucu */}
+          <AnnouncementBanner />
           {children}
           <FeedbackButton />
           <Toaster />

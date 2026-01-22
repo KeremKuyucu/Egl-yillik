@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Sparkles, Clock, CheckCircle2, XCircle, User } from "lucide-react"
 import SuggestionActions from "./suggestion-actions"
 
+// Interface Update
 interface Suggestion {
     id: string
     title: string
@@ -15,11 +16,16 @@ interface Suggestion {
     status: string
     admin_note: string | null
     created_at: string
+    reviewed_at: string | null
     suggested_by: string
     profiles: {
         first_name: string
         last_name: string
         class: string
+    }
+    reviewer?: {
+        first_name: string
+        last_name: string
     }
 }
 
@@ -33,7 +39,8 @@ export default async function AdminSuggestionsPage() {
         .from("user_category_suggestions")
         .select(`
             *,
-            profiles:suggested_by (first_name, last_name, class)
+            profiles:suggested_by (first_name, last_name, class),
+            reviewer:reviewed_by (first_name, last_name)
         `)
         .order("created_at", { ascending: false })
 
@@ -145,6 +152,18 @@ export default async function AdminSuggestionsPage() {
                                                 <span className="text-slate-300 dark:text-slate-600">•</span>
                                                 <span>{new Date(suggestion.created_at).toLocaleDateString('tr-TR')}</span>
                                             </div>
+
+                                            {/* Reviewer Info */}
+                                            {suggestion.status !== 'pending' && suggestion.reviewer && (
+                                                <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500/80">
+                                                    <span className={suggestion.status === 'approved' ? 'text-emerald-600/80' : 'text-red-600/80'}>
+                                                        {suggestion.status === 'approved' ? <CheckCircle2 className="h-3 w-3 inline mr-1" /> : <XCircle className="h-3 w-3 inline mr-1" />}
+                                                        {suggestion.reviewer.first_name} {suggestion.reviewer.last_name} tarafından
+                                                    </span>
+                                                    <span>{suggestion.reviewed_at ? new Date(suggestion.reviewed_at).toLocaleString('tr-TR') : ''} tarihinde {suggestion.status === 'approved' ? 'onaylandı' : 'reddedildi'}</span>
+                                                </div>
+                                            )}
+
                                             {suggestion.admin_note && (
                                                 <div className="mt-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-400">
                                                     <strong>Admin Notu:</strong> {suggestion.admin_note}
