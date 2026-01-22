@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { checkAdmin } from "@/lib/auth"
-import { supabaseAdmin } from "@/lib/supabase/admin"
+import { createAdminClient } from "@/lib/supabase/admin"
 interface CategoryFormData {
     id: string
     title: string
@@ -275,10 +275,11 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
 export async function deleteVotesForCategory(categoryId: string) {
     // Merkezi admin kontrolü (UI / API güvenliği için)
     const auth = await checkAdmin()
+    const adminClient = await createAdminClient()
     if (!auth.success) return { error: auth.error }
 
     // Önce kaç oy var al (admin client → RLS yok)
-    const { count, error: countError } = await supabaseAdmin
+    const { count, error: countError } = await adminClient
         .from("survey_votes")
         .select("id", { count: "exact", head: true })
         .eq("category_id", categoryId)
