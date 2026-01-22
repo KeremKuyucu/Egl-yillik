@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { checkAdmin } from "@/lib/auth"
-
+import { createAdminClient } from "@/lib/supabase/admin"
 interface CategoryFormData {
     id: string
     title: string
@@ -273,37 +273,39 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
 }
 
 export async function deleteVotesForCategory(categoryId: string) {
-    // Merkezi admin kontrolü
+    // Merkezi admin kontrolü (UI / API güvenliği için)
     const auth = await checkAdmin()
+    const adminClient = await createAdminClient()
     if (!auth.success) return { error: auth.error }
 
-    const supabase = await createClient()
-
-    // Kategoriye ait oy sayısını al
-    const { count } = await supabase
+    // Önce kaç oy var al (admin client → RLS yok)
+    const { count, error: countError } = await adminClient
         .from("survey_votes")
-        .select("id", { count: 'exact', head: true })
+        .select("id", { count: "exact", head: true })
         .eq("category_id", categoryId)
 
+    if (countError) {
+        return { error: "Oy sayısı alınamadı: " + countError.message }
+    }
+
     // Oyları sil
-    const { error, data } = await supabase
+    const { error: deleteError } = await supabaseAdmin
         .from("survey_votes")
         .delete()
         .eq("category_id", categoryId)
-        .select()
 
-    if (error) {
-        console.error("Delete votes error:", error)
-        return { error: "Oylar silinirken hata oluştu: " + error.message }
+    if (deleteError) {
+        return { error: "Oylar silinirken hata oluştu: " + deleteError.message }
     }
-
-    const deletedCount = data?.length || count || 0
 
     revalidatePath("/admin/categories")
     revalidatePath("/surveys")
     revalidatePath(`/surveys/${categoryId}`)
 
-    return { success: true, deletedCount }
+    return {
+        success: true,
+        deletedCount: count ?? 0,
+    }
 }
 
 export async function getVoteCountForCategory(categoryId: string) {

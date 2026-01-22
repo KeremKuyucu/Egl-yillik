@@ -16,10 +16,6 @@ Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıc�
 - **Anı Kutusu**: 
   - Arkadaşlarına anı yazma/düzenleme.
   - **Gizli Kasa**: Mezuniyet gününe kadar kilitli kalan, size yazılmış anılar.
-- **Oyunlaştırma (Gamification)**: Yazılan anı sayısına göre kazanılan rozetler:
-  - 🌟 **Yıllık Efsanesi** (30+ anı)
-  - ⚡ **Hatıra Mimarı** (15+ anı)
-  - ❤️ **Anı Yazarı** (5+ anı)
 
 ### 🗳️ Anket & Etkileşim
 - **Sınıf İçi Oylama**: "En komik", "En çalışkan" gibi kategorilerde oylama.
