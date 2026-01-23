@@ -30,7 +30,7 @@ export async function sendReminderEmail(
     // Son teslim tarihini veritabanından çek
     const deadlineData = await getDeadline()
     const deadline = deadlineData.display
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yourapp.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
 
     // ✅ Artık RPC'den direkt geldiği için yeniden hesaplamaya gerek yok
     const remainingClassmates = stats.remaining_classmates
@@ -64,6 +64,50 @@ export async function sendReminderEmail(
             from: 'EGL Yıllık <noreply@eglyillik.com>',
             to: [email],
             subject,
+            text: `
+📚 EGL Yıllık
+${stats.class} Sınıfı • 2025-2026
+
+Merhaba ${userName}! 👋
+
+${isFullyComplete ? `
+🎉 Süpersin!
+Hem yazılarını hem de anketlerini tamamladın!
+Yıllık çalışmamıza katkın için teşekkürler 💜
+` : `
+Yıllık için yapman gereken bazı şeyler kalmış görünüyor.
+Aşağıda durumunu özetledik 📋
+`}
+
+${isTextComplete ? '✅' : '✍️'} Yıllık Yazıları ${isTextComplete ? '- Tamamlandı!' : ''}
+• Yazılan: ${stats.messages_sent_to_classmates} yazı
+• Kalan: ${remainingClassmates > 0 ? `${remainingClassmates} kişi` : 'Yok!'}
+• İlerleme: %${stats.completion_percentage}
+
+${surveyStats ? `
+${isSurveyComplete ? '🏆' : '🗳️'} Sınıf Anketleri ${isSurveyComplete ? '- Tamamlandı!' : ''}
+• Tamamlanan: ${surveyStats.completed} anket
+• Kalan: ${surveyStats.remaining > 0 ? `${surveyStats.remaining} anket` : 'Yok!'}
+• İlerleme: %${surveyStats.percentage}
+` : ''}
+
+${!isFullyComplete ? `
+⏰ Son Teslim Tarihi
+${deadline}
+` : ''}
+
+Bağlantılar:
+${!isTextComplete ? `• Yazı Yaz: ${appUrl}/dashboard/texts\n` : ''}${!isSurveyComplete ? `• Anketlere Git: ${appUrl}/dashboard/surveys\n` : ''}${isFullyComplete ? `• Yıllığı Görüntüle: ${appUrl}/dashboard\n` : ''}
+
+${!isFullyComplete ? `
+💜 Her yazı bir anının, her oy bir arkadaşlığın hatırası.
+Yıllığımızı birlikte özel kılalım!
+` : ''}
+
+--
+Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
+© 2026 EGL Yıllık • Tüm hakları saklıdır.
+`,
             html: `
 <!DOCTYPE html>
 <html lang="tr">
@@ -184,23 +228,32 @@ export async function sendReminderEmail(
                                 <tr>
                                     ${!isTextComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard/texts" style="display: block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/dashboard/texts" style="display: block; background: #059669; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             ✍️ Yazı Yaz
                                         </a>
+                                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
+                                            ${appUrl}/dashboard/texts
+                                        </p>
                                     </td>
                                     ` : ''}
                                     ${!isSurveyComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard/surveys" style="display: block; background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/dashboard/surveys" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             🗳️ Anketlere Git
                                         </a>
+                                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
+                                            ${appUrl}/dashboard/surveys
+                                        </p>
                                     </td>
                                     ` : ''}
                                     ${isFullyComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard" style="display: block; background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/dashboard" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             📚 Yıllığı Görüntüle
                                         </a>
+                                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
+                                            ${appUrl}/dashboard
+                                        </p>
                                     </td>
                                     ` : ''}
                                 </tr>

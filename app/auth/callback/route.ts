@@ -13,10 +13,16 @@ export async function GET(request: Request) {
 
         if (!error) {
             // Başarılı giriş sonrası yönlendirme
-            // origin: https://egl-yillik.vercel.app
-            // next: /update-password
             const safeNext = next.startsWith('/') ? next : '/dashboard'
-            return NextResponse.redirect(`${origin}${safeNext}`)
+
+            const redirectUrl = new URL(`${origin}${safeNext}`)
+
+            // E-posta değişikliği durumu için mesaj
+            if (searchParams.get("type") === "email_change") {
+                redirectUrl.searchParams.set("message", "E-posta onayı alındı. Lütfen diğer e-posta adresinize gelen bağlantıyı da onaylayın.")
+            }
+
+            return NextResponse.redirect(redirectUrl)
         }
     }
 

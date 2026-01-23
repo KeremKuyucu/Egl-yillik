@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ShieldCheck, Loader2, KeyRound } from "lucide-react"
+import { ShieldCheck, Loader2, KeyRound, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import ChangePassword from "@/components/change-password"
+import ChangeEmail from "@/components/change-email"
 import { Badge } from "@/components/ui/badge"
-import { Mail } from "lucide-react"
 
 export default function SettingsPage() {
     const [mounted, setMounted] = useState(false)
@@ -63,11 +63,12 @@ export default function SettingsPage() {
                             </Badge>
                         )}
                     </div>
-                    <p className="text-slate-500 flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        {userObj?.email}
-                    </p>
                 </div>
+
+                {/* E-posta Değiştirme */}
+                {!isLinkedToGoogle && (
+                    <ChangeEmail currentEmail={userObj?.email || ""} />
+                )}
 
                 <ChangePassword isGoogleUser={!hasPassword} />
 

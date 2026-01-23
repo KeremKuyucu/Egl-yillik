@@ -1,5 +1,6 @@
 // lib/settings.ts
 import { createClient } from '@/lib/supabase/server';
+import { unstable_cache } from 'next/cache';
 
 export interface SiteSettings {
     id: string;
@@ -13,62 +14,11 @@ export interface SiteSettings {
 const DEFAULT_DEADLINE = new Date(2026, 1, 9, 23, 59, 59);
 const DEFAULT_DEADLINE_DISPLAY = '9 Şubat 2026';
 
-export async function getDeadline(): Promise<{ date: Date; display: string }> {
-    try {
-        const supabase = await createClient();
-        const { data, error } = await supabase
-            .from('site_settings')
-            .select('value')
-            .eq('key', 'deadline')
-            .single();
-
-        if (error || !data) {
-            return { date: DEFAULT_DEADLINE, display: DEFAULT_DEADLINE_DISPLAY };
-        }
-
-        const deadlineDate = new Date(data.value);
-        const display = deadlineDate.toLocaleDateString('tr-TR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
-
-        return { date: deadlineDate, display };
-    } catch {
-        return { date: DEFAULT_DEADLINE, display: DEFAULT_DEADLINE_DISPLAY };
-    }
-}
-
-const DEFAULT_GRADUATION_DATE = new Date(2026, 5, 26, 17, 0, 0); // 26 Haziran 2026 (Ay 0-indexed: 5 = Haziran)
+const DEFAULT_GRADUATION_DATE = new Date(2026, 5, 26, 17, 0, 0);
 const DEFAULT_GRADUATION_DATE_DISPLAY = '26 Haziran 2026';
 
-export async function getGraduationDate(): Promise<{ date: Date; display: string }> {
-    try {
-        const supabase = await createClient();
-        const { data, error } = await supabase
-            .from('site_settings')
-            .select('value')
-            .eq('key', 'graduation_date')
-            .single();
-
-        if (error || !data) {
-            return { date: DEFAULT_GRADUATION_DATE, display: DEFAULT_GRADUATION_DATE_DISPLAY };
-        }
-
-        const gradDate = new Date(data.value);
-        const display = gradDate.toLocaleDateString('tr-TR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
-
-        return { date: gradDate, display };
-    } catch {
-        return { date: DEFAULT_GRADUATION_DATE, display: DEFAULT_GRADUATION_DATE_DISPLAY };
-    }
-}
-
-export async function getSetting(key: string): Promise<string | null> {
+// Helper: Cache'siz anlık veri çekme (String değerler için)
+async function getInstantStringSetting(key: string): Promise<string | null> {
     try {
         const supabase = await createClient();
         const { data, error } = await supabase
@@ -77,57 +27,72 @@ export async function getSetting(key: string): Promise<string | null> {
             .eq('key', key)
             .single();
 
-        if (error || !data) {
-            return null;
-        }
-
+        if (error || !data) return null;
         return data.value;
     } catch {
         return null;
     }
 }
 
-// Boolean ayarlar için helper
-export async function getBooleanSetting(key: string, defaultValue: boolean = true): Promise<boolean> {
-    const value = await getSetting(key);
-    if (value === null) return defaultValue;
-    return value === 'true';
+export async function getDeadline(): Promise<{ date: Date; display: string }> {
+    const val = await getInstantStringSetting('deadline');
+
+    if (!val) return { date: DEFAULT_DEADLINE, display: DEFAULT_DEADLINE_DISPLAY };
+
+    const deadlineDate = new Date(val);
+    const display = deadlineDate.toLocaleDateString('tr-TR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    return { date: deadlineDate, display };
 }
 
-// Sistemin açık/kapalı ayarları
-export async function isMessagingEnabled(): Promise<boolean> {
-    return getBooleanSetting('messaging_enabled', true);
+export async function getGraduationDate(): Promise<{ date: Date; display: string }> {
+    const val = await getInstantStringSetting('graduation_date');
+
+    if (!val) return { date: DEFAULT_GRADUATION_DATE, display: DEFAULT_GRADUATION_DATE_DISPLAY };
+
+    const gradDate = new Date(val);
+    const display = gradDate.toLocaleDateString('tr-TR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    return { date: gradDate, display };
 }
 
-export async function isVotingEnabled(): Promise<boolean> {
-    return getBooleanSetting('voting_enabled', true);
-}
-
-export async function isRegistrationEnabled(): Promise<boolean> {
-    return getBooleanSetting('registration_enabled', true);
-}
-
-export async function isMaintenanceMode(): Promise<boolean> {
-    return getBooleanSetting('maintenance_mode', false);
-}
-
-// Tüm ayarları bir kerede çekmek için
-export async function getAllSettings(): Promise<Record<string, string>> {
+// Helper: Cache'siz anlık veri çekme (Kritik ayarlar için)
+async function getInstantSetting(key: string, defaultValue: boolean): Promise<boolean> {
     try {
         const supabase = await createClient();
         const { data, error } = await supabase
             .from('site_settings')
-            .select('key, value');
+            .select('value')
+            .eq('key', key)
+            .single();
 
-        if (error || !data) return {};
-
-        const settings: Record<string, string> = {};
-        data.forEach((item) => {
-            settings[item.key] = item.value;
-        });
-
-        return settings;
+        if (error || !data) return defaultValue;
+        return data.value === 'true';
     } catch {
-        return {};
+        return defaultValue;
     }
+}
+
+export async function isMessagingEnabled(): Promise<boolean> {
+    return getInstantSetting('messaging_enabled', true);
+}
+
+export async function isVotingEnabled(): Promise<boolean> {
+    return getInstantSetting('voting_enabled', true);
+}
+
+export async function isRegistrationEnabled(): Promise<boolean> {
+    return getInstantSetting('registration_enabled', true);
+}
+
+export async function isMaintenanceMode(): Promise<boolean> {
+    return getInstantSetting('maintenance_mode', false);
 }

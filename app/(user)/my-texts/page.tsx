@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getAuthContext } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import DashboardGrid from "@/components/dashboard-grid"
+import TextsGrid from "@/components/texts-grid"
 import { PenLine, Plus } from "lucide-react"
 
 export const dynamic = "force-dynamic"
@@ -58,7 +58,7 @@ export default async function MyTextsPage() {
             </div>
 
             {/* @ts-ignore */}
-            <DashboardGrid texts={texts || []} />
+            <TextsGrid texts={texts || []} />
         </div>
     )
 }

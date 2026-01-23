@@ -120,8 +120,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // --- MAINTENANCE MODE CHECK ---
-  // Site settings tablosundan maintenance_mode ayarını kontrol et
-  // Not: Bu işlem her istekte DB çağrısı yapar. Performans için cache mekanizması düşünülebilir.
   const { data: maintenanceSetting } = await supabase
     .from('site_settings')
     .select('value')
@@ -130,31 +128,27 @@ export async function middleware(request: NextRequest) {
 
   const isMaintenanceMode = maintenanceSetting?.value === 'true'
 
-  // Bakım modu aktifse ve kullanıcı admin değilse /maintenance sayfasına yönlendir
   if (isMaintenanceMode) {
-    // İzin verilen pathler (Login ve statik dosyalar hariç hepsi engellenir)
-    // /login ve /maintenance her zaman erişilebilir olmalı
-    const isAllowedDuringMaintenance =
-      pathname === "/maintenance" ||
-      pathname.startsWith("/login") ||
-      pathname.startsWith("/auth") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/static");
+    const isMaintenancePage = pathname === "/maintenance"
 
-    if (!isAllowedDuringMaintenance) {
-      if (!user) {
-        // Giriş yapmamış kullanıcı direkt bakım moduna
-        return redirect("/maintenance")
-      } else {
-        // JWT token'dan level bilgisini al (DB sorgusu yok - performans)
-        const userLevel = user.user_metadata?.level ?? 0
+    // Admin kontrolü: Metadata en hızlı yöntemdir
+    const userLevel = user?.user_metadata?.level ?? 0
+    const isAdmin = userLevel >= 100
 
-        // Level 100 (Super Admin) ve üzeri erişebilir
-        if (userLevel < 100) {
-          return redirect("/maintenance")
-        }
-      }
+    // Eğer admin ise her yere erişebilir, kısıtlama yok
+    if (isAdmin) {
+      // Admin bakım sayfasına bakmak isterse bakabilir, değilse normal devam
+      return response
     }
+
+    // Normal kullanıcı veya anonim için:
+    if (!isMaintenancePage) {
+      return redirect("/maintenance")
+    }
+
+    // Eğer zaten maintenance sayfasındaysa izin ver
+    return response
+
   } else {
     // Bakım modu kapalıysa ve kullanıcı /maintenance sayfasına gitmeye çalışıyorsa ana sayfaya at
     if (pathname === "/maintenance") {

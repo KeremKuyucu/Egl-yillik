@@ -289,7 +289,7 @@ export async function deleteVotesForCategory(categoryId: string) {
     }
 
     // Oyları sil
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await adminClient
         .from("survey_votes")
         .delete()
         .eq("category_id", categoryId)
