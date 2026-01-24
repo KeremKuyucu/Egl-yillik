@@ -65,10 +65,19 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Auth durumunu kontrol et
-  // DİKKAT: getUser() kullanımı getSession()'a göre daha güvenlidir çünkü 
-  // her istekte veritabanına gidip kullanıcının hala geçerli olup olmadığını doğrular.
-  const { data: { user } } = await supabase.auth.getUser()
+  // --- VERI CEKME (PARALEL) ---
+  // Auth ve Bakım Modu kontrollerini paralel başlatarak hızı optimize ediyoruz.
+  const [authResponse, maintenanceResult] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "maintenance_mode")
+      .maybeSingle()
+  ])
+
+  const { data: { user } } = authResponse
+  const isMaintenanceMode = maintenanceResult.data?.value === "true"
 
   // --- YÖNLENDİRME MANTIĞI VE COOKIE TRANSFERİ ---
 
@@ -115,19 +124,10 @@ export async function middleware(request: NextRequest) {
   // 🔒 Protected sayfa
   if (!user) {
     // Kullanıcı giriş yapmaya çalışıyorsa ve oturumu yoksa login'e at
-    // İstenirse returnTo parametresi eklenebilir: `/login?next=${pathname}`
     return redirect("/login")
   }
 
   // --- MAINTENANCE MODE CHECK ---
-  const { data: maintenanceSetting } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'maintenance_mode')
-    .single()
-
-  const isMaintenanceMode = maintenanceSetting?.value === 'true'
-
   if (isMaintenanceMode) {
     const isMaintenancePage = pathname === "/maintenance"
 
@@ -137,7 +137,6 @@ export async function middleware(request: NextRequest) {
 
     // Eğer admin ise her yere erişebilir, kısıtlama yok
     if (isAdmin) {
-      // Admin bakım sayfasına bakmak isterse bakabilir, değilse normal devam
       return response
     }
 
