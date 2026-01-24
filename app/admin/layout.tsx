@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Shield, LayoutDashboard, Sparkles, ChartNoAxesCombined, FileText, Vote, Users, MessageSquare, MessageSquarePlus, Bell, Settings, Menu } from "lucide-react"
+import { Shield, LayoutDashboard, Sparkles, ChartNoAxesCombined, FileText, Vote, Users, MessageSquare, MessageSquarePlus, Bell, Settings, Menu, ShieldAlert, ChevronDown } from "lucide-react"
 import { getLevelInfo, ROLES } from "@/lib/constants"
 import { ModeToggle } from "@/components/mode-toggle"
 import {
@@ -28,6 +28,7 @@ export default async function AdminLayout({
         { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/settings", label: "Site Ayarları", icon: Settings, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
+        { href: "/admin/error-logs", label: "Hata Kayıtları", icon: ShieldAlert, roles: [ROLES.OWNER] },
     ]
 
     // Filter items based on user role
@@ -63,44 +64,40 @@ export default async function AdminLayout({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {/* Mobile Menu */}
-                            <div className="md:hidden">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="mr-1">
-                                            <Menu className="h-5 w-5" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        {availableNavItems.map((item) => (
-                                            <DropdownMenuItem key={item.href} asChild>
-                                                <Link href={item.href} className="w-full cursor-pointer gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="gap-2 border-indigo-200/50 bg-white/50 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 backdrop-blur-sm">
+                                        <Menu className="h-4 w-4 text-indigo-600" />
+                                        <span className="font-semibold text-indigo-700">Yönetim Menüsü</span>
+                                        <ChevronDown className="h-3 w-3 opacity-50" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64 p-2 shadow-2xl border-indigo-100 dark:border-slate-800">
+                                    <div className="px-2 py-1.5 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                                        Navigasyon
+                                    </div>
+                                    {availableNavItems.map((item) => (
+                                        <DropdownMenuItem key={item.href} asChild className="rounded-lg focus:bg-indigo-50 dark:focus:bg-indigo-900/30 focus:text-indigo-600 cursor-pointer mb-0.5">
+                                            <Link href={item.href} className="flex items-center gap-3 w-full py-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 group-hover:bg-white transition-colors">
                                                     <item.icon className="h-4 w-4" />
-                                                    {item.label}
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                                                </div>
+                                                <span className="font-medium">{item.label}</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    ))}
+                                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-2" />
+                                    <DropdownMenuItem asChild className="rounded-lg focus:bg-indigo-50 dark:focus:bg-indigo-900/30 cursor-pointer">
+                                        <Link href="/dashboard" className="flex items-center gap-3 w-full py-2">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600">
+                                                <LayoutDashboard className="h-4 w-4" />
+                                            </div>
+                                            <span className="font-medium">Normal Site</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                            <div className="hidden md:flex items-center gap-1 mr-2 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-lg">
-                                {availableNavItems.map((item) => (
-                                    <Link key={item.href} href={item.href} prefetch={false}>
-                                        <Button variant="ghost" size="sm" className="h-8 gap-2 hover:bg-white dark:hover:bg-slate-700">
-                                            <item.icon className="h-4 w-4" />
-                                            <span className="hidden lg:inline">{item.label}</span>
-                                        </Button>
-                                    </Link>
-                                ))}
-                            </div>
-
-                            <Link href="/dashboard" prefetch={false}>
-                                <Button variant="outline" size="sm" className="border-indigo-200/50 bg-white/50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-all duration-300 backdrop-blur-sm">
-                                    <LayoutDashboard className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Normal Site</span>
-                                </Button>
-                            </Link>
                             <ModeToggle />
                         </div>
                     </div>
