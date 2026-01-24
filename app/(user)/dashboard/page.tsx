@@ -86,9 +86,7 @@ export default async function DashboardPage() {
   })
 
   // Veritabanı ve RPC çağrılarını paralel başlat
-  // Veritabanı ve RPC çağrılarını paralel başlat
   const [
-    // @ts-ignore
     dashboardResult,
     maintenanceMode
   ] = await Promise.all([

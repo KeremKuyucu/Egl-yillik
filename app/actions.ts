@@ -13,6 +13,12 @@ export async function deleteTextAction(id: string) {
     const user = await getCurrentUser()
     if (!user) return { error: "Unauthorized" }
 
+    // Mesaj yazma kapalıysa silme işlemi yapılamaz
+    const messagingEnabled = await isMessagingEnabled()
+    if (!messagingEnabled) {
+        return { error: "Sistem kilitli: Yazı silme kapalıdır." }
+    }
+
     // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)
     const { data, error } = await supabase.rpc('soft_delete_text', {
         target_text_id: id
