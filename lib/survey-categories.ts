@@ -6,12 +6,10 @@ export interface SurveyCategory {
     title: string
     emoji: string
     description: string
-    color: string // Tailwind gradient class
+    color: string
     sort_order?: number
     is_active?: boolean
 }
-
-
 
 // Avatar renkleri (profil için)
 export const AVATAR_COLORS = [
@@ -43,47 +41,3 @@ export function getColorFromName(name: string): string {
     return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-// Fallback kategoriler (Supabase'den veri çekilemezse kullanılır)
-export const FALLBACK_CATEGORIES: SurveyCategory[] = [
-    {
-        id: "most_funny",
-        title: "En Komik",
-        emoji: "😂",
-        description: "Sınıfı en çok güldüren kişi",
-        color: "from-yellow-500 to-orange-500"
-    },
-    {
-        id: "most_hardworking",
-        title: "En Çalışkan",
-        emoji: "📚",
-        description: "En azimli ve çalışkan öğrenci",
-        color: "from-blue-500 to-indigo-500"
-    },
-    {
-        id: "most_helpful",
-        title: "En Yardımsever",
-        emoji: "🤝",
-        description: "Her zaman yardıma koşan",
-        color: "from-green-500 to-emerald-500"
-    },
-    {
-        id: "best_friend",
-        title: "En İyi Arkadaş",
-        emoji: "💜",
-        description: "Herkesin güvendiği dost",
-        color: "from-purple-500 to-pink-500"
-    },
-    {
-        id: "most_creative",
-        title: "En Yaratıcı",
-        emoji: "🎨",
-        description: "Fikirler konusunda en özgün",
-        color: "from-pink-500 to-rose-500"
-    }
-]
-
-// Legacy compat: getCategoryById for existing code
-export function getCategoryById(id: string, categories?: SurveyCategory[]): SurveyCategory | undefined {
-    const cats = categories || FALLBACK_CATEGORIES
-    return cats.find(cat => cat.id === id)
-}

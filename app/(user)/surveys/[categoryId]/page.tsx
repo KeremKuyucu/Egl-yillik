@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAuthContext } from "@/lib/auth"
 import { notFound } from "next/navigation"
-import { getCategoryById, FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
+import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import SurveyVoteClient from "./client"
@@ -49,15 +49,13 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
     const supabase = await createClient()
 
     // Kategoriyi Supabase'den çek
-    const { data: dbCategory } = await supabase
+    const { data: category } = await supabase
         .from("survey_categories")
         .select("*")
         .eq("id", categoryId)
         .eq("is_active", true)
         .single()
 
-    // Supabase'den kategori bulunamadıysa fallback'e bak
-    const category: SurveyCategory | undefined = dbCategory || getCategoryById(categoryId, FALLBACK_CATEGORIES)
     if (!category) notFound()
 
     // SADECE sınıf arkadaşlarını al (kendisi hariç)

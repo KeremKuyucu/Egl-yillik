@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
-import { getColorFromName, FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
+import { getColorFromName, type SurveyCategory } from "@/lib/survey-categories"
 import { getFullName, getInitials } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -19,78 +19,46 @@ export default async function AdminSurveysPage() {
 
     const supabase = await createClient()
 
-    // Kategorileri Supabase'den çek
-    const { data: dbCategories } = await supabase
+    // Kategorileri veritabanından çek
+    const { data: categories } = await supabase
         .from("survey_categories")
         .select("*")
         .order("sort_order", { ascending: true })
 
-    const categories: SurveyCategory[] = (dbCategories && dbCategories.length > 0)
-        ? dbCategories
-        : FALLBACK_CATEGORIES
+    if (!categories) {
+        throw new Error("Kategoriler yüklenemedi. Veritabanı bağlantısını kontrol edin.")
+    }
 
-    // Tüm oyları getir
-    const { data: allVotes } = await supabase
-        .from("survey_votes")
-        .select(`
-            id,
-            category_id,
-            voter:voter_id (
-                id,
-                first_name,
-                last_name,
-                class,
-                school_number
-            ),
-            voted_for:voted_for_id (
-                id,
-                first_name,
-                last_name,
-                class,
-                school_number
-            )
-        `)
-        .order("category_id")
 
-    // Tüm sınıfları getir
-    const { data: allProfiles } = await supabase
-        .from("profiles")
-        .select("class")
-        .order("class")
+    // Tek bir RPC çağrısı ile tüm verileri (istatistikler + kategorize oylar + profiller) çek
+    const { data: rawRpcData } = await supabase.rpc("admin_votes_json")
 
-    const classes = [...new Set(allProfiles?.map(p => p.class) || [])]
+    const rpcData = (rawRpcData as {
+        stats: { total_votes: number, unique_voters: number, unique_voted_for: number },
+        results: Record<string, { profile: any, count: number }[]>
+    }) || {
+        stats: { total_votes: 0, unique_voters: 0, unique_voted_for: 0 },
+        results: {}
+    }
 
-    // Her kategori için sonuçları hesapla
+    // Kategori sonuçlarını oluştur
     const categoryResults = categories.map(category => {
-        const categoryVotes = allVotes?.filter(v => v.category_id === category.id) || []
-
-        // Kişi bazında oy sayıları
-        const personVoteCounts: Record<string, { profile: any, count: number }> = {}
-        categoryVotes.forEach((vote: any) => {
-            if (vote.voted_for) {
-                const id = vote.voted_for.id
-                if (!personVoteCounts[id]) {
-                    personVoteCounts[id] = { profile: vote.voted_for, count: 0 }
-                }
-                personVoteCounts[id].count++
-            }
-        })
-
-        // Sırala ve tüm sonuçları göster
-        const topVoted = Object.values(personVoteCounts)
-            .sort((a, b) => b.count - a.count)
+        const topVoted = rpcData.results[category.id] || []
+        const totalCategoryVotes = topVoted.reduce((sum, v) => sum + v.count, 0)
 
         return {
             category,
-            totalVotes: categoryVotes.length,
+            totalVotes: totalCategoryVotes,
             topVoted
         }
     })
 
     // Genel istatistikler
-    const totalVotes = allVotes?.length || 0
-    const uniqueVoters = new Set(allVotes?.map((v: any) => v.voter?.id)).size
-    const uniqueVotedFor = new Set(allVotes?.filter((v: any) => v.voted_for).map((v: any) => v.voted_for?.id)).size
+    const {
+        total_votes: totalVotes,
+        unique_voters: uniqueVoters,
+        unique_voted_for: uniqueVotedFor
+    } = rpcData.stats
 
     return (
         <div className="space-y-6">

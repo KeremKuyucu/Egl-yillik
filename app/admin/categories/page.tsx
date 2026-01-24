@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
-import { FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
+import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {

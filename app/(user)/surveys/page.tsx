@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { FALLBACK_CATEGORIES, type SurveyCategory } from "@/lib/survey-categories"
+import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import {
     CheckCircle2,
@@ -42,16 +42,19 @@ export default async function SurveysPage() {
     }
 
     // Kategorileri Supabase'den çek
-    const { data: dbCategories } = await supabase
+    const { data: categories } = await supabase
         .from("survey_categories")
         .select("*")
         .eq("is_active", true)
         .order("sort_order", { ascending: true })
 
-    // Supabase'den veri geldiyse onu kullan, yoksa fallback
-    const categories: SurveyCategory[] = (dbCategories && dbCategories.length > 0)
-        ? dbCategories
-        : FALLBACK_CATEGORIES
+    if (!categories || categories.length === 0) {
+        return (
+            <div className="container mx-auto px-4 py-16 text-center">
+                <p className="text-slate-500">Henüz aktif bir anket kategorisi bulunamadı.</p>
+            </div>
+        )
+    }
 
     // Kullanıcının daha önce oy verdiği kategoriler
     const { data: myVotes } = await supabase
