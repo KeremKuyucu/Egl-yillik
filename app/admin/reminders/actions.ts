@@ -61,9 +61,53 @@ export async function sendReminderEmail(
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'EGL Yıllık <noreply@eglyillik.com>',
+            from: 'EGL Yıllık <noreply@keremkk.com.tr>',
             to: [email],
             subject,
+            text: `
+📚 EGL Yıllık
+${stats.class} Sınıfı • 2025-2026
+
+Merhaba ${userName}! 👋
+
+${isFullyComplete ? `
+🎉 Süpersin!
+Hem yazılarını hem de anketlerini tamamladın!
+Yıllık çalışmamıza katkın için teşekkürler 💜
+` : `
+Yıllık için yapman gereken bazı şeyler kalmış görünüyor.
+Aşağıda durumunu özetledik 📋
+`}
+
+${isTextComplete ? '✅' : '✍️'} Yıllık Yazıları ${isTextComplete ? '- Tamamlandı!' : ''}
+• Yazılan: ${stats.messages_sent_to_classmates} yazı
+• Kalan: ${remainingClassmates > 0 ? `${remainingClassmates} kişi` : 'Yok!'}
+• İlerleme: %${stats.completion_percentage}
+
+${surveyStats ? `
+${isSurveyComplete ? '🏆' : '🗳️'} Sınıf Anketleri ${isSurveyComplete ? '- Tamamlandı!' : ''}
+• Tamamlanan: ${surveyStats.completed} anket
+• Kalan: ${surveyStats.remaining > 0 ? `${surveyStats.remaining} anket` : 'Yok!'}
+• İlerleme: %${surveyStats.percentage}
+` : ''}
+
+${!isFullyComplete ? `
+⏰ Son Teslim Tarihi
+${deadline}
+` : ''}
+
+Bağlantılar:
+${!isTextComplete ? `• Yazı Yaz: ${appUrl}/dashboard/texts\n` : ''}${!isSurveyComplete ? `• Anketlere Git: ${appUrl}/dashboard/surveys\n` : ''}${isFullyComplete ? `• Yıllığı Görüntüle: ${appUrl}/dashboard\n` : ''}
+
+${!isFullyComplete ? `
+💜 Her yazı bir anının, her oy bir arkadaşlığın hatırası.
+Yıllığımızı birlikte özel kılalım!
+` : ''}
+
+--
+Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
+© 2026 EGL Yıllık • Tüm hakları saklıdır.
+            `,
             html: `
 <!DOCTYPE html>
 <html lang="tr">
