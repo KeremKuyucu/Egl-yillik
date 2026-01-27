@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider"
 import FeedbackButton from "@/components/common/feedback-button"
 import "./globals.css"
 import AnnouncementBanner from "@/components/layout/announcement-banner"
-import ErrorReporter from "@/components/common/error-reporter"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +58,6 @@ export default function RootLayout({
         >
           {/* Yapımcı GitHub:KeremKuyucu */}
           <AnnouncementBanner />
-          <ErrorReporter />
           {children}
           <FeedbackButton />
           <Toaster />

@@ -52,7 +52,6 @@ export default function SettingsPage() {
                 </div>
                 <h1 className="text-xl font-bold text-slate-900 dark:text-white">Hesap Ayarları</h1>
             </div>
-
             <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -65,6 +64,7 @@ export default function SettingsPage() {
                         )}
                     </div>
                 </div>
+                <EmailPreferences />
 
                 {/* E-posta Değiştirme */}
                 {!isLinkedToGoogle && (
@@ -72,8 +72,6 @@ export default function SettingsPage() {
                 )}
 
                 <ChangePassword isGoogleUser={!hasPassword} />
-
-                <EmailPreferences />
 
                 <Card className="border-2 border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
                     <CardHeader>
