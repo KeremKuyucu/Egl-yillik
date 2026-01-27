@@ -1,0 +1,32 @@
+import { requireSuperAdmin } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import LogsClient from "./logs-client"
+
+export const metadata = {
+    title: "Sistem Logları | Admin Paneli",
+    description: "Sistem üzerindeki tüm aktivitelerin log kayıtları.",
+}
+
+export default async function AdminLogsPage() {
+    await requireSuperAdmin()
+    const supabase = await createClient()
+
+    const { data: logs } = await supabase
+        .from('activity_logs')
+        .select('*, profiles:changed_by(first_name, last_name, class)')
+        .order('changed_at', { ascending: false })
+        .limit(100)
+
+    return (
+        <div className="space-y-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">Sistem Logları</h1>
+                <p className="text-muted-foreground">
+                    Veritabanı üzerinde gerçekleşen önemli değişiklikleri buradan takip edebilirsiniz.
+                </p>
+            </div>
+
+            <LogsClient logs={logs || []} />
+        </div>
+    )
+}

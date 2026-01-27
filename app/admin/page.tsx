@@ -18,7 +18,8 @@ import {
     Calendar,
     ChevronRight,
     Clock,
-    Star
+    Star,
+    Activity
 } from "lucide-react"
 import Link from "next/link"
 import { getLevelInfo, ROLES } from "@/lib/constants"
@@ -46,12 +47,6 @@ export default async function AdminPage() {
     const deadline = settingsMap.deadline ? new Date(settingsMap.deadline) : null
     const isMaintenance = settingsMap.maintenance_mode === 'true'
 
-    // Fetch counts from tables that aren't in the RPC but exist in schema
-    const { count: activeSurveysCount } = await supabase
-        .from('survey_categories')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-
     // Fetch recent feedback as activity
     const { data: recentFeedback } = await supabase
         .from('feedback')
@@ -66,6 +61,13 @@ export default async function AdminPage() {
         .select('*, profiles:suggested_by(first_name, last_name, class)')
         .order('created_at', { ascending: false })
         .limit(4)
+
+    // Fetch last 5 system logs
+    const { data: systemLogs } = await supabase
+        .from('activity_logs')
+        .select('*, profiles:changed_by(first_name, last_name)')
+        .order('changed_at', { ascending: false })
+        .limit(5)
 
     const levelInfo = getLevelInfo(level)
 
@@ -302,6 +304,60 @@ export default async function AdminPage() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* System Logs */}
+                    <Card className="border-none shadow-lg bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base font-bold flex items-center gap-2">
+                                    <Activity className="h-4 w-4 text-blue-500" />
+                                    Sistem Logları
+                                </CardTitle>
+                                <Button variant="ghost" size="sm" asChild className="h-8 text-xs underline decoration-indigo-500/30 underline-offset-4">
+                                    <Link href="/admin/logs">Tümü</Link>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="divide-y divide-indigo-50/50 dark:divide-slate-800/50">
+                                {systemLogs && systemLogs.length > 0 ? (
+                                    systemLogs.map((log: any) => (
+                                        <div key={log.id} className="p-4 hover:bg-white/80 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${log.operation === 'INSERT' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                                                    log.operation === 'UPDATE' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                        log.operation === 'DELETE' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                                                            'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                    <Activity className="h-4 w-4" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                        {log.table_name} • {log.operation}
+                                                    </span>
+                                                    <span className="text-sm font-medium">
+                                                        {log.profiles ? `${log.profiles.first_name} ${log.profiles.last_name}` : 'Sistem'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] text-muted-foreground block">
+                                                    {new Date(log.changed_at).toLocaleDateString('tr-TR')}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground block">
+                                                    {new Date(log.changed_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-8 text-center text-sm text-muted-foreground">
+                                        Henüz log kaydı yok.
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Sidebar Info */}
