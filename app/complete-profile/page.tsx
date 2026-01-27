@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserCheck, Loader2, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CLASSES } from "@/lib/constants"
+import { getSystemClasses } from "@/app/actions/settings"
 
 export default function CompleteProfilePage() {
     const [firstName, setFirstName] = useState("")
@@ -21,11 +21,16 @@ export default function CompleteProfilePage() {
     const [isLoading, setIsLoading] = useState(false)
     const [isFetching, setIsFetching] = useState(true)
     const [mounted, setMounted] = useState(false)
+    const [classes, setClasses] = useState<string[]>([])
     const router = useRouter()
     const supabase = createClient()
 
     useEffect(() => {
         setMounted(true)
+        // Sınıfları çek
+        getSystemClasses().then(data => {
+            setClasses(data.map(c => c.name))
+        })
     }, [])
 
     useEffect(() => {
@@ -190,7 +195,7 @@ export default function CompleteProfilePage() {
                                                 <SelectValue placeholder="Seç" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {CLASSES.map((cls) => (
+                                                {classes.map((cls) => (
                                                     <SelectItem key={cls} value={cls}>
                                                         {cls.replace("12", "12-")}
                                                     </SelectItem>

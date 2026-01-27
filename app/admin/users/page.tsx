@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import RoleGuard from "@/components/role-guard"
+import RoleGuard from "@/components/auth/role-guard"
 import { ROLES, getLevelInfo, CLASSES } from "@/lib/constants"
 import { getFullName, getInitials } from "@/lib/utils"
 import { requireAdmin } from "@/lib/auth"
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Shield, Users, Crown, Sparkles, Star, LayoutDashboard, Hash, GraduationCap, TrendingUp, Clock } from "lucide-react"
-import { LevelSelector, SearchInput, EditUserButton, UserFilterBar } from "@/components/admin-actions"
+import { LevelSelector, SearchInput, EditUserButton, UserFilterBar } from "@/components/admin/admin-actions"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface UserProfile {

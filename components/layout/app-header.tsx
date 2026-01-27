@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
+import { ModeToggle } from "@/components/layout/mode-toggle"
 import { Shield, Settings, LogOut, Menu, Home, FileText, Vote, Users, Plus, User, Sparkles } from "lucide-react"
 import {
     DropdownMenu,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { ROLES } from "@/lib/constants"
-import ClientRoleGuard from "./role-guard-client"
+import ClientRoleGuard from "@/components/auth/role-guard-client"
 
 interface AppHeaderProps {
     userProfile: any

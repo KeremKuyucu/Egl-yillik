@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Shield, LayoutDashboard, Sparkles, ChartNoAxesCombined, FileText, Vote, Users, MessageSquare, MessageSquarePlus, Bell, Settings, Menu, ShieldAlert, ChevronDown } from "lucide-react"
 import { getLevelInfo, ROLES } from "@/lib/constants"
-import { ModeToggle } from "@/components/mode-toggle"
+import { ModeToggle } from "@/components/layout/mode-toggle"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -25,7 +25,7 @@ export default async function AdminLayout({
         { href: "/admin/suggestions", label: "Öneriler", icon: MessageSquare, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/surveys", label: "Anketler", icon: Vote, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER] },
-        { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
+        { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/settings", label: "Site Ayarları", icon: Settings, roles: [ROLES.SUPER_ADMIN, ROLES.OWNER] },
         { href: "/admin/error-logs", label: "Hata Kayıtları", icon: ShieldAlert, roles: [ROLES.OWNER] },

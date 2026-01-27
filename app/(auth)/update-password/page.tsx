@@ -32,9 +32,9 @@ export default function UpdatePasswordPage() {
 
         const checkSession = async () => {
             const supabase = createClient()
-            const { data: { session } } = await supabase.auth.getSession()
+            const { data: { user } } = await supabase.auth.getUser()
 
-            if (session) {
+            if (user) {
                 setIsValidSession(true)
             } else {
                 setIsValidSession(false)

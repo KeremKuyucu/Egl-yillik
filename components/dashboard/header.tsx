@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ModeToggle } from "@/components/mode-toggle"
-import RoleGuard from "@/components/role-guard"
+import { ModeToggle } from "@/components/layout/mode-toggle"
+import RoleGuard from "@/components/auth/role-guard"
 import { ROLES } from "@/lib/constants"
 import { LogOut, Shield, Settings } from "lucide-react"
 

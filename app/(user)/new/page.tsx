@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAuthContext } from "@/lib/auth"
-import NewTextForm from "@/components/new-text-form"
+import NewTextForm from "@/components/texts/new-text-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"

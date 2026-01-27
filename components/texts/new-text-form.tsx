@@ -16,7 +16,7 @@ import {
   ChevronsUpDown,
 
 } from "lucide-react"
-import { createTextAction } from "@/app/actions"
+import { createTextAction } from "@/app/actions/texts"
 import { cn } from "@/lib/utils"
 
 import {
@@ -287,7 +287,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
             placeholder="Güzel bir anıdan bahset, gelecekte hatırlamasını istediğin bir not bırak..."
             required
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
             className="min-h-[250px] resize-y bg-background border-input focus:ring-1 focus:ring-primary/20 text-base leading-relaxed p-4 shadow-sm transition-all"
           />
           <p className="text-xs text-right text-muted-foreground">

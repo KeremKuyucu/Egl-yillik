@@ -1,12 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
 import { requireSuperAdmin } from "@/lib/auth"
 import ReminderClientPage from "./client"
 import type { BulkStatsRPCResponse, UserWithStats } from "@/types/reminder"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function ReminderPage() {
     await requireSuperAdmin()
 
-    // Admin client kullan (service_role key ile)
     const supabase = await createClient();
 
     // ✅ TEK BİR RPC ÇAĞRISI - Email dahil tüm veriler birleşik geliyor
@@ -62,6 +61,7 @@ export default async function ReminderPage() {
             percentage: user.survey_completion_percentage
         },
 
+        is_opted_out: user.is_opted_out,
         statsError: null
     }))
 

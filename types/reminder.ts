@@ -44,6 +44,7 @@ export interface UserWithStats {
     stats: ClassStats
     surveyStats: SurveyStats
     statsError: string | null
+    is_opted_out?: boolean
 }
 
 /**
@@ -64,6 +65,7 @@ export interface BulkStatsRPCResponse {
     completed_surveys: number
     remaining_surveys: number
     survey_completion_percentage: number
+    is_opted_out: boolean
 }
 
 /**

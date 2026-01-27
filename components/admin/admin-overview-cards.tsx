@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Users, MessageSquare, MessageSquarePlus, ArrowRight, Lock, Mail, Vote, Settings, Sparkles, Calendar, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { useRoleGuard } from "@/components/role-guard-client"
+import { useRoleGuard } from "@/components/auth/role-guard-client"
 
 interface AdminOverviewCardsProps {
     pendingSuggestionsCount?: number

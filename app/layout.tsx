@@ -3,11 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
-import { ThemeProvider } from "@/components/theme-provider"
-import FeedbackButton from "@/components/feedback-button"
+import { ThemeProvider } from "@/components/providers/theme-provider"
+import FeedbackButton from "@/components/common/feedback-button"
 import "./globals.css"
-import AnnouncementBanner from "@/components/announcement-banner"
-import ErrorReporter from "@/components/error-reporter"
+import AnnouncementBanner from "@/components/layout/announcement-banner"
+import ErrorReporter from "@/components/common/error-reporter"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

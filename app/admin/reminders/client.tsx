@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { sendReminderEmail } from "./actions"
+import { sendBulkUsersReminders } from "./actions"
 import { toast } from "sonner"
 import {
     Loader2,
@@ -22,10 +22,12 @@ import {
     Sparkles,
     X,
     Vote,
-    PenLine
+    PenLine,
+    BellOff
 } from "lucide-react"
 import Link from "next/link"
 import { getColorFromName } from "@/lib/survey-categories"
+import { AutoReminderSettings } from "@/components/admin/auto-reminder-settings"
 
 import { UserWithStats, FilterStatus, FilterClass, EmailStatus } from "@/types/reminder"
 import { requireSuperAdmin } from "@/lib/auth"
@@ -139,8 +141,10 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
     }, [users, searchQuery, filterClass, filterStatus])
 
     const toggleSelectAll = () => {
-        const filteredIds = filteredUsers.map(u => u.id)
-        const allSelected = filteredIds.every(id => selectedUsers.includes(id))
+        const filteredIds = filteredUsers
+            .filter(u => !u.is_opted_out) // Opted-out olanları seçme
+            .map(u => u.id)
+        const allSelected = filteredIds.length > 0 && filteredIds.every(id => selectedUsers.includes(id))
 
         if (allSelected) {
             setSelectedUsers(prev => prev.filter(id => !filteredIds.includes(id)))
@@ -159,7 +163,7 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
 
     const selectAnyIncomplete = () => {
         const incompleteIds = users
-            .filter(u => ((u.stats?.remaining_classmates > 0) || (u.surveyStats?.remaining > 0)) && u.email)
+            .filter(u => ((u.stats?.remaining_classmates > 0) || (u.surveyStats?.remaining > 0)) && u.email && !u.is_opted_out)
             .map(u => u.id)
         setSelectedUsers(incompleteIds)
         toast.success(`${incompleteIds.length} eksik işi olan kullanıcı seçildi`)
@@ -173,50 +177,42 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
         setIsSending(true)
         const currentResults = { ...results }
 
+        // Hepsini pending yap
         selectedUsers.forEach(id => currentResults[id] = 'pending')
         setResults(currentResults)
 
-        let sent = 0
-        let errors = 0
+        try {
+            // Bulk gönderim (Server-Side)
+            const response = await sendBulkUsersReminders(selectedUsers)
 
-        for (const userId of selectedUsers) {
-            const user = users.find(u => u.id === userId)
-            if (!user) continue
+            if (response.error) {
+                toast.error(response.error)
+                // Hepsini hata olarak işaretle
+                selectedUsers.forEach(id => currentResults[id] = 'error')
+                setResults({ ...currentResults })
+            } else if (response.results) {
+                let sent = 0
+                let errors = 0
 
-            if (!user.stats || user.statsError) {
-                setResults(prev => ({ ...prev, [userId]: 'error' }))
-                errors++
-                continue
+                Object.entries(response.results).forEach(([userId, res]) => {
+                    currentResults[userId] = res.success ? 'success' : 'error'
+                    if (res.success) sent++
+                    else errors++
+                })
+
+                setResults({ ...currentResults })
+
+                if (errors === 0) {
+                    toast.success(`🎉 ${sent} mail başarıyla gönderildi!`)
+                } else {
+                    toast.warning(`İşlem tamamlandı. Başarılı: ${sent}, Hata: ${errors}`)
+                }
             }
-
-            const userEmail = user.email
-            if (!userEmail) {
-                setResults(prev => ({ ...prev, [userId]: 'error' }))
-                errors++
-                continue
-            }
-
-            const userName = `${user.first_name} ${user.last_name}`.trim()
-            const res = await sendReminderEmail(userId, userEmail, userName, user.stats, user.surveyStats)
-
-            if (res.success) {
-                setResults(prev => ({ ...prev, [userId]: 'success' }))
-                sent++
-            } else {
-                setResults(prev => ({ ...prev, [userId]: 'error' }))
-                errors++
-                console.error(`Error sending to ${userEmail}:`, res.error)
-            }
-
-            await new Promise(r => setTimeout(r, 200))
-        }
-
-        setIsSending(false)
-
-        if (errors === 0) {
-            toast.success(`🎉 ${sent} mail başarıyla gönderildi!`)
-        } else {
-            toast.warning(`İşlem tamamlandı. Başarılı: ${sent}, Hata: ${errors}`)
+        } catch (error) {
+            console.error(error)
+            toast.error("Beklenmeyen bir hata oluştu")
+        } finally {
+            setIsSending(false)
         }
     }
 
@@ -271,6 +267,9 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                     </Button>
                 </div>
             </div>
+
+            {/* Otomatik Hatırlatıcı Ayarları */}
+            <AutoReminderSettings />
 
             {/* İstatistik Kartları */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -569,6 +568,7 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                                 <Checkbox
                                     checked={isSelected}
                                     onCheckedChange={() => toggleUser(user.id)}
+                                    disabled={user.is_opted_out}
                                 />
 
                                 {/* Avatar */}
@@ -582,6 +582,11 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                                         <p className="font-semibold text-slate-900 dark:text-white">
                                             {user.first_name} {user.last_name}
                                         </p>
+                                        {user.is_opted_out && (
+                                            <Badge variant="secondary" className="bg-red-100 text-red-600 border-red-200 text-[10px] h-4 px-1">
+                                                <BellOff className="h-2 w-2 mr-1" /> İstemiyor
+                                            </Badge>
+                                        )}
                                         <Badge variant="outline" className="text-xs shrink-0 hidden sm:inline-flex">
                                             {user.class}
                                         </Badge>

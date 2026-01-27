@@ -5,9 +5,10 @@ import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShieldCheck, Loader2, KeyRound, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
-import ChangePassword from "@/components/change-password"
-import ChangeEmail from "@/components/change-email"
+import ChangePassword from "@/components/settings/change-password"
+import ChangeEmail from "@/components/settings/change-email"
 import { Badge } from "@/components/ui/badge"
+import EmailPreferences from "@/components/settings/email-preferences"
 
 export default function SettingsPage() {
     const [mounted, setMounted] = useState(false)
@@ -71,6 +72,8 @@ export default function SettingsPage() {
                 )}
 
                 <ChangePassword isGoogleUser={!hasPassword} />
+
+                <EmailPreferences />
 
                 <Card className="border-2 border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
                     <CardHeader>

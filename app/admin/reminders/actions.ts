@@ -3,7 +3,8 @@
 import { Resend } from 'resend'
 import { checkSuperAdmin } from '@/lib/auth'
 import { getDeadline } from '@/lib/settings'
-import type { ClassStats, SurveyStats, EmailResult } from '@/types/reminder'
+import { createClient } from "@/lib/supabase/server"
+import type { ClassStats, SurveyStats, EmailResult, BulkStatsRPCResponse } from '@/types/reminder'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -31,6 +32,7 @@ export async function sendReminderEmail(
     const deadlineData = await getDeadline()
     const deadline = deadlineData.display
     const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    const unsubscribeUrl = `${appUrl}/settings/unsubscribe`
 
     // ✅ Artık RPC'den direkt geldiği için yeniden hesaplamaya gerek yok
     const remainingClassmates = stats.remaining_classmates
@@ -61,7 +63,7 @@ export async function sendReminderEmail(
 
     try {
         const { data, error } = await resend.emails.send({
-            from: 'EGL Yıllık <noreply@keremkk.com.tr>',
+            from: 'EGL Yıllık <egl@keremkk.com.tr>',
             to: [email],
             subject,
             text: `
@@ -106,6 +108,7 @@ Yıllığımızı birlikte özel kılalım!
 
 --
 Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
+Abonelikten çıkmak için: ${unsubscribeUrl}
 © 2026 EGL Yıllık • Tüm hakları saklıdır.
             `,
             html: `
@@ -276,6 +279,9 @@ Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
                             <p style="color: #64748b; font-size: 12px; margin: 0 0 8px 0;">
                                 Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
                             </p>
+                            <p style="color: #64748b; font-size: 11px; margin: 0 0 8px 0;">
+                                Artık bu mailleri almak istemiyorsanız <a href="${unsubscribeUrl}" style="color: #4f46e5; text-decoration: underline;">abonelikten çıkabilirsiniz</a>.
+                            </p>
                             <p style="color: #94a3b8; font-size: 11px; margin: 0;">
                                 © 2026 EGL Yıllık • Tüm hakları saklıdır.
                             </p>
@@ -289,7 +295,6 @@ Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
 </html>
             `
         })
-
         if (error) {
             console.error("Resend Error:", error)
             return { error: error.message }
@@ -300,4 +305,76 @@ Bu email EGL Yıllık sistemi tarafından otomatik olarak gönderilmiştir.
         console.error("Email Exception:", e)
         return { error: e.message }
     }
+}
+
+export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
+    const results: Record<string, { success: boolean, error?: string }> = {}
+
+    // 4. Gönderim döngüsü (Rate limit koruması için sıralı veya chunk'lı)
+    const CHUNK_SIZE = 5
+    for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
+        const chunk = targets.slice(i, i + CHUNK_SIZE)
+
+        await Promise.all(chunk.map(async (user) => {
+            if (!user.email) {
+                results[user.user_id] = { success: false, error: 'Email adresi yok' }
+                return
+            }
+
+            const stats: ClassStats = {
+                user_id: user.user_id,
+                class: user.class,
+                total_classmates: user.total_classmates,
+                messages_sent_to_classmates: user.messages_sent_to_classmates,
+                remaining_classmates: user.remaining_classmates,
+                completion_percentage: user.text_completion_percentage
+            }
+
+            const surveyStats: SurveyStats = {
+                total: user.total_survey_categories,
+                completed: user.completed_surveys,
+                remaining: user.remaining_surveys,
+                percentage: user.survey_completion_percentage
+            }
+
+            const userName = `${user.first_name} ${user.last_name}`.trim()
+
+            const res = await sendReminderEmail(user.user_id, user.email, userName, stats, surveyStats)
+
+            results[user.user_id] = {
+                success: !!res.success,
+                error: res.error
+            }
+        }))
+
+        if (i + CHUNK_SIZE < targets.length) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+    }
+
+    return results
+}
+
+export async function sendBulkUsersReminders(userIds: string[]) {
+    // 1. Yetki kontrolü
+    const auth = await checkSuperAdmin()
+    if (!auth.success) return { error: auth.error }
+
+    // 2. Verileri taze çek
+    const supabase = await createClient()
+    const { data: usersData, error: rpcError } = await supabase
+        .rpc('get_bulk_user_stats') as { data: BulkStatsRPCResponse[] | null, error: any }
+
+    if (rpcError || !usersData) {
+        console.error("Bulk Stats Error:", rpcError)
+        return { error: 'Kullanıcı verileri alınırken hata oluştu.' }
+    }
+
+    // 3. Seçili kullanıcıları filtrele (Opted-out olanları skip et)
+    const targets = usersData.filter(u => userIds.includes(u.user_id) && !u.is_opted_out)
+
+    // 4. Gönderimi başlat
+    const results = await processBulkReminders(targets)
+
+    return { success: true, results }
 }

@@ -26,7 +26,6 @@ export default function LoginPage() {
     setIsMounted(true)
 
     // URL'deki hata parametrelerini kontrol et (OAuth redirect hataları)
-    // URL'deki hata parametrelerini kontrol et (OAuth redirect hataları)
     const searchParams = new URLSearchParams(window.location.search)
     let errorDescription = searchParams.get('error_description')
     let error = searchParams.get('error')
@@ -107,7 +106,10 @@ export default function LoginPage() {
       })
       if (error) throw error
 
-      router.push("/dashboard")
+      const searchParams = new URLSearchParams(window.location.search)
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+
+      router.push(callbackUrl)
       router.refresh()
     } catch (error: any) {
       console.error("Giriş sırasında bir hata oluştu:", error)

@@ -22,12 +22,11 @@ import type { JWTProfile } from "@/lib/auth-utils"
 export const getAuthContext = cache(async () => {
     const supabase = await createClient()
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) {
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error || !user) {
         return { user: null, level: 0, profile: null }
     }
-
-    const user = session.user
     const metadata = user.user_metadata as JWTProfile | undefined
 
     const { data: levelRow } = await supabase

@@ -13,7 +13,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { submitFeedback, FeedbackType } from '@/app/feedback/actions';
+import { submitFeedback, FeedbackType } from '@/app/actions/feedback';
 
 const feedbackTypes = [
     { value: 'bug' as FeedbackType, label: 'Hata Bildirimi', icon: Bug, color: 'text-red-500', bgHover: 'hover:bg-red-50 dark:hover:bg-red-900/20', bgActive: 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700' },
@@ -152,7 +152,7 @@ export default function FeedbackButton() {
                             <Textarea
                                 placeholder="Geri bildiriminizi buraya yazın... (min 10 karakter)"
                                 value={message}
-                                onChange={(e) => setMessage(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
                                 className="min-h-[120px] resize-none"
                                 maxLength={2000}
                             />

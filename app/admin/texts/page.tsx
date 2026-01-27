@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
-import { DeleteTextButton, SearchInput } from "@/components/admin-actions"
+import { DeleteTextButton, SearchInput } from "@/components/admin/admin-actions"
 import { getFullName, getInitials, cn } from "@/lib/utils"
 import { ROLES, getLevelInfo } from "@/lib/constants"
 import {

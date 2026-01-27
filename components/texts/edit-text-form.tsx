@@ -18,7 +18,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Trash2, Save, Loader2, AlertTriangle, Undo2 } from "lucide-react"
-import { updateTextAction, deleteMyTextAction } from "@/app/actions"
+import { updateTextAction, deleteMyTextAction } from "@/app/actions/texts"
 
 interface EditTextFormProps {
   text: {
@@ -89,7 +89,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
           placeholder="İçinden geçenleri, unutamadığın o anları buraya yaz..."
           required
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
           className="min-h-[300px] resize-y bg-background border-input focus:ring-1 focus:ring-primary/20 text-base leading-relaxed p-4 shadow-sm transition-all"
         />
         <p className="text-xs text-right text-muted-foreground">

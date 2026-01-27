@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { getAuthContext } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { AppHeader } from "@/components/app-header"
-import Footer from "@/components/footer"
+import { AppHeader } from "@/components/layout/app-header"
+import Footer from "@/components/layout/footer"
 
 export default async function UserLayout({
     children,

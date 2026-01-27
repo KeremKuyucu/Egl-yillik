@@ -34,8 +34,8 @@ import {
 import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
 import { getLevelInfo, AVAILABLE_LEVELS } from "@/lib/constants"
 import { updateUserLevel } from "@/lib/actions"
-import { deleteTextAction } from "@/app/actions"
-import { EditUserForm } from "@/components/edit-user-form"
+import { deleteTextAction } from "@/app/actions/texts"
+import { EditUserForm } from "./edit-user-form"
 import { toast } from "sonner"
 
 // --------------------------------------------------------
@@ -77,7 +77,7 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
         <div className="flex flex-wrap items-center gap-2">
             <Select
                 value={currentClass}
-                onValueChange={(val) => updateFilter("class", val)}
+                onValueChange={(val: string) => updateFilter("class", val)}
             >
                 <SelectTrigger className="w-[110px] h-9 text-xs">
                     <div className="flex items-center gap-2 truncate">
@@ -95,7 +95,7 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
 
             <Select
                 value={currentRole}
-                onValueChange={(val) => updateFilter("role", val)}
+                onValueChange={(val: string) => updateFilter("role", val)}
             >
                 <SelectTrigger className="w-[110px] h-9 text-xs">
                     <div className="flex items-center gap-2 truncate">
@@ -148,7 +148,7 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
     const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel.toString())
     const router = useRouter()
 
-    const availableLevels = AVAILABLE_LEVELS.map(level => ({
+    const availableLevels = AVAILABLE_LEVELS.map((level: any) => ({
         ...level,
         disabled: level.value >= maxLevel
     }))
@@ -181,7 +181,7 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    {availableLevels.map((level) => (
+                    {availableLevels.map((level: any) => (
                         <SelectItem
                             key={level.value}
                             value={level.value.toString()}
@@ -294,7 +294,7 @@ export function SearchInput() {
                     type="text"
                     placeholder="İsim veya e-posta ara..."
                     value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchValue(e.target.value)}
                     className="pl-9 w-[200px] sm:w-[250px] bg-background"
                 />
             </div>

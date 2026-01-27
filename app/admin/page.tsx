@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth"
-import { AdminOverviewCards } from "@/components/admin-overview-cards"
+import { AdminOverviewCards } from "@/components/admin/admin-overview-cards"
 
 export const dynamic = "force-dynamic"
 

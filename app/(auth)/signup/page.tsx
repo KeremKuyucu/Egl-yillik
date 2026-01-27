@@ -11,7 +11,8 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserPlus, Loader2, AlertCircle, CheckCircle2, Lock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ROLES, CLASSES } from "@/lib/constants"
+import { ROLES } from "@/lib/constants"
+import { getSystemClasses } from "@/app/actions/settings"
 import { checkRegistrationEnabled } from "./actions"
 
 export default function SignUpPage() {
@@ -26,11 +27,15 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
+  const [classes, setClasses] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
     checkRegistrationEnabled().then((result) => {
       setRegistrationEnabled(result.enabled)
+    })
+    getSystemClasses().then(data => {
+      setClasses(data.map(c => c.name))
     })
   }, [])
 
@@ -250,7 +255,7 @@ export default function SignUpPage() {
                     <SelectValue placeholder="Seç" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CLASSES.map((cls) => (
+                    {classes.map((cls) => (
                       <SelectItem key={cls} value={cls}>
                         {cls.replace("12", "12-")}
                       </SelectItem>
