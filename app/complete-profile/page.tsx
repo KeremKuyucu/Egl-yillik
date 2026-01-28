@@ -110,7 +110,6 @@ export default function CompleteProfilePage() {
 
             const { error: profileError } = await supabase.from("profiles").insert({
                 id: user.id,
-                email: user.email,
                 first_name: firstName,
                 last_name: lastName,
                 school_number: schoolNumber,
