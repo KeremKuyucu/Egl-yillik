@@ -2,28 +2,77 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
-import { getColorFromName, getCategoryById, SurveyCategory } from "@/lib/survey-categories"
+import { getColorFromName, SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Sparkles, Star, Zap, Heart, PenLine, Trophy, Gift, Shield, Lock, Clock, Quote
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Crown, BookOpen, Feather, Pen
 } from "lucide-react"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
 
 const getBadge = (count: number) => {
-    if (count >= 30) return { label: "Yıllık Efsanesi", color: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg shadow-purple-500/40", icon: <Star className="h-3 w-3 mr-1" suppressHydrationWarning /> }
-    if (count >= 15) return { label: "Hatıra Mimarı", color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-amber-500/40", icon: <Zap className="h-3 w-3 mr-1" suppressHydrationWarning /> }
-    if (count >= 5) return { label: "Anı Yazarı", color: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/40", icon: <Heart className="h-3 w-3 mr-1" suppressHydrationWarning /> }
-    return { label: "Yeni Üye", color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-md", icon: <Sparkles className="h-3 w-3 mr-1" suppressHydrationWarning /> }
+    if (count >= 50) return {
+        label: "Mezuniyet İkonu",
+        color: "bg-gradient-to-r from-rose-500 to-red-600 text-white border-0 shadow-lg shadow-rose-500/40 ring-1 ring-white/20",
+        icon: <Crown className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
+    }
+    if (count >= 30) return {
+        label: "Yıllık Efsanesi",
+        color: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 shadow-lg shadow-violet-500/40 ring-1 ring-white/20",
+        icon: <Trophy className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
+    }
+    if (count >= 15) return {
+        label: "Sınıfın Hafızası",
+        color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-amber-500/40 ring-1 ring-white/20",
+        icon: <BookOpen className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
+    }
+    if (count >= 5) return {
+        label: "Anı Koleksiyoncusu",
+        color: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/40 ring-1 ring-white/20",
+        icon: <Feather className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
+    }
+    return {
+        label: "Çaylak Yazar",
+        color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-md ring-1 ring-white/20",
+        icon: <Pen className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
+    }
 }
 
 interface ProfilePageProps {
-    params: Promise<{ schoolNumber: string }>
+    params: Promise<{
+        schoolNumber: string
+        year?: string
+    }>
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
     const { schoolNumber } = await params
+    // 'year' parametresi varsa al, yoksa null (varsayılan: en son/aktif yıl)
+    // schoolNumber içinde / varsa (yıl/no formatı)
+    let targetYear = null;
+    let targetSchoolNumber = schoolNumber;
+
+    // Catch-all route kullanımı olmadığı için params yapısına güveniyoruz.
+    // Ancak Next.js dinamik route yapısına göre (örneğin [...slug] kullanıyorsanız) bu değişebilir.
+    // Kullanıcının "/2026/523" gibi bir URL istediğini varsayarak,
+    // [year]/[schoolNumber] sayfası için ayrı bir path veya slug yapısı gerekebilir.
+    // Şimdilik mevcut yapıyı bozmadan, eğer params.year gelirse onu kullanacağız.
+    // NOT: Kullanıcı "profili numara ve yıl ile aç" dedi, ancak mevcut dosya adı [schoolNumber].
+    // Year desteği için dosya yapısını değiştirmemiz gerekecek veya [slug] kullanacağız.
+    // Ancak burada sadece RPC çağrısını güncelleyelim, Next.js route değişikliği için dosya taşıma gerekebilir.
+    // Şimdilik 'schoolNumber' birleşik gelebilir mi kontrolü yapamayız çünkü ayrı segmentler.
+
+    // Eğer params.year varsa kullanıyoruz:
+    if ((await params).year) {
+        targetYear = parseInt((await params).year!);
+    }
+
+    // Eğer hedef sayfa yapısı [year]/[schoolNumber] değilse, ve sadece [schoolNumber] ise,
+    // URL'den yılı çekmek için Next.js dosya yapısını değiştirmek gerekebilir.
+    // Kullanıcının isteği: "/2026/523 gibi".
+    // Bu durumda dizin yapısını güncellememiz lazım, ancak önce RPC çağrısını bu parametreyle uyumlu hale getirelim.
+
     const supabase = await createClient()
 
     const user = await getCurrentUser()
@@ -31,7 +80,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
     // Tek bir RPC çağrısı ile tüm verileri al
     const { data: pageData, error: pageError } = await supabase.rpc('get_profile_page_extended_data', {
-        target_school_number: schoolNumber
+        target_school_number: targetSchoolNumber,
+        target_year: targetYear
     })
 
     // Profil bulunamazsa 404
@@ -286,7 +336,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
                                                 <div className="p-6">
                                                     <div className="flex items-center gap-4 mb-5">
-                                                        <Link href={`/profile/${memory.author.school_number}`} prefetch={false}>
+                                                        <Link href={`/profile/${memory.author.user_year}/${memory.author.school_number}`} prefetch={false}>
                                                             <div className="relative group/avatar">
                                                                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-0 group-hover/avatar:opacity-40 transition-opacity duration-300" />
                                                                 <div className={`relative h-14 w-14 rounded-xl flex items-center justify-center text-base font-bold shadow-lg ${getColorFromName(memory.author.first_name)} group-hover/avatar:scale-105 transition-transform duration-300`}>
@@ -295,7 +345,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                                             </div>
                                                         </Link>
                                                         <div className="flex-1">
-                                                            <Link href={`/profile/${memory.author.school_number}`} prefetch={false} className="group/name">
+                                                            <Link href={`/profile/${memory.author.user_year}/${memory.author.school_number}`} prefetch={false} className="group/name">
                                                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover/name:text-indigo-600 dark:group-hover/name:text-indigo-400 transition-colors">
                                                                     {getFullName(memory.author.first_name, memory.author.last_name)}
                                                                 </h3>

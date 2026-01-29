@@ -70,17 +70,8 @@ export default function SignUpPage() {
       return
     }
 
+
     try {
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("school_number", schoolNumber)
-        .single()
-
-      if (existingProfile) {
-        throw new Error("Bu okul numarası zaten kullanımda.")
-      }
-
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -102,16 +93,6 @@ export default function SignUpPage() {
       }
 
       if (authData.user && authData.session) {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          school_number: schoolNumber,
-          class: classRoom,
-        })
-
-        if (profileError) throw profileError
-
         router.push("/dashboard")
         router.refresh()
       }

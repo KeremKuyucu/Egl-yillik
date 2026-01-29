@@ -21,8 +21,10 @@ export default function AdminSettingsPage() {
 
     // Graduation States
     const [savingGraduation, setSavingGraduation] = useState(false)
+    const [graduationYear, setGraduationYear] = useState(new Date().getFullYear())
     const [graduationDate, setGraduationDate] = useState("")
     const [currentGraduationDate, setCurrentGraduationDate] = useState<Date | null>(null)
+    const [allSettings, setAllSettings] = useState<Record<string, string>>({})
 
     // Toggle states
     const [savingToggle, setSavingToggle] = useState<string | null>(null)
@@ -42,11 +44,35 @@ export default function AdminSettingsPage() {
         loadSettings()
     }, [])
 
+    // Update graduation date when year changes or settings load
+    useEffect(() => {
+        if (!allSettings) return
+
+        const key = `graduation_date_${graduationYear}`
+        // Strict check for specific year key
+        const dateStr = allSettings[key]
+
+        if (dateStr) {
+            const date = new Date(dateStr)
+            if (!isNaN(date.getTime())) {
+                setCurrentGraduationDate(date)
+                setGraduationDate(date.toISOString().split('T')[0])
+            } else {
+                setCurrentGraduationDate(null)
+                setGraduationDate("")
+            }
+        } else {
+            setCurrentGraduationDate(null)
+            setGraduationDate("")
+        }
+    }, [graduationYear, allSettings])
+
     const loadSettings = async () => {
         try {
             const result = await getSettingsAction()
             if (result.success && result.data) {
                 const settings = result.data
+                setAllSettings(settings)
 
                 // Deadline
                 if (settings.deadline) {
@@ -56,12 +82,7 @@ export default function AdminSettingsPage() {
                     setDeadlineTime(date.toTimeString().slice(0, 5))
                 }
 
-                // Graduation Date
-                if (settings.graduation_date) {
-                    const date = new Date(settings.graduation_date)
-                    setCurrentGraduationDate(date)
-                    setGraduationDate(date.toISOString().split('T')[0])
-                }
+                // Graduation date handled by useEffect
 
                 // Toggles
                 setMessagingEnabled(settings.messaging_enabled !== 'false')
@@ -71,7 +92,6 @@ export default function AdminSettingsPage() {
                 setAnnouncementEnabled(settings.announcement_enabled === 'true')
 
                 // Text Settings
-                setAnnouncementMessage(settings.announcement_message || "")
                 setAnnouncementMessage(settings.announcement_message || "")
             }
         } catch (error) {
@@ -122,10 +142,10 @@ export default function AdminSettingsPage() {
             // Sadece tarih olarak kaydediyoruz, saat önemli değil veya 00:00 olabilir
             // UTC vs yerel saat farkını minimize etmek için o günün öğlen saatini seçebiliriz veya olduğu gibi
             const dateString = `${graduationDate}T12:00:00`
-            const result = await updateGraduationDate(dateString)
+            const result = await updateGraduationDate(dateString, graduationYear)
 
             if (result.success) {
-                toast.success("Mezuniyet tarihi güncellendi!", {
+                toast.success(`${graduationYear} mezuniyet tarihi güncellendi!`, {
                     description: new Date(dateString).toLocaleDateString('tr-TR', {
                         day: 'numeric',
                         month: 'long',
@@ -133,6 +153,11 @@ export default function AdminSettingsPage() {
                     })
                 })
                 setCurrentGraduationDate(new Date(dateString))
+                // Update local settings to reflect change immediately without reload
+                setAllSettings(prev => ({
+                    ...prev,
+                    [`graduation_date_${graduationYear}`]: dateString
+                }))
             } else {
                 toast.error("Hata", { description: result.error })
             }
@@ -313,32 +338,59 @@ export default function AdminSettingsPage() {
                     </CardHeader>
 
                     <CardContent className="relative space-y-4 pt-2">
-                        {currentGraduationDate && (
-                            <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Mevcut:</div>
-                                <div className="font-bold text-slate-900 dark:text-white">
-                                    {currentGraduationDate.toLocaleDateString('tr-TR', {
-                                        day: 'numeric', month: 'long', year: 'numeric'
-                                    })}
-                                </div>
+                        <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <div className="flex justify-between items-center mb-1">
+                                <div className="text-xs text-slate-500 dark:text-slate-400">Durum:</div>
+                                {currentGraduationDate ? (
+                                    <span className="text-[10px] uppercase font-bold text-green-600 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
+                                        Tanımlı
+                                    </span>
+                                ) : (
+                                    <span className="text-[10px] uppercase font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
+                                        Tanımlanmamış
+                                    </span>
+                                )}
                             </div>
-                        )}
+                            <div className="font-bold text-slate-900 dark:text-white">
+                                {currentGraduationDate ? (
+                                    currentGraduationDate.toLocaleDateString('tr-TR', {
+                                        day: 'numeric', month: 'long', year: 'numeric'
+                                    })
+                                ) : (
+                                    `${graduationYear} yılı için tarih ayarlanmamış`
+                                )}
+                            </div>
+                        </div>
 
-                        <div>
-                            <Label htmlFor="graduation-date" className="text-xs mb-1.5 block">Tarih</Label>
-                            <Input
-                                id="graduation-date"
-                                type="date"
-                                value={graduationDate}
-                                onChange={(e) => setGraduationDate(e.target.value)}
-                                className="h-9"
-                            />
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="col-span-1">
+                                <Label htmlFor="graduation-year" className="text-xs mb-1.5 block">Yıl Seçin</Label>
+                                <Input
+                                    id="graduation-year"
+                                    type="number"
+                                    value={graduationYear}
+                                    onChange={(e) => setGraduationYear(parseInt(e.target.value))}
+                                    className="h-9"
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <Label htmlFor="graduation-date" className="text-xs mb-1.5 block">Tarih Belirleyin</Label>
+                                <Input
+                                    id="graduation-date"
+                                    type="date"
+                                    value={graduationDate}
+                                    onChange={(e) => setGraduationDate(e.target.value)}
+                                    className="h-9"
+                                />
+                            </div>
                         </div>
 
                         {daysUntilGraduation !== null && (
                             <div className={`text-sm font-medium flex items-center gap-2 ${daysUntilGraduation <= 0 ? 'text-green-600' : 'text-amber-600'}`}>
                                 <LockOpen className="h-4 w-4" />
-                                {daysUntilGraduation <= 0 ? 'Artık açık!' : `Açılmasına ${daysUntilGraduation} gün`}
+                                <span className="truncate">
+                                    {daysUntilGraduation <= 0 ? 'Artık açık!' : `Açılmasına ${daysUntilGraduation} gün`}
+                                </span>
                             </div>
                         )}
 
@@ -348,9 +400,43 @@ export default function AdminSettingsPage() {
                             size="sm"
                             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                         >
-                            {savingGraduation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                            Güncelle
+                            {savingGraduation ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                            )}
+                            {currentGraduationDate ? `${graduationYear} Tarihini Güncelle` : `${graduationYear} İçin Tarih Oluştur`}
                         </Button>
+
+                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <Label className="text-xs mb-2 block text-slate-500">Tanımlı Yıllar</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {Object.keys(allSettings)
+                                    .filter(k => k.startsWith('graduation_date_'))
+                                    .map(k => {
+                                        const y = k.replace('graduation_date_', '');
+                                        return { key: k, year: parseInt(y) };
+                                    })
+                                    .filter(item => !isNaN(item.year))
+                                    .sort((a, b) => b.year - a.year)
+                                    .map(({ year }) => (
+                                        <button
+                                            key={year}
+                                            onClick={() => setGraduationYear(year)}
+                                            className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${graduationYear === year
+                                                    ? 'bg-amber-100 border-amber-300 text-amber-700 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-300 shadow-sm'
+                                                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-400 hover:border-amber-200 dark:hover:border-amber-800'
+                                                }`}
+                                        >
+                                            {year}
+                                        </button>
+                                    ))
+                                }
+                                {Object.keys(allSettings).filter(k => k.startsWith('graduation_date_')).length === 0 && (
+                                    <span className="text-xs text-slate-400 italic">Henüz özel tarih tanımlanmamış</span>
+                                )}
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

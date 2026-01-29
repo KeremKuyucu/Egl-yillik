@@ -12,6 +12,7 @@ interface DashboardHeaderProps {
         last_name: string
         school_number: string
         class: string
+        user_year?: number
     }
     greeting: string
     signOut: () => Promise<void>
@@ -19,6 +20,7 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ userProfile, greeting, signOut }: DashboardHeaderProps) {
     const initials = `${userProfile.first_name?.[0] || ''}${userProfile.last_name?.[0] || ''}`.toUpperCase()
+    const profileLink = `/profile/${userProfile.user_year}/${userProfile.school_number}`
 
     return (
         <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl sticky top-0 z-50 shadow-lg">
@@ -52,7 +54,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
                 {/* Sağ taraf - Profil ve Ayarlar */}
                 <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                     {/* Profil bilgileri - Desktop */}
-                    <Link href={`/profile/${userProfile?.school_number}`} prefetch={false} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
+                    <Link href={profileLink} prefetch={false} className="hidden md:flex flex-col items-end mr-2 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group">
                         <span className="font-bold text-sm text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             {greeting}, {userProfile?.first_name}
                         </span>
@@ -62,7 +64,7 @@ export default function DashboardHeader({ userProfile, greeting, signOut }: Dash
                     </Link>
 
                     {/* Avatar - Mobil */}
-                    <Link href={`/profile/${userProfile?.school_number}`} prefetch={false} className="md:hidden">
+                    <Link href={profileLink} prefetch={false} className="md:hidden">
                         <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-md">
                             {initials}
                         </div>

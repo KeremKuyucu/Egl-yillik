@@ -20,6 +20,7 @@ export type JWTProfile = {
     level: number
     email_verified: boolean
     phone_verified: boolean
+    user_year: number
 }
 
 // Ortak permission check seçenekleri

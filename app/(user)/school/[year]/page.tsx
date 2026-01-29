@@ -27,15 +27,21 @@ function getAvatarColor(name: string): string {
 
 // Sınıf listesi (constants'tan import edildi)
 
-export default async function SchoolPage({
+export default async function SchoolYearPage({
+    params,
     searchParams,
 }: {
+    params: Promise<{ year: string }>
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-    const params = await searchParams
-    const q = (params.q as string) || ""
-    const yearParam = params.year as string | undefined
-    const targetYear = yearParam ? parseInt(yearParam) : null
+    const { year } = await params
+    const search = await searchParams
+    const q = (search.q as string) || ""
+    const targetYear = parseInt(year)
+
+    if (isNaN(targetYear)) {
+        redirect("/school")
+    }
 
     const supabase = await createClient()
 
@@ -82,7 +88,7 @@ export default async function SchoolPage({
                         <GraduationCap className="h-6 w-6" />
                     </div>
                     <h1 className="text-2xl font-bold font-serif bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                        Okul Listesi
+                        Okul Listesi ({targetYear})
                     </h1>
                 </div>
 
@@ -165,8 +171,8 @@ export default async function SchoolPage({
                         <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
                             <Search className="h-8 w-8 text-slate-400" />
                         </div>
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">Sonuç bulunamadı</h3>
-                        <p className="text-slate-500 max-w-xs mx-auto mt-2">Aradığınız kriterlere uygun öğrenci bulunamadı. Lütfen kontrol edip tekrar deneyin.</p>
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">Sonuç bulunamadı ({targetYear})</h3>
+                        <p className="text-slate-500 max-w-xs mx-auto mt-2">Bu yılda aradığınız kriterlere uygun öğrenci bulunamadı.</p>
                     </div>
                 )}
             </div>

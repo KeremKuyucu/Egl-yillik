@@ -158,7 +158,7 @@ export default async function AdminSurveysPage() {
                                                 </div>
 
                                                 {/* Avatar */}
-                                                <Link href={`/profile/${item.profile.school_number}`} prefetch={false}>
+                                                <Link href={`/profile/${item.profile.user_year}/${item.profile.school_number}`} prefetch={false}>
                                                     <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-sm ${getColorFromName(item.profile.first_name)} hover:scale-105 transition-transform`}>
                                                         {getInitials(item.profile.first_name, item.profile.last_name)}
                                                     </div>
@@ -166,7 +166,7 @@ export default async function AdminSurveysPage() {
 
                                                 {/* İsim */}
                                                 <div className="flex-1 min-w-0">
-                                                    <Link href={`/profile/${item.profile.school_number}`} prefetch={false} className="hover:text-purple-600 transition-colors">
+                                                    <Link href={`/profile/${item.profile.user_year}/${item.profile.school_number}`} prefetch={false} className="hover:text-purple-600 transition-colors">
                                                         <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                                                             {getFullName(item.profile.first_name, item.profile.last_name)}
                                                         </p>

@@ -97,26 +97,20 @@ export default function CompleteProfilePage() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error("Oturum bulunamadı.")
 
-            // Okul numarası kullanımda mı kontrol et
-            const { data: existingProfile } = await supabase
-                .from("profiles")
-                .select("id")
-                .eq("school_number", schoolNumber)
-                .single()
-
-            if (existingProfile && existingProfile.id !== user.id) {
-                throw new Error("Bu okul numarası zaten başka bir hesap tarafından kullanılıyor.")
-            }
-
             const { error: profileError } = await supabase.from("profiles").insert({
                 id: user.id,
                 first_name: firstName,
                 last_name: lastName,
                 school_number: schoolNumber,
-                class: classRoom,
+                class: classRoom
             })
 
-            if (profileError) throw profileError
+            if (profileError) {
+                if (profileError.code === '23505') {
+                    throw new Error("Bu okul numarası bu dönem için zaten alınmış.")
+                }
+                throw profileError
+            }
 
             router.push("/dashboard")
             router.refresh()

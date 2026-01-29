@@ -37,7 +37,7 @@ export default async function AdminPage() {
     const { data: siteSettings } = await supabase
         .from('site_settings')
         .select('*')
-        .in('key', ['deadline', 'graduation_date', 'maintenance_mode'])
+        .in('key', ['deadline', 'maintenance_mode'])
 
     const settingsMap = siteSettings?.reduce((acc: any, curr) => {
         acc[curr.key] = curr.value

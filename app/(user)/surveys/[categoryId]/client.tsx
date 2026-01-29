@@ -15,6 +15,7 @@ interface Profile {
     last_name: string
     class: string
     school_number: string
+    user_year: number
 }
 
 interface SurveyVoteClientProps {
@@ -104,7 +105,7 @@ export default function SurveyVoteClient({
                     : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-purple-300 hover:shadow-md"
             )}
         >
-            <Link href={`/profile/${profile.school_number}`} prefetch={false} onClick={(e) => e.stopPropagation()} className="shrink-0">
+            <Link href={`/profile/${profile.user_year}/${profile.school_number}`} prefetch={false} onClick={(e) => e.stopPropagation()} className="shrink-0">
                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${getColorFromName(profile.first_name)} hover:ring-2 hover:ring-purple-400 transition-all`}>
                     {getInitials(profile.first_name, profile.last_name)}
                 </div>

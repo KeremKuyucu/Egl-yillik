@@ -110,8 +110,8 @@ export default async function DashboardPage() {
   const systemInfo = dashboardData.system_info || {}
 
   // Tarihleri al
-  const deadlineDate = systemInfo.deadline ? new Date(systemInfo.deadline) : new Date(2026, 1, 9, 23, 59, 59)
-  const graduationDateRaw = systemInfo.graduation_date ? new Date(systemInfo.graduation_date) : new Date(2026, 5, 26, 17, 0, 0)
+  const deadlineDate = new Date(systemInfo.deadline)
+  const graduationDateRaw = new Date(systemInfo.graduation_date)
 
   const deadline = {
     date: deadlineDate,
@@ -197,6 +197,7 @@ export default async function DashboardPage() {
             receivedCount={stats.received_count}
             deadline={graduationDate.date}
             schoolNumber={userProfile.school_number}
+            userYear={userProfile.user_year}
           />
 
           {/* Enhanced Featured Survey Card - Suspense ile lazy load */}

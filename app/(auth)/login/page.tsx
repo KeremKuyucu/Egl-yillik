@@ -211,9 +211,31 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 flex items-start gap-2">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                <span>{error}</span>
+              <div className="rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+                {error === "E-posta adresiniz henüz onaylanmamış." && (
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="self-start h-auto p-0 text-xs text-blue-600 underline"
+                    onClick={async () => {
+                      const supabase = createClient()
+                      await supabase.auth.resend({
+                        type: 'signup',
+                        email: email,
+                        options: {
+                          emailRedirectTo: `${window.location.origin}/auth/callback`
+                        }
+                      })
+                      toast.success("Doğrulama bağlantısı tekrar gönderildi.")
+                    }}
+                  >
+                    Doğrulama bağlantısını tekrar gönder
+                  </Button>
+                )}
               </div>
             )}
 

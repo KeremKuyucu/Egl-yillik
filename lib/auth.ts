@@ -29,6 +29,7 @@ export const getAuthContext = cache(async () => {
     }
     const metadata = user.user_metadata as JWTProfile | undefined
 
+
     const { data: levelRow } = await supabase
         .from("user_levels")
         .select("level")
@@ -48,6 +49,7 @@ export const getAuthContext = cache(async () => {
             display_name: metadata.display_name,
             class: metadata.class,
             school_number: metadata.school_number,
+            user_year: metadata.user_year,
             level, // 🔴 JWT DEĞİL DB
         } : null
     }

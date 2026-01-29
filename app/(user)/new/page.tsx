@@ -59,6 +59,7 @@ export default async function NewTextPage({
     .from("profiles")
     .select("*")
     .neq("id", user.id)
+    .eq("user_year", userProfile.user_year)
     .order("class", { ascending: true })
     .order("first_name", { ascending: true })
 
@@ -67,6 +68,7 @@ export default async function NewTextPage({
     .from("texts")
     .select("recipient_id")
     .eq("author_id", user.id)
+    .eq("user_year", userProfile.user_year)
 
   const writtenRecipientIds = existingTexts?.map((t) => t.recipient_id) ?? []
 

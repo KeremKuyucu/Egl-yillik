@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { checkSuperAdmin } from '@/lib/auth';
 
-export async function updateGraduationDate(dateString: string) {
+export async function updateGraduationDate(dateString: string, year?: number) {
     // Merkezi super admin kontrolü
     const auth = await checkSuperAdmin();
     if (!auth.success) return { error: auth.error };
@@ -16,13 +16,16 @@ export async function updateGraduationDate(dateString: string) {
         return { error: 'Geçersiz tarih formatı' };
     }
 
+    const targetYear = year || new Date().getFullYear();
+    const key = `graduation_date_${targetYear}`;
+
     // Upsert the setting
     const { error } = await supabase
         .from('site_settings')
         .upsert({
-            key: 'graduation_date',
+            key: key,
             value: date.toISOString(),
-            description: 'Mezuniyet tarihi (Anıların açılacağı tarih)',
+            description: `${targetYear} mezuniyet tarihi (Anıların açılacağı tarih)`,
             updated_at: new Date().toISOString()
         }, {
             onConflict: 'key'
@@ -154,17 +157,7 @@ export async function getSettingsAction() {
         .from('site_settings')
         .select('key, value');
 
-    // Default settings
-    const settings: Record<string, string> = {
-        deadline: new Date(2026, 1, 9, 23, 59, 59).toISOString(),
-        graduation_date: new Date(2026, 6, 26).toISOString(),
-        messaging_enabled: 'true',
-        voting_enabled: 'true',
-        registration_enabled: 'true',
-        maintenance_mode: 'false',
-        announcement_enabled: 'false',
-        announcement_message: ''
-    };
+    const settings: Record<string, string> = {};
 
     if (error) {
         // Return defaults if table doesn't exist yet or error
@@ -179,24 +172,4 @@ export async function getSettingsAction() {
     });
 
     return { success: true, data: settings };
-}
-
-export async function getDeadlineAction() {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'deadline')
-        .single();
-
-    if (error || !data) {
-        // Return default deadline if not set
-        return {
-            success: true,
-            data: new Date(2026, 1, 9, 23, 59, 59).toISOString()
-        };
-    }
-
-    return { success: true, data: data.value };
 }

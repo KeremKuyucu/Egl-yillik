@@ -61,8 +61,9 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
     // SADECE sınıf arkadaşlarını al (kendisi hariç)
     const { data: classmates } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, class, school_number")
+        .select("id, first_name, last_name, class, school_number, user_year")
         .eq("class", userProfile.class)
+        .eq("user_year", userProfile.user_year)
         .neq("id", user.id)
         .order("first_name")
 

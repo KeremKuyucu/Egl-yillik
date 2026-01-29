@@ -51,9 +51,10 @@ export async function submitSurveyVote(
     }
 
     // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
+    // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
     const { data: votedFor } = await supabase
         .from("profiles")
-        .select("id, class")
+        .select("id, class, user_year")
         .eq("id", votedForId)
         .single()
 
@@ -63,6 +64,10 @@ export async function submitSurveyVote(
 
     if (votedFor.class !== userProfile.class) {
         return { error: "Sadece kendi sınıfınızdan birine oy verebilirsiniz" }
+    }
+
+    if (votedFor.user_year !== userProfile.user_year) {
+        return { error: "Sadece kendi döneminizden birine oy verebilirsiniz" }
     }
 
     // Daha önce bu kategoride oy verilmiş mi?

@@ -27,7 +27,8 @@ export default async function MyTextsPage() {
         first_name,
         last_name,
         class,
-        school_number
+        school_number,
+        user_year
       )
     `)
         .eq("author_id", user.id)

@@ -20,6 +20,7 @@ interface Text {
         last_name: string
         class: string
         school_number: string
+        user_year: number
     }
 }
 
@@ -118,13 +119,13 @@ export default function TextsGrid({ texts }: { texts: Text[] }) {
                                 <div className="relative flex flex-col h-full bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm rounded-xl p-5">
                                     {/* Header */}
                                     <div className="flex items-center gap-3 mb-4">
-                                        <Link href={`/profile/${text.recipient_profile.school_number}`} prefetch={false} className="shrink-0">
+                                        <Link href={`/profile/${text.recipient_profile.user_year}/${text.recipient_profile.school_number}`} prefetch={false} className="shrink-0">
                                             <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm group-hover:scale-105 transition-transform ${avatarColorClass}`}>
                                                 {initials}
                                             </div>
                                         </Link>
                                         <div className="flex-1 min-w-0">
-                                            <Link href={`/profile/${text.recipient_profile.school_number}`} prefetch={false} className="block truncate">
+                                            <Link href={`/profile/${text.recipient_profile.user_year}/${text.recipient_profile.school_number}`} prefetch={false} className="block truncate">
                                                 <h4 className="font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {fullName}
                                                 </h4>

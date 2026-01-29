@@ -28,10 +28,11 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
         { href: "/dashboard", label: "Ana Sayfa", icon: Home },
         { href: "/my-texts", label: "Yazılarım", icon: FileText },
         { href: "/surveys", label: "Anketler", icon: Vote },
-        { href: "/school", label: "Okul", icon: Users },
+        { href: `/school/${userProfile.user_year}`, label: "Okul", icon: Users },
     ]
 
     const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`)
+    const profileLink = `/profile/${userProfile.user_year}/${userProfile.school_number}`
 
     return (
         <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl sticky top-0 z-50 shadow-lg transition-all duration-300">
@@ -130,7 +131,7 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                                 <DropdownMenuSeparator className="my-2" />
 
                                 <DropdownMenuItem asChild>
-                                    <Link href={`/profile/${userProfile?.school_number}`} className="flex items-center gap-3 cursor-pointer text-slate-600 dark:text-slate-400">
+                                    <Link href={profileLink} className="flex items-center gap-3 cursor-pointer text-slate-600 dark:text-slate-400">
                                         <User className="w-4 h-4" />
                                         Profilim
                                     </Link>
@@ -181,7 +182,7 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                             </div>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                                <Link href={`/profile/${userProfile?.school_number}`} className="cursor-pointer gap-2">
+                                <Link href={profileLink} className="cursor-pointer gap-2">
                                     <User className="w-4 h-4" />
                                     Profilim
                                 </Link>

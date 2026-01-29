@@ -6,11 +6,13 @@ interface LockedCardProps {
     receivedCount: number
     deadline: Date | string
     schoolNumber: string
+    userYear?: number
 }
 
-export default function LockedCard({ receivedCount, deadline, schoolNumber }: LockedCardProps) {
+export default function LockedCard({ receivedCount, deadline, schoolNumber, userYear }: LockedCardProps) {
     const deadlineDate = new Date(deadline)
     const isUnlocked = new Date() >= deadlineDate
+    const profileLink = `/profile/${userYear}/${schoolNumber}`
 
     // Tarihi formatla
     const dateStr = deadlineDate.toLocaleDateString('tr-TR', {
@@ -46,7 +48,7 @@ export default function LockedCard({ receivedCount, deadline, schoolNumber }: Lo
                         Mezuniyet günü geldi! Arkadaşlarının senin için yazdığı anıları artık okuyabilirsin.
                     </p>
 
-                    <Link href={`/profile/${schoolNumber}`} prefetch={false} className="block">
+                    <Link href={profileLink} prefetch={false} className="block">
                         <Button className="w-full bg-white text-emerald-900 hover:bg-emerald-50 border-0 shadow-lg shadow-black/10 font-bold group/btn">
                             Profilime Git
                             <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
