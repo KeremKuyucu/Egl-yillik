@@ -3,7 +3,7 @@ import { Card, CardTitle, CardDescription, CardHeader, CardContent } from "@/com
 import { Lock } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import LogoutButton from "./logout-button"
+import LogoutButton from "@/components/common/logout-button"
 
 export default async function RegisterClosedPage() {
     const supabase = await createClient()
