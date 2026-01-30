@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles
 } from "lucide-react"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
 import { getBadge } from "@/lib/profile-utils"
@@ -56,6 +56,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const isUnlocked = pageData.is_unlocked
     const daysUntilUnlock = pageData.days_until_unlock || 0
     const memories = pageData.memories || []
+    const selfMemories = pageData.self_memories || []
     const allCategoriesWithVotes = pageData.categories || []
 
     const userBadge = getBadge(writtenCount)
@@ -277,10 +278,39 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                             Anı Defteri
                                         </h2>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            <span className="font-semibold text-indigo-600 dark:text-indigo-400">{memories.length} anı</span> paylaşıldı
+                                            <span className="font-semibold text-indigo-600 dark:text-indigo-400">{memories.length + selfMemories.length} anı</span> paylaşıldı
                                         </p>
                                     </div>
                                 </div>
+
+                                {selfMemories.length > 0 && (
+                                    <div className="space-y-4 mb-8">
+                                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 pl-2 border-l-4 border-indigo-500">
+                                            Geleceğe Notlar
+                                        </h3>
+                                        {selfMemories.map((memory: any, idx: number) => (
+                                            <div
+                                                key={memory.id}
+                                                className="group relative overflow-hidden rounded-2xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 shadow-lg"
+                                            >
+                                                <div className="p-6">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                                            <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                                        </div>
+                                                        <span className="font-semibold text-indigo-900 dark:text-indigo-200">Kendine Notun</span>
+                                                        <span className="text-xs text-indigo-400 dark:text-indigo-500 ml-auto font-mono">
+                                                            {new Date(memory.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-[15px] italic">
+                                                        "{memory.content}"
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {memories.length > 0 ? (
                                     <div className="space-y-4">

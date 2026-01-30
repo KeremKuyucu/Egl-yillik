@@ -29,9 +29,13 @@ export function AppHeader({ userProfile, signOut, level }: AppHeaderProps) {
         { href: "/my-texts", label: "Yazılarım", icon: FileText },
         { href: "/surveys", label: "Anketler", icon: Vote },
         { href: `/school?year=${userProfile.user_year}`, label: "Okul", icon: Users },
+        { href: "/future-me", label: "Geleceğe Not", icon: Sparkles },
     ]
 
-    const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`)
+    const isActive = (path: string) => {
+        const cleanPath = path.split('?')[0]
+        return pathname === cleanPath || pathname.startsWith(`${cleanPath}/`)
+    }
     const profileLink = `/profile/${userProfile.user_year}/${userProfile.school_number}`
 
     return (

@@ -167,3 +167,61 @@ export async function deleteMyTextAction(id: string) {
     revalidatePath("/my-texts")
     return { success: true }
 }
+
+export async function saveFutureMeAction(content: string) {
+    const supabase = await createClient()
+
+    // Mesaj yazma açık mı kontrol et
+    const messagingEnabled = await isMessagingEnabled()
+    if (!messagingEnabled) {
+        return { error: "Mesaj yazma şu anda kapalıdır. Lütfen daha sonra tekrar deneyin." }
+    }
+
+    const user = await getCurrentUser()
+    if (!user) return { error: "Oturum açmanız gerekiyor" }
+
+    // Kendine mesaj (recipient_id = user.id)
+    const recipientId = user.id
+
+    // Kullanıcının daha önce kendine yazdığı mesajı kontrol et
+    const { data: existingText } = await supabase
+        .from("texts")
+        .select("id, is_active")
+        .eq("author_id", user.id)
+        .eq("recipient_id", recipientId)
+        .maybeSingle()
+
+    if (existingText) {
+        // İster aktif ister pasif olsun, güncelle ve aktif yap
+        const { error: updateError } = await supabase
+            .from("texts")
+            .update({
+                content: content,
+                is_active: true,
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", existingText.id)
+
+        if (updateError) {
+            console.error("Future me update error:", updateError)
+            return { error: "Mesaj güncellenirken bir hata oluştu" }
+        }
+    } else {
+        // Hiç kayıt yoksa yeni oluştur
+        const { error } = await supabase.from("texts").insert({
+            author_id: user.id,
+            recipient_id: recipientId,
+            content: content,
+            is_active: true
+        })
+
+        if (error) {
+            console.error("Future me create error:", error)
+            return { error: "Mesaj kaydedilirken bir hata oluştu" }
+        }
+    }
+
+    revalidatePath("/future-me")
+    revalidatePath("/dashboard")
+    return { success: true }
+}
