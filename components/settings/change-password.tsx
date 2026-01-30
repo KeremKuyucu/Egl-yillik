@@ -41,38 +41,41 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
     }
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
-        e.preventDefault()
-        // ... (existing form logic)
-        setIsLoading(true)
-        setError(null)
-        if (newPassword !== confirmPassword) {
-            setError("Yeni şifreler eşleşmiyor.")
-            setIsLoading(false)
-            return
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+        // Client-side Supabase client üzerinden kullanıcıyı doğrula
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        
+        if (userError || !user?.email) {
+            throw new Error("Kullanıcı oturumu doğrulanamadı. Lütfen tekrar giriş yapın.")
         }
-        if (newPassword.length < 6) {
-            setError("Yeni şifre en az 6 karakter olmalıdır.")
-            setIsLoading(false)
-            return
-        }
-        try {
-            const user = await getCurrentUser()
-            if (!user?.email) throw new Error("Kullanıcı oturumu bulunamadı.")
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email: user.email,
-                password: currentPassword,
-            })
-            if (signInError) throw new Error("Mevcut şifreniz yanlış.")
-            const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
-            if (updateError) throw updateError
-            setIsSuccess(true)
-            toast.success("Şifreniz güncellendi.")
-        } catch (err: any) {
-            setError(err.message)
-        } finally {
-            setIsLoading(false)
-        }
+
+        // Mevcut şifre ile re-authentication (Güvenlik katmanı)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: currentPassword,
+        })
+
+        if (signInError) throw new Error("Mevcut şifreniz yanlış.")
+
+        // Şifre güncelleme
+        const { error: updateError } = await supabase.auth.updateUser({ 
+            password: newPassword 
+        })
+
+        if (updateError) throw updateError
+
+        setIsSuccess(true)
+        toast.success("Şifreniz başarıyla güncellendi.")
+    } catch (err: any) {
+        setError(err.message)
+    } finally {
+        setIsLoading(false)
     }
+}
 
     if (isGoogleUser) {
         return (
