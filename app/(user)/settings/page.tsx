@@ -1,58 +1,39 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ShieldCheck, Loader2, KeyRound, Mail } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { getCurrentUser } from "@/lib/auth"
+import { ShieldCheck, KeyRound } from "lucide-react"
 import ChangePassword from "@/components/settings/change-password"
 import ChangeEmail from "@/components/settings/change-email"
 import { Badge } from "@/components/ui/badge"
 import EmailPreferences from "@/components/settings/email-preferences"
-import { getCurrentUser } from "@/lib/auth"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { redirect } from "next/navigation"
 
-export default function SettingsPage() {
-    const [mounted, setMounted] = useState(false)
-    const [isLoading, setIsLoading] = useState(true)
-    const [userObj, setUserObj] = useState<any>(null)
-    const router = useRouter()
-    const supabase = createClient()
+export default async function SettingsPage() {
+    // Veriyi doğrudan sunucuda çekiyoruz
+    const user = await getCurrentUser();
 
-    useEffect(() => {
-        setMounted(true)
-        const checkUser = async () => {
-            const user = await getCurrentUser();
-            setUserObj(user)
-            setIsLoading(false)
-        }
-        checkUser()
-    }, [router, supabase])
-
-    const isLinkedToGoogle = userObj?.identities?.some((i: any) => i.provider === "google")
-    const hasPassword = userObj?.identities?.some((i: any) => i.provider === "email")
-
-    if (!mounted || isLoading) {
-        return (
-            <div className="flex h-[50vh] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-            </div>
-        )
+    // Kullanıcı yoksa sunucu tarafında yönlendirme yapıyoruz (daha güvenli)
+    if (!user) {
+        redirect("/login")
     }
+
+    const isLinkedToGoogle = user.identities?.some((i: any) => i.provider === "google")
+    const hasPassword = user.identities?.some((i: any) => i.provider === "email")
 
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8">
-
-            {/* Header/Action Bar */}
             <div className="flex items-center gap-3 mb-8 pb-4 border-b border-indigo-100 dark:border-indigo-900/50">
                 <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
                     <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-slate-900 dark:text-white">Hesap Ayarları</h1>
             </div>
-            <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+            <div className="max-w-2xl mx-auto space-y-8">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Güvenlik</h2>
+                        <h2 className="text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Güvenlik
+                        </h2>
                         {isLinkedToGoogle && (
                             <Badge className="bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900 border-2 gap-1.5 shadow-sm">
                                 <img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="Google" />
@@ -61,11 +42,11 @@ export default function SettingsPage() {
                         )}
                     </div>
                 </div>
+
                 <EmailPreferences />
 
-                {/* E-posta Değiştirme */}
                 {!isLinkedToGoogle && (
-                    <ChangeEmail currentEmail={userObj?.email || ""} />
+                    <ChangeEmail currentEmail={user.email || ""} />
                 )}
 
                 <ChangePassword isGoogleUser={!hasPassword} />
@@ -79,7 +60,7 @@ export default function SettingsPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-xs text-slate-500 leading-relaxed">
-                            Güvenliğin için şifrenin en az 8 karakterden oluşmasını, büyük-küçük harf, rakam ve özel karakter içermesini öneririz. Şifreni değiştirdikten sonra tüm aktif oturumların devam edecektir.
+                            Güvenliğin için şifrenin en az 8 karakterden oluşmasını öneririz.
                         </p>
                     </CardContent>
                 </Card>
