@@ -30,6 +30,7 @@ export default async function MyTextsPage() {
     `)
         .eq("author_id", user.id)
         .eq("is_active", true)
+        .neq("recipient_id", user.id)
         .order("updated_at", { ascending: false })
 
     return (
