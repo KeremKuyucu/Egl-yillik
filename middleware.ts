@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 const publicPaths = ["/login", "/signup", "/forgot-password"]
-const hybridPaths = ["/update-password", "/auth/callback"]
+const hybridPaths = ["/update-password", "/auth/callback", "/register-closed"]
 
 export const config = {
   matcher: [

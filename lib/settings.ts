@@ -1,4 +1,5 @@
-// lib/settings.ts
+"use server"
+
 import { createClient } from '@/lib/supabase/server';
 
 export interface SiteSettings {

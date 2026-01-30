@@ -4,26 +4,6 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { checkSuperAdmin } from "@/lib/auth"
 
-export async function getSystemClasses(): Promise<{ name: string; id: string }[]> {
-    try {
-        const supabase = await createClient()
-        const { data, error } = await supabase
-            .from('site_settings')
-            .select('value')
-            .eq('key', 'valid_classes')
-            .single()
-
-        if (error || !data) return []
-
-        return data.value.split(',').map((cls: string) => ({
-            name: cls.trim(),
-            id: cls.trim()
-        }))
-    } catch {
-        return []
-    }
-}
-
 export async function updateSiteSetting(key: string, value: string) {
     const auth = await checkSuperAdmin()
     if (!auth.success) return { error: auth.error }

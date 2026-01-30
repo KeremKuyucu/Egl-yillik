@@ -11,9 +11,8 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserPlus, Loader2, AlertCircle, CheckCircle2, Lock } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ROLES } from "@/lib/constants"
-import { getSystemClasses } from "@/app/actions/settings"
-import { checkRegistrationEnabled } from "./actions"
+import { isRegistrationEnabled } from "@/lib/settings"
+import { CLASSES } from "@/lib/constants"
 
 export default function SignUpPage() {
   const [firstName, setFirstName] = useState("")
@@ -27,81 +26,90 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null)
-  const [classes, setClasses] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
-    checkRegistrationEnabled().then((result) => {
-      setRegistrationEnabled(result.enabled)
+    isRegistrationEnabled().then((enabled) => {
+      setRegistrationEnabled(enabled)
+      if (!enabled) {
+        router.push("/register-closed")
+      }
     })
-    getSystemClasses().then(data => {
-      setClasses(data.map(c => c.name))
-    })
-  }, [])
+  }, [router])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
+    if (isLoading) return
+
     setIsLoading(true)
     setError(null)
 
-    const regCheck = await checkRegistrationEnabled()
-    if (!regCheck.enabled) {
-      setError("Kayıt şu anda kapalıdır.")
-      setIsLoading(false)
-      return
-    }
-
-    if (password !== confirmPassword) {
-      setError("Şifreler eşleşmiyor.")
-      setIsLoading(false)
-      return
-    }
-
-    if (schoolNumber.length !== 3 || !/^\d{3}$/.test(schoolNumber)) {
-      setError("Okul numarası 3 haneli olmalı.")
-      setIsLoading(false)
-      return
-    }
-
-    if (!classRoom) {
-      setError("Lütfen sınıfınızı seçin.")
-      setIsLoading(false)
-      return
-    }
-
-
     try {
+      // Kayıt kapalıysa (UI zaten göstermiyor ama yine de koru)
+      if (registrationEnabled === false) {
+        setError("Kayıt şu anda kapalıdır.")
+        return
+      }
+
+      const f = firstName.trim()
+      const l = lastName.trim()
+      const em = email.trim().toLowerCase()
+      const sn = schoolNumber.replace(/\D/g, "").trim()
+      const cls = classRoom.trim()
+
+      // Hızlı client-side kontroller (UX)
+      if (!f) return setError("Ad gerekli")
+      if (!l) return setError("Soyad gerekli")
+      if (!sn) return setError("Okul no gerekli")
+      if (!cls) return setError("Sınıf seç")
+      if (!em) return setError("Email gerekli")
+
+      if (password.length < 6) return setError("Şifre en az 6 karakter olmalı")
+      if (password !== confirmPassword) return setError("Şifreler eşleşmiyor")
+
+      const supabase = createClient()
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: em,
         password,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
-            school_number: schoolNumber,
-            class: classRoom,
-          }
-        }
+            first_name: f,
+            last_name: l,
+            school_number: sn,
+            class: cls,
+          },
+        },
       })
 
-      if (authError) throw authError
+      if (authError) {
+        // Supabase hata mesajları bazen çiğ olur; burada map’leyebilirsin
+        setError(authError.message)
+        return
+      }
 
+      // Email confirm açıkken çoğu zaman session gelmez
       if (authData.user && !authData.session) {
         setIsSuccess(true)
         return
       }
 
+      // Session geldiyse profil tamamlama sayfasına
       if (authData.user && authData.session) {
-        router.push("/dashboard")
+        router.push("/complete-profile")
         router.refresh()
+        return
       }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Bir hata oluştu.")
+
+      // Garip durum fallback
+      setError("Kayıt tamamlanamadı. Lütfen tekrar deneyin.")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu.")
     } finally {
       setIsLoading(false)
     }
   }
+
 
   const handleGoogleLogin = async () => {
     const supabase = createClient()
@@ -122,7 +130,7 @@ export default function SignUpPage() {
     }
   }
 
-  if (registrationEnabled === null) {
+  if (registrationEnabled === null || registrationEnabled === false) {
     return (
       <div className="flex w-full h-64 items-center justify-center">
         <div className="flex items-center gap-3 text-slate-500">
@@ -130,27 +138,6 @@ export default function SignUpPage() {
           <span>Yükleniyor...</span>
         </div>
       </div>
-    )
-  }
-
-  if (!registrationEnabled) {
-    return (
-      <Card className="w-full border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl ring-1 ring-slate-200 dark:ring-slate-800 text-center p-6 space-y-4">
-        <div className="mx-auto w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2">
-          <Lock className="h-8 w-8 text-slate-500" />
-        </div>
-        <CardTitle className="text-xl font-bold text-slate-800 dark:text-white">Kayıt Kapalı</CardTitle>
-        <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
-          Yeni kayıtlar şu anda kabul edilmiyor. Lütfen daha sonra tekrar deneyin veya zaten bir hesabınız varsa giriş yapın.
-        </CardDescription>
-        <div className="pt-4 space-y-3">
-          <Link href="/login" prefetch={false} className="block">
-            <Button className="w-full bg-slate-900 text-white hover:bg-slate-800">
-              Giriş Yap
-            </Button>
-          </Link>
-        </div>
-      </Card>
     )
   }
 
@@ -235,7 +222,7 @@ export default function SignUpPage() {
                     <SelectValue placeholder="Seç" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map((cls) => (
+                    {CLASSES.map((cls) => (
                       <SelectItem key={cls} value={cls}>
                         {cls.replace("12", "12-")}
                       </SelectItem>
