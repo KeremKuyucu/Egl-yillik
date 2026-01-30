@@ -23,7 +23,7 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
         setIsLoading(true)
         setError(null)
         try {
-            const user = await getCurrentUser()
+            const { data: { user } } = await supabase.auth.getUser
             if (!user?.email) throw new Error("Email adresi bulunamadı.")
 
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(user.email, {
