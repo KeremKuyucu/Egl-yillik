@@ -1,46 +1,54 @@
 import { createClient } from "@/lib/supabase/server"
-import RoleGuard from "@/components/auth/role-guard"
-import { ROLES, CLASSES } from "@/lib/constants"
 import { requireAdmin } from "@/lib/auth"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
 
 export default async function UsersAdminPage() {
-    // Merkezi admin kontrolü - user ve level bilgisi döner
+    // Merkezi admin kontrolü
     const { user: currentUser, level: currentUserLevel } = await requireAdmin()
     const supabase = await createClient()
 
-    // Tüm kullanıcıları tek seferde çekiyoruz (Filtreleme client'ta yapılacak)
-    const { data: usersData, error: usersError } = await supabase.rpc('get_admin_users_list', {
-        sort_by: 'level'
-    })
+    // 1. Kullanıcı verilerini ve Sınıf ayarlarını paralel olarak çekiyoruz
+    const [usersResponse, settingsResponse] = await Promise.all([
+        supabase.rpc('get_admin_users_list', { sort_by: 'level' }),
+        supabase
+            .from('site_settings')
+            .select('value')
+            .eq('key', 'valid_classes')
+            .single()
+    ])
+
+    const { data: usersData, error: usersError } = usersResponse
+    const { data: settingsData, error: settingsError } = settingsResponse
 
     // Hata kontrolü
-    if (usersError) {
-        console.error("Kullanıcı çekme hatası:", usersError)
+    if (usersError || settingsError) {
+        console.error("Veri çekme hatası:", usersError || settingsError)
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Card>
+            <div className="flex items-center justify-center min-h-screen p-4">
+                <Card className="w-full max-w-md">
                     <CardHeader>
                         <CardTitle>Hata Oluştu</CardTitle>
-                        <CardDescription>Kullanıcılar yüklenirken bir hata oluştu: {usersError.message}</CardDescription>
+                        <CardDescription>
+                            Veriler yüklenirken bir sorun oluştu. Lütfen sayfayı yenileyin.
+                        </CardDescription>
                     </CardHeader>
                 </Card>
             </div>
         )
     }
 
-    // Sınıf listesi (constants'tan)
-    const classes = [...CLASSES]
+    // 2. Gelen string veriyi array'e çevir (Örn: "12A,12B" -> ["12A", "12B"])
+    const dynamicClasses: string[] = settingsData?.value
+        ? settingsData.value.split(',').map((c: string) => c.trim())
+        : []
 
     return (
-        <RoleGuard minLevel={ROLES.ADMIN}>
-            <UserManagementClient
-                initialUsers={usersData || []}
-                currentUser={{ id: currentUser.id }}
-                currentUserLevel={currentUserLevel}
-                classes={classes}
-            />
-        </RoleGuard>
+        <UserManagementClient
+            initialUsers={usersData || []}
+            currentUser={{ id: currentUser.id }}
+            currentUserLevel={currentUserLevel}
+            classes={dynamicClasses} // Artık dinamik liste gidiyor
+        />
     )
 }

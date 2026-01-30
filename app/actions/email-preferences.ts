@@ -2,25 +2,26 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/auth"
 
 export async function toggleEmailReminders(isOptedOut: boolean) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // getUser() yerine merkezi fonksiyonu çağırıyoruz
+    const user = await getCurrentUser()
 
     if (!user) {
         return { error: "Oturum açmanız gerekiyor" }
     }
 
+    const supabase = await createClient()
+
     try {
         if (isOptedOut) {
-            // İstemiyor -> Ekle
             const { error } = await supabase
                 .from("email_opt_outs")
-                .upsert({ user_id: user.id })
+                .upsert({ user_id: user.id }) // user.id kullanımı rasyonel
 
             if (error) throw error
         } else {
-            // İstiyor -> Sil
             const { error } = await supabase
                 .from("email_opt_outs")
                 .delete()
@@ -33,23 +34,24 @@ export async function toggleEmailReminders(isOptedOut: boolean) {
         return { success: true }
     } catch (error: any) {
         console.error("Toggle Email Error:", error)
-        return { error: error.message }
+        return { error: "İşlem sırasında bir hata oluştu." }
     }
 }
 
 export async function getEmailPreference() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
+    // Oturum yoksa varsayılan değer dön (Hata verme)
     if (!user) return { isOptedOut: false }
 
+    const supabase = await createClient()
     const { data, error } = await supabase
         .from("email_opt_outs")
         .select("user_id")
         .eq("user_id", user.id)
-        .single()
+        .maybeSingle() // .single() yerine .maybeSingle() kullanmak PGRST116 hatasını (satır bulunamadı) otomatik yönetir.
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
         console.error("Get Email Preference Error:", error)
         return { isOptedOut: false }
     }

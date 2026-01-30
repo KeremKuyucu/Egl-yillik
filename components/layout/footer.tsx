@@ -2,10 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { Heart, Github, Mail } from 'lucide-react';
-import { getSettingsAction } from "@/app/admin/settings/actions";
 
 const Footer = async () => {
-    // const { data } = await getSettingsAction();
     const contactEmail = "contact@keremkk.com.tr";
 
     return (

@@ -31,7 +31,6 @@ export default function AdminSettingsPage() {
     const [messagingEnabled, setMessagingEnabled] = useState(true)
     const [votingEnabled, setVotingEnabled] = useState(true)
     const [registrationEnabled, setRegistrationEnabled] = useState(true)
-    const [maintenanceMode, setMaintenanceMode] = useState(false)
     const [announcementEnabled, setAnnouncementEnabled] = useState(false)
 
     // Announcement States
@@ -88,7 +87,6 @@ export default function AdminSettingsPage() {
                 setMessagingEnabled(settings.messaging_enabled !== 'false')
                 setVotingEnabled(settings.voting_enabled !== 'false')
                 setRegistrationEnabled(settings.registration_enabled !== 'false')
-                setMaintenanceMode(settings.maintenance_mode === 'true')
                 setAnnouncementEnabled(settings.announcement_enabled === 'true')
 
                 // Text Settings
@@ -424,8 +422,8 @@ export default function AdminSettingsPage() {
                                             key={year}
                                             onClick={() => setGraduationYear(year)}
                                             className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${graduationYear === year
-                                                    ? 'bg-amber-100 border-amber-300 text-amber-700 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-300 shadow-sm'
-                                                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-400 hover:border-amber-200 dark:hover:border-amber-800'
+                                                ? 'bg-amber-100 border-amber-300 text-amber-700 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-300 shadow-sm'
+                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-400 hover:border-amber-200 dark:hover:border-amber-800'
                                                 }`}
                                         >
                                             {year}
@@ -588,41 +586,6 @@ export default function AdminSettingsPage() {
                             onCheckedChange={(checked) => handleToggleChange('registration_enabled', checked, setRegistrationEnabled)}
                             disabled={savingToggle === 'registration_enabled'}
                         />
-                    </div>
-
-                    {/* Maintenance Toggle - Danger Zone */}
-                    <div className="relative overflow-hidden flex items-center justify-between p-4 rounded-xl border-2 border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 group">
-                        <div className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10 pointer-events-none" />
-
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${maintenanceMode
-                                ? 'bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-red-500/30'
-                                : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'
-                                }`}>
-                                <Construction className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <div className="font-bold text-red-900 dark:text-red-100">
-                                        Bakım Modu
-                                    </div>
-                                    <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800">
-                                        Dikkat
-                                    </span>
-                                </div>
-                                <div className="text-sm text-red-700/80 dark:text-red-300/80 font-medium">
-                                    {maintenanceMode ? '⚠️ SİTE KAPALI - Sadece Süper Adminler Erişebilir!' : 'Site şu an aktif ve herkese açık'}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="relative z-10">
-                            <Switch
-                                className="data-[state=checked]:bg-red-600 dark:data-[state=checked]:bg-red-500"
-                                checked={maintenanceMode}
-                                onCheckedChange={(checked) => handleToggleChange('maintenance_mode', checked, setMaintenanceMode)}
-                                disabled={savingToggle === 'maintenance_mode'}
-                            />
-                        </div>
                     </div>
                 </CardContent>
             </Card>

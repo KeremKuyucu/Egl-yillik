@@ -9,6 +9,7 @@ import ChangePassword from "@/components/settings/change-password"
 import ChangeEmail from "@/components/settings/change-email"
 import { Badge } from "@/components/ui/badge"
 import EmailPreferences from "@/components/settings/email-preferences"
+import { getCurrentUser } from "@/lib/auth"
 
 export default function SettingsPage() {
     const [mounted, setMounted] = useState(false)
@@ -20,13 +21,9 @@ export default function SettingsPage() {
     useEffect(() => {
         setMounted(true)
         const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                router.push("/login")
-            } else {
-                setUserObj(user)
-                setIsLoading(false)
-            }
+            const user = await getCurrentUser();
+            setUserObj(user)
+            setIsLoading(false)
         }
         checkUser()
     }, [router, supabase])

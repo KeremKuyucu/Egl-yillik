@@ -18,10 +18,7 @@ export default async function EditTextPage({
   const supabase = await createClient()
 
   const user = await getCurrentUser()
-
-  if (!user) {
-    redirect("/login")
-  }
+  if (!user) return null;
 
   // Sistem kontrolü
   const messagingEnabled = await isMessagingEnabled()

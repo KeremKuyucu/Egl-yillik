@@ -13,11 +13,7 @@ import {
 export default async function AddCustomPage() {
     // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
     const { user, profile } = await getAuthContext()
-
-    // TypeScript için null check
-    if (!user || !profile) {
-        return null
-    }
+    if (!user || !profile) return null;
 
     const supabase = await createClient()
 

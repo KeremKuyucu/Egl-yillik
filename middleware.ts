@@ -1,166 +1,66 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-// Giriş yapmamış kullanıcılar için public pathler
-const publicPaths = [
-  "/login",
-  "/signup",
-  "/forgot-password",
-]
+const publicPaths = ["/login", "/signup", "/forgot-password"]
+const hybridPaths = ["/update-password", "/auth/callback"]
 
-// Hem giriş yapmış hem de yapmamış kullanıcılar için erişilebilir pathler
-const hybridPaths = [
-  "/update-password",
-  "/auth/callback"
-]
+export const config = {
+  matcher: [
+    /*
+     * Aşağıdakiler hariç tüm istekleri yakala:
+     * - api (özellikle cron ve webhooks için muafiyet)
+     * - _next/static (statik dosyalar)
+     * - _next/image (resim optimizasyonu)
+     * - favicon.ico, logo.png vb. (statik varlıklar)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
+  ]
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
-  // Static dosyalar
-  if (
-    pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico" ||
-    /\.(png|jpg|jpeg|svg|gif|webp)$/.test(pathname)
-  ) {
-    return NextResponse.next()
-  }
-
-  const isPublicPath = publicPaths.some(p => pathname.startsWith(p))
-  const isHybridPath = hybridPaths.some(p => pathname.startsWith(p))
-
-  // Response'u önce oluştur
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          // Request cookie'lerini güncelle (Supabase'in o anki işlemde fark etmesi için)
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-
-          // Response nesnesini güncelle (Client'a yeni cookie'leri göndermek için)
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     }
   )
 
-  // --- VERI CEKME (PARALEL) ---
-  // Auth ve Bakım Modu kontrollerini paralel başlatarak hızı optimize ediyoruz.
-  const [authResponse, maintenanceResult] = await Promise.all([
-    supabase.auth.getUser(),
-    supabase
-      .from("site_settings")
-      .select("value")
-      .eq("key", "maintenance_mode")
-      .maybeSingle()
-  ])
+  const user = (await supabase.auth.getUser()).data.user
 
-  const { data: { user } } = authResponse
-  const isMaintenanceMode = maintenanceResult.data?.value === "true"
-
-  // --- YÖNLENDİRME MANTIĞI VE COOKIE TRANSFERİ ---
-
-  // Yardımcı yönlendirme fonksiyonu:
-  // Redirect response'u oluştururken mevcut response'daki (varsa yenilenmiş) cookie'leri taşır.
-  const redirect = (path: string) => {
+  // --- REDIRECT HELPER ---
+  const redirect = (path: string, includeCallback = false) => {
     const url = request.nextUrl.clone()
+    if (includeCallback && path === "/login") {
+      url.searchParams.set("callbackUrl", pathname + request.nextUrl.search)
+    }
     url.pathname = path
-
-    const redirectResponse = NextResponse.redirect(url)
-
-    // Mevcut response üzerindeki cookie'leri redirect response'a kopyala
-    // Bu işlem refresh token'ın kaybolmamasını sağlar.
-    const cookiesToSet = response.cookies.getAll()
-    cookiesToSet.forEach(cookie => {
-      redirectResponse.cookies.set(cookie)
-    })
-
-    return redirectResponse
+    const res = NextResponse.redirect(url)
+    response.cookies.getAll().forEach(c => res.cookies.set(c))
+    return res
   }
 
-  // 🏠 Root path
-  if (pathname === "/") {
-    if (user) {
-      return redirect("/dashboard")
-    } else {
-      return redirect("/login")
-    }
+  // 🏠 Root logic
+  if (pathname === "/") return redirect(user ? "/dashboard" : "/login")
+
+  // 🤝 Hybrid & Public logic
+  if (hybridPaths.some(p => pathname.startsWith(p))) return response
+  if (publicPaths.some(p => pathname.startsWith(p))) {
+    return user ? redirect("/dashboard") : response
   }
 
-  // 🤝 Hybrid sayfa
-  if (isHybridPath) {
-    return response
-  }
-
-  // 🔓 Public sayfa (Login, Signup vb.)
-  if (isPublicPath) {
-    if (user) {
-      return redirect("/dashboard")
-    }
-    return response
-  }
-
-  // 🔒 Protected sayfa
-  if (!user) {
-    // Kullanıcı giriş yapmaya çalışıyorsa ve oturumu yoksa login'e at
-    return redirect("/login")
-  }
-
-  // --- MAINTENANCE MODE CHECK ---
-  if (isMaintenanceMode) {
-    const isMaintenancePage = pathname === "/maintenance"
-
-    // Admin kontrolü: Metadata en hızlı yöntemdir
-    const userLevel = user?.user_metadata?.level ?? 0
-    const isAdmin = userLevel >= 100
-
-    // Eğer admin ise her yere erişebilir, kısıtlama yok
-    if (isAdmin) {
-      return response
-    }
-
-    // Normal kullanıcı veya anonim için:
-    if (!isMaintenancePage) {
-      return redirect("/maintenance")
-    }
-
-    // Eğer zaten maintenance sayfasındaysa izin ver
-    return response
-
-  } else {
-    // Bakım modu kapalıysa ve kullanıcı /maintenance sayfasına gitmeye çalışıyorsa ana sayfaya at
-    if (pathname === "/maintenance") {
-      return redirect("/")
-    }
-  }
+  // 🔒 Auth Guard
+  if (!user) return redirect("/login", true)
 
   return response
-}
-
-// Yapımcı GitHub:KeremKuyucu
-export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)"
-  ]
 }

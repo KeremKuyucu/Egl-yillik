@@ -64,6 +64,20 @@ export async function isRegistrationEnabled(): Promise<boolean> {
     return getInstantSetting('registration_enabled');
 }
 
-export async function isMaintenanceMode(): Promise<boolean> {
-    return getInstantSetting('maintenance_mode');
+export async function getAnnouncementSettings(): Promise<{ enabled: boolean; message: string }> {
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['announcement_enabled', 'announcement_message']);
+
+    const settings = data?.reduce((acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+    }, {} as Record<string, string>) || {};
+
+    return {
+        enabled: settings['announcement_enabled'] === 'true',
+        message: settings['announcement_message'] || ''
+    };
 }

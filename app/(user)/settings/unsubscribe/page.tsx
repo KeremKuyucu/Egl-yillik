@@ -9,6 +9,7 @@ import { Mail, BellOff, Loader2, CheckCircle2, ArrowLeft } from "lucide-react"
 import { toggleEmailReminders, getEmailPreference } from "@/app/actions/email-preferences"
 import { toast } from "sonner"
 import Link from "next/link"
+import { getAuthContext } from "@/lib/auth"
 
 export default function UnsubscribePage() {
     const [isOptedOut, setIsOptedOut] = useState(false)
@@ -16,32 +17,23 @@ export default function UnsubscribePage() {
     const [isUpdating, setIsUpdating] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
 
     useEffect(() => {
         const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                // Giriş yapmamışsa login'e yönlendir, geri buraya gelsin
-                router.push("/login?callbackUrl=/settings/unsubscribe")
-                return
-            }
-
             const { isOptedOut: preference } = await getEmailPreference()
             setIsOptedOut(preference)
             setIsLoading(false)
 
-            // Eğer zaten sistemden çıkmışsa direkt başarı ekranını gösterelim
             if (preference) {
                 setIsSuccess(true)
             }
         }
         checkUser()
-    }, [router, supabase])
+    }, [router])
 
     const handleUnsubscribe = async () => {
         setIsUpdating(true)
-        const res = await toggleEmailReminders(true) // true = opt-out yap
+        const res = await toggleEmailReminders(true)
 
         if (res.error) {
             toast.error(res.error)

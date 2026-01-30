@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { KeyRound, Loader2, CheckCircle2, AlertCircle, ShieldCheck, Mail } from "lucide-react"
 import { toast } from "sonner"
+import { getCurrentUser } from "@/lib/auth"
 
 export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolean }) {
     const [currentPassword, setCurrentPassword] = useState("")
@@ -24,7 +25,7 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
         setIsLoading(true)
         setError(null)
         try {
-            const { data: { user } } = await supabase.auth.getUser()
+            const user = await getCurrentUser()
             if (!user?.email) throw new Error("Email adresi bulunamadı.")
 
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(user.email, {
@@ -57,7 +58,7 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
             return
         }
         try {
-            const { data: { user } } = await supabase.auth.getUser()
+            const user = await getCurrentUser()
             if (!user?.email) throw new Error("Kullanıcı oturumu bulunamadı.")
             const { error: signInError } = await supabase.auth.signInWithPassword({
                 email: user.email,

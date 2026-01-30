@@ -19,40 +19,46 @@ import type { JWTProfile } from "@/lib/auth-utils"
  * 
  * Level bilgisi DB'den çekilir (JWT stale olabilir)
  */
-export const getAuthContext = cache(async () => {
+export const getAuthUser = cache(async () => {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    return user ?? null
+})
 
-    const { data: { user }, error } = await supabase.auth.getUser()
+export const getAuthLevel = cache(async () => {
+    const user = await getAuthUser()
+    if (!user) return 0
 
-    if (error || !user) {
-        return { user: null, level: 0, profile: null }
-    }
-    const metadata = user.user_metadata as JWTProfile | undefined
-
-
-    const { data: levelRow } = await supabase
+    const supabase = await createClient()
+    const { data } = await supabase
         .from("user_levels")
         .select("level")
         .eq("id", user.id)
-        .single()
+        .maybeSingle()
 
-    const level = levelRow?.level ?? 0
+    return data?.level ?? 0
+})
 
-    return {
-        user,
-        level,
-        profile: metadata ? {
-            id: user.id,
-            email: metadata.email,
-            first_name: metadata.first_name,
-            last_name: metadata.last_name,
-            display_name: metadata.display_name,
-            class: metadata.class,
-            school_number: metadata.school_number,
-            user_year: metadata.user_year,
-            level, // 🔴 JWT DEĞİL DB
-        } : null
-    }
+export const getAuthProfile = cache(async () => {
+    const user = await getAuthUser()
+    if (!user) return null
+
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle()
+
+    return data
+})
+export const getAuthContext = cache(async () => {
+    const [user, level, profile] = await Promise.all([
+        getAuthUser(),
+        getAuthLevel(),
+        getAuthProfile()
+    ])
+    return { user, level, profile }
 })
 
 // ============================================
@@ -63,16 +69,27 @@ export const getAuthContext = cache(async () => {
  * Sadece user objesini döner (Cache mekanizmasından yararlanır).
  */
 export async function getCurrentUser() {
-    const { user } = await getAuthContext()
+    const user = await getAuthUser()
     return user
 }
+export async function getCurrentLevel() {
+    const level = await getAuthLevel()
+    return level
+}
+export async function getCurrentProfile() {
+    const profile = await getAuthProfile()
+    return profile
+}
+
 
 // ============================================
 // PAGE/LAYOUT İÇİN (Redirect yapar)
 // ============================================
 
 export async function requireLevel(minLevel: number) {
-    const { user, level, profile } = await getAuthContext()
+    const user = await getAuthUser()
+    const level = await getAuthLevel()
+    const profile = await getAuthProfile()
 
     if (!user) {
         redirect("/login")
@@ -104,7 +121,8 @@ export type AuthResult = {
 }
 
 export async function checkLevel(minLevel: number): Promise<AuthResult> {
-    const { user, level } = await getAuthContext()
+    const user = await getAuthUser()
+    const level = await getAuthLevel()
 
     if (!user) {
         return { success: false, error: "Oturum açmanız gerekiyor" }

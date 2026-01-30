@@ -7,76 +7,34 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Crown, BookOpen, Feather, Pen
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote
 } from "lucide-react"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
-
-const getBadge = (count: number) => {
-    if (count >= 50) return {
-        label: "Mezuniyet İkonu",
-        color: "bg-gradient-to-r from-rose-500 to-red-600 text-white border-0 shadow-lg shadow-rose-500/40 ring-1 ring-white/20",
-        icon: <Crown className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
-    }
-    if (count >= 30) return {
-        label: "Yıllık Efsanesi",
-        color: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 shadow-lg shadow-violet-500/40 ring-1 ring-white/20",
-        icon: <Trophy className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
-    }
-    if (count >= 15) return {
-        label: "Sınıfın Hafızası",
-        color: "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-amber-500/40 ring-1 ring-white/20",
-        icon: <BookOpen className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
-    }
-    if (count >= 5) return {
-        label: "Anı Koleksiyoncusu",
-        color: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-lg shadow-blue-500/40 ring-1 ring-white/20",
-        icon: <Feather className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
-    }
-    return {
-        label: "Çaylak Yazar",
-        color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-md ring-1 ring-white/20",
-        icon: <Pen className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
-    }
-}
+import { getBadge } from "@/lib/profile-utils"
 
 interface ProfilePageProps {
-    params: Promise<{
+    params: {
         schoolNumber: string
         year?: string
-    }>
+    }
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-    const { schoolNumber } = await params
-    // 'year' parametresi varsa al, yoksa null (varsayılan: en son/aktif yıl)
-    // schoolNumber içinde / varsa (yıl/no formatı)
-    let targetYear = null;
-    let targetSchoolNumber = schoolNumber;
+    const resolvedParams = await Promise.resolve(params)
+    const { year, schoolNumber } = resolvedParams
 
-    // Catch-all route kullanımı olmadığı için params yapısına güveniyoruz.
-    // Ancak Next.js dinamik route yapısına göre (örneğin [...slug] kullanıyorsanız) bu değişebilir.
-    // Kullanıcının "/2026/523" gibi bir URL istediğini varsayarak,
-    // [year]/[schoolNumber] sayfası için ayrı bir path veya slug yapısı gerekebilir.
-    // Şimdilik mevcut yapıyı bozmadan, eğer params.year gelirse onu kullanacağız.
-    // NOT: Kullanıcı "profili numara ve yıl ile aç" dedi, ancak mevcut dosya adı [schoolNumber].
-    // Year desteği için dosya yapısını değiştirmemiz gerekecek veya [slug] kullanacağız.
-    // Ancak burada sadece RPC çağrısını güncelleyelim, Next.js route değişikliği için dosya taşıma gerekebilir.
-    // Şimdilik 'schoolNumber' birleşik gelebilir mi kontrolü yapamayız çünkü ayrı segmentler.
 
-    // Eğer params.year varsa kullanıyoruz:
-    if ((await params).year) {
-        targetYear = parseInt((await params).year!);
-    }
+    const targetSchoolNumber = schoolNumber
+    const targetYear =
+        year && !isNaN(Number(year)) ? Number(year) : null
 
-    // Eğer hedef sayfa yapısı [year]/[schoolNumber] değilse, ve sadece [schoolNumber] ise,
-    // URL'den yılı çekmek için Next.js dosya yapısını değiştirmek gerekebilir.
-    // Kullanıcının isteği: "/2026/523 gibi".
-    // Bu durumda dizin yapısını güncellememiz lazım, ancak önce RPC çağrısını bu parametreyle uyumlu hale getirelim.
 
     const supabase = await createClient()
 
-    const user = await getCurrentUser()
-    if (!user) redirect("/login")
+    const user = await getCurrentUser();
+    if (!user) {
+        throw new Error("Invariant violated: user is null in protected page")
+    }
 
     // Tek bir RPC çağrısı ile tüm verileri al
     const { data: pageData, error: pageError } = await supabase.rpc('get_profile_page_extended_data', {

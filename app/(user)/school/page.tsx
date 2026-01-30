@@ -3,10 +3,10 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { getFullName, getInitials } from "@/lib/utils"
-import { Search, GraduationCap, Users, PenLine, Star } from "lucide-react"
-import { CLASSES } from "@/lib/constants"
+import { Search, GraduationCap, Users, PenLine, Star, Calendar } from "lucide-react"
+import { getAuthContext } from "@/lib/auth"
+import { YearSelector } from "@/components/school/year-selector"
 
-// User tablosu ile aynı renkler
 const avatarColors = [
     "from-red-500 to-rose-600",
     "from-orange-500 to-amber-600",
@@ -25,34 +25,47 @@ function getAvatarColor(name: string): string {
     return avatarColors[charCode % avatarColors.length]
 }
 
-// Sınıf listesi (constants'tan import edildi)
-
 export default async function SchoolPage({
     searchParams,
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-    const params = await searchParams
-    const q = (params.q as string) || ""
-    const yearParam = params.year as string | undefined
-    const targetYear = yearParam ? parseInt(yearParam) : null
+    const { profile, user } = await getAuthContext();
+    if (!profile || !user) { return null; }
+
+    const search = await searchParams
+    const q = (search.q as string) || ""
+
+    // Yılı Query String'den al (?year=2024)
+    const yearQuery = search.year as string
+    let targetYear = parseInt(yearQuery)
+
+    // Eğer query'de yıl yoksa veya geçersizse kullanıcının kendi yılına yönlendir (?year=profil_yili)
+    if (!yearQuery || isNaN(targetYear)) {
+        redirect(`/school?year=${profile.user_year}`)
+    }
 
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect("/login")
+    // 1. Veritabanından mevcut sınıfları ve sistemdeki mevcut yılları çek
+    const [settingsResponse, yearsResponse] = await Promise.all([
+        supabase.from('site_settings').select('value').eq('key', 'valid_classes').single(),
+        supabase.rpc('get_available_years')
+    ])
 
+    const CLASSES: string[] = settingsResponse.data?.value ? settingsResponse.data.value.split(',') : []
+    const uniqueYears = (yearsResponse.data as { year: number }[] || []).map(d => d.year)
+
+    // 2. Okul Verilerini RPC ile çek
     const { data: stats, error } = await supabase.rpc('get_school_data', {
         target_year: targetYear
     })
 
-    if (error) {
-        console.error("Error fetching stats:", error)
-    }
+    if (error) console.error("Error fetching stats:", error)
 
     let students = stats || []
 
-    // Filter by search query
+    // Arama Filtresi
     if (q) {
         const lowerQ = q.toLowerCase()
         students = students.filter((s: any) =>
@@ -62,7 +75,7 @@ export default async function SchoolPage({
         )
     }
 
-    // Group by class using static list
+    // Sınıflara göre grupla
     const groupedStudents: Record<string, any[]> = {}
     CLASSES.forEach(cls => {
         groupedStudents[cls] = students
@@ -70,51 +83,60 @@ export default async function SchoolPage({
             .sort((a: any, b: any) => a.school_number.localeCompare(b.school_number, 'tr', { numeric: true }))
     })
 
-    // Show all classes (even if empty)
-    const sortedClasses = CLASSES
-
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-indigo-100 dark:border-indigo-900/50 pb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/20">
-                        <GraduationCap className="h-6 w-6" />
+            {/* Header & Controls */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-indigo-100 dark:border-indigo-900/50 pb-8">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-xl shadow-indigo-500/20">
+                        <GraduationCap className="h-7 w-7" />
                     </div>
-                    <h1 className="text-2xl font-bold font-serif bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                        Okul Listesi
-                    </h1>
+                    <div>
+                        <h1 className="text-3xl font-bold font-serif bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                            Okul Listesi
+                        </h1>
+                        <p className="text-slate-500 text-sm font-medium">Eğitim Yılı: {targetYear}</p>
+                    </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="w-full max-w-sm relative">
-                    <form className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                        <Input
-                            name="q"
-                            defaultValue={q}
-                            placeholder="Öğrenci ara (İsim, sınıf, numara)..."
-                            className="pl-10 h-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-indigo-200 dark:border-indigo-800 focus:border-indigo-500 rounded-xl shadow-sm"
-                        />
-                    </form>
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                    {/* Yıl Seçici (Query String Güncelleyici) */}
+                    <YearSelector uniqueYears={uniqueYears} targetYear={targetYear} />
+
+                    {/* Arama Barı (Query String Koruyarak) */}
+                    <div className="w-full sm:w-72 relative">
+                        <form className="relative">
+                            <input type="hidden" name="year" value={targetYear} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                            <Input
+                                name="q"
+                                defaultValue={q}
+                                placeholder="İsim veya numara..."
+                                className="pl-10 h-11 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-indigo-200 dark:border-indigo-800 focus:border-indigo-500 rounded-xl shadow-sm"
+                            />
+                        </form>
+                    </div>
                 </div>
             </div>
 
+            {/* Sınıf Listeleri */}
             <div className="space-y-16">
-                {sortedClasses.map(className => (
+                {CLASSES.map(className => (
                     <div key={className} className="animate-in fade-in slide-in-from-bottom-6 duration-700">
                         <div className="flex items-center gap-3 mb-6 px-2">
                             <span className="flex h-8 w-1 bg-indigo-500 rounded-full" />
                             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{className} Sınıfı</h2>
                             <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-medium shadow-sm">
-                                {groupedStudents[className].length} öğrenci
+                                {groupedStudents[className]?.length || 0} öğrenci
                             </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {groupedStudents[className].map((student: any) => (
+                            {groupedStudents[className]?.map((student: any) => (
                                 <Link href={`/profile/${student.user_year}/${student.school_number}`} prefetch={false} key={student.id}>
                                     <div className="group relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-4 h-full flex flex-col">
+                                        {/* Profil Kartı İçeriği (İsim, Numara, İstatistikler) */}
                                         <div className="flex items-center gap-4 mb-3">
                                             <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(student.first_name)} flex items-center justify-center text-lg font-bold text-white shadow-md group-hover:scale-110 transition-transform`}>
                                                 {getInitials(student.first_name, student.last_name)}
@@ -123,33 +145,27 @@ export default async function SchoolPage({
                                                 <h3 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {getFullName(student.first_name, student.last_name)}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-1">
-                                                    <span className="text-slate-400">#{student.school_number}</span>
-                                                </div>
+                                                <p className="text-xs text-slate-500 font-medium mt-1">#{student.school_number}</p>
                                             </div>
                                         </div>
 
-                                        {/* Stats */}
                                         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
                                             <div>
                                                 <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
-                                                    <PenLine className="h-3 w-3 text-indigo-500" />
-                                                    {student.total_texts_written}
+                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                    <PenLine className="h-3 w-3 text-indigo-500" /> {student.total_texts_written}
                                                 </div>
                                             </div>
                                             <div>
                                                 <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazılan</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
-                                                    <Users className="h-3 w-3 text-emerald-500" />
-                                                    {student.total_texts_received}
+                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                    <Users className="h-3 w-3 text-emerald-500" /> {student.total_texts_received}
                                                 </div>
                                             </div>
                                             <div>
                                                 <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Oy</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300">
-                                                    <Star className="h-3 w-3 text-amber-500" />
-                                                    {student.total_votes || 0}
+                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                    <Star className="h-3 w-3 text-amber-500" /> {student.total_votes || 0}
                                                 </div>
                                             </div>
                                         </div>
@@ -159,16 +175,6 @@ export default async function SchoolPage({
                         </div>
                     </div>
                 ))}
-
-                {students.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
-                            <Search className="h-8 w-8 text-slate-400" />
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">Sonuç bulunamadı</h3>
-                        <p className="text-slate-500 max-w-xs mx-auto mt-2">Aradığınız kriterlere uygun öğrenci bulunamadı. Lütfen kontrol edip tekrar deneyin.</p>
-                    </div>
-                )}
             </div>
         </div>
     )

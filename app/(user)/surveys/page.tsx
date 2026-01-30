@@ -11,12 +11,13 @@ import {
 } from "lucide-react"
 import { isVotingEnabled } from "@/lib/settings"
 import { Button } from "@/components/ui/button"
+import { getCurrentUser } from "@/lib/auth"
 
 export default async function SurveysPage() {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect("/login")
+    const user = await getCurrentUser();
+    if (!user) { return null; }
 
     // Sistem kontrolü
     const votingEnabled = await isVotingEnabled()

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/auth"
 
 interface SuggestCategoryData {
     title: string
@@ -14,10 +15,9 @@ export async function suggestCategory(data: SuggestCategoryData) {
     const supabase = await createClient()
 
     // Kullanıcı kontrolü
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return { error: "Oturum açmanız gerekiyor" }
-    }
+    const user = await getCurrentUser();
+
+    if (!user) { return null; }
 
     // Validation
     if (!data.title || data.title.length < 3) {

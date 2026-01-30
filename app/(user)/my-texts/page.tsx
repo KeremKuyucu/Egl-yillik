@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getAuthContext } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import TextsGrid from "@/components/texts/texts-grid"
@@ -10,11 +10,8 @@ export const dynamic = "force-dynamic"
 
 export default async function MyTextsPage() {
     // JWT'den user ve profile bilgilerini al
-    const { user, profile } = await getAuthContext()
-
-    if (!user) {
-        redirect("/login")
-    }
+    const user = await getCurrentUser()
+    if (!user) return null;
 
     const supabase = await createClient()
 
