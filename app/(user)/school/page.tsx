@@ -122,59 +122,64 @@ export default async function SchoolPage({
 
             {/* Sınıf Listeleri */}
             <div className="space-y-16">
-                {CLASSES.map(className => (
-                    <div key={className} className="animate-in fade-in slide-in-from-bottom-6 duration-700">
-                        <div className="flex items-center gap-3 mb-6 px-2">
-                            <span className="flex h-8 w-1 bg-indigo-500 rounded-full" />
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{className} Sınıfı</h2>
-                            <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-medium shadow-sm">
-                                {groupedStudents[className]?.length || 0} öğrenci
-                            </span>
-                        </div>
+                {CLASSES.map(className => {
+                    const classStudents = groupedStudents[className] || []
+                    if (classStudents.length === 0) return null
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {groupedStudents[className]?.map((student: any) => (
-                                <Link href={`/profile/${student.user_year}/${student.school_number}`} prefetch={false} key={student.id}>
-                                    <div className="group relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-4 h-full flex flex-col">
-                                        {/* Profil Kartı İçeriği (İsim, Numara, İstatistikler) */}
-                                        <div className="flex items-center gap-4 mb-3">
-                                            <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(student.first_name)} flex items-center justify-center text-lg font-bold text-white shadow-md group-hover:scale-110 transition-transform`}>
-                                                {getInitials(student.first_name, student.last_name)}
+                    return (
+                        <div key={className} className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+                            <div className="flex items-center gap-3 mb-6 px-2">
+                                <span className="flex h-8 w-1 bg-indigo-500 rounded-full" />
+                                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{className} Sınıfı</h2>
+                                <span className="px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-medium shadow-sm">
+                                    {classStudents.length} öğrenci
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {classStudents.map((student: any) => (
+                                    <Link href={`/profile/${student.user_year}/${student.school_number}`} prefetch={false} key={student.id}>
+                                        <div className="group relative overflow-hidden rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/60 dark:bg-slate-900/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-4 h-full flex flex-col">
+                                            {/* Profil Kartı İçeriği (İsim, Numara, İstatistikler) */}
+                                            <div className="flex items-center gap-4 mb-3">
+                                                <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${getAvatarColor(student.first_name)} flex items-center justify-center text-lg font-bold text-white shadow-md group-hover:scale-110 transition-transform`}>
+                                                    {getInitials(student.first_name, student.last_name)}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                        {getFullName(student.first_name, student.last_name)}
+                                                    </h3>
+                                                    <p className="text-xs text-slate-500 font-medium mt-1">#{student.school_number}</p>
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                                    {getFullName(student.first_name, student.last_name)}
-                                                </h3>
-                                                <p className="text-xs text-slate-500 font-medium mt-1">#{student.school_number}</p>
+
+                                            <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
+                                                <div>
+                                                    <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
+                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                        <PenLine className="h-3 w-3 text-indigo-500" /> {student.total_texts_written}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazılan</p>
+                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                        <Users className="h-3 w-3 text-emerald-500" /> {student.total_texts_received}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Oy</p>
+                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                        <Star className="h-3 w-3 text-amber-500" /> {student.total_votes || 0}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
-                                            <div>
-                                                <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                                    <PenLine className="h-3 w-3 text-indigo-500" /> {student.total_texts_written}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazılan</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                                    <Users className="h-3 w-3 text-emerald-500" /> {student.total_texts_received}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Oy</p>
-                                                <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                                    <Star className="h-3 w-3 text-amber-500" /> {student.total_votes || 0}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     )
