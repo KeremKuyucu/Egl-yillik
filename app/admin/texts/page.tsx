@@ -104,20 +104,12 @@ export default async function AdminPage({
   const searchQuery = (params.q as string) || ""
   const filterTime = (params.filter as string) || "all" // all, today, week
 
-  const { data: rawTexts, error } = await supabase
-    .from("texts")
-    .select(`
-      id,
-      content,
-      created_at,
-      author:profiles!texts_author_id_fkey (id, first_name, last_name, school_number, class),
-      recipient:profiles!texts_recipient_id_fkey (id, first_name, last_name, school_number, class)
-    `)
-    .order('created_at', { ascending: false })
+  const { data: rpcData, error } = await supabase.rpc("get_admin_texts")
 
   if (error) console.error("Veri hatası:", error)
 
-  let texts = (rawTexts as unknown as TextEntry[]) || []
+  const rawTexts = (rpcData as unknown as TextEntry[]) || []
+  let texts = [...rawTexts]
 
   // 3. İstatistik Hesaplamaları (Filtrelemeden Önce - Genel İstatistikler)
   const allTextsCount = texts.length

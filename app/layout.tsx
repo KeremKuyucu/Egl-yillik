@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: "%s | EGL Yıllık",
-    default: "EGL Yıllık - 2026 Mezuniyeti",
+    default: "EGL Yıllık",
   },
   description: "Ertuğrulgazi Lisesi Dijital Yıllık ve Anı Platformu",
   icons: {
