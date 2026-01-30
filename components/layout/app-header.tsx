@@ -18,9 +18,10 @@ import { ROLES } from "@/lib/constants"
 interface AppHeaderProps {
     userProfile: any
     signOut: () => Promise<void>
+    level: number
 }
 
-export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
+export function AppHeader({ userProfile, signOut, level }: AppHeaderProps) {
     const pathname = usePathname()
 
     const navItems = [
@@ -70,7 +71,7 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                 {/* Right Side */}
                 <div className="flex items-center gap-2">
                     {/* Admin Button */}
-                    {userProfile?.level >= ROLES.ADMIN && (
+                    {level >= ROLES.ADMIN && (
                         <Link href="/admin" className="hidden lg:flex">
                             <Button variant="outline" size="sm" className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/30">
                                 <Shield className="w-4 h-4" />
@@ -142,7 +143,7 @@ export function AppHeader({ userProfile, signOut }: AppHeaderProps) {
                                     </Link>
                                 </DropdownMenuItem>
 
-                                {userProfile?.level >= ROLES.ADMIN && (
+                                {level >= ROLES.ADMIN && (
                                     <DropdownMenuItem asChild>
                                         <Link href="/admin" className="flex items-center gap-3 cursor-pointer text-rose-600 dark:text-rose-400">
                                             <Shield className="w-4 h-4" />

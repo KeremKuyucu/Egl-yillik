@@ -342,10 +342,10 @@ export default async function AdminPage() {
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-[10px] text-muted-foreground block">
-                                                    {new Date(log.changed_at).toLocaleDateString('tr-TR')}
+                                                    {new Date(log.changed_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground block">
-                                                    {new Date(log.changed_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(log.changed_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' })}
                                                 </span>
                                             </div>
                                         </div>

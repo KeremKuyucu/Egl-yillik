@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentProfile, getCurrentUser } from "@/lib/auth"
+import { getAuthContext } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/layout/app-header"
 import Footer from "@/components/layout/footer"
@@ -10,12 +10,10 @@ export default async function UserLayout({
     children: React.ReactNode
 }) {
     // JWT'den user ve profile bilgilerini al (DB sorgusu yok!)
-    const user = await getCurrentUser()
-
+    const { profile, user, level } = await getAuthContext()
     if (!user) {
         redirect("/login")
     }
-    const profile = await getCurrentProfile()
     if (!profile) {
         redirect("/complete-profile")
     }
@@ -37,7 +35,7 @@ export default async function UserLayout({
                 <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-6000 dark:opacity-5"></div>
             </div>
 
-            <AppHeader userProfile={profile} signOut={handleSignOut} />
+            <AppHeader userProfile={profile} signOut={handleSignOut} level={level} />
 
             <main className="animate-in fade-in zoom-in-95 duration-500">
                 {children}
