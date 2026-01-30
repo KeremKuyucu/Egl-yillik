@@ -8,8 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { KeyRound, Loader2, CheckCircle2, AlertCircle, ShieldCheck, Mail } from "lucide-react"
 import { toast } from "sonner"
-import { getCurrentUser } from "@/lib/auth"
-
 export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolean }) {
     const [currentPassword, setCurrentPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
