@@ -77,7 +77,7 @@ export async function createTextAction(recipientId: string, content: string) {
                 return { error: "Mesaj güncellenirken bir hata oluştu" }
             }
 
-            revalidatePath("/dashboard")
+            revalidatePath("/home")
             return { success: true }
         }
     }
@@ -99,7 +99,7 @@ export async function createTextAction(recipientId: string, content: string) {
         return { error: "Mesaj kaydedilirken bir hata oluştu" }
     }
 
-    revalidatePath("/dashboard")
+    revalidatePath("/home")
     return { success: true }
 }
 
@@ -135,7 +135,7 @@ export async function updateTextAction(id: string, content: string) {
 
     if (error) return { error: error.message }
 
-    revalidatePath("/dashboard")
+    revalidatePath("/home")
     return { success: true }
 }
 
@@ -222,6 +222,6 @@ export async function saveFutureMeAction(content: string) {
     }
 
     revalidatePath("/future-me")
-    revalidatePath("/dashboard")
+    revalidatePath("/home")
     return { success: true }
 }

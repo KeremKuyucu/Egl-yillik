@@ -51,12 +51,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // 🏠 Root logic
-  if (pathname === "/") return redirect(user ? "/dashboard" : "/login")
+  if (pathname === "/") return redirect(user ? "/home" : "/login")
 
   // 🤝 Hybrid & Public logic
   if (hybridPaths.some(p => pathname.startsWith(p))) return response
   if (publicPaths.some(p => pathname.startsWith(p))) {
-    return user ? redirect("/dashboard") : response
+    return user ? redirect("/home") : response
   }
 
   // 🔒 Auth Guard

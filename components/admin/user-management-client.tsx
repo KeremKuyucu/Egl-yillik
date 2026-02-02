@@ -19,7 +19,9 @@ import {
     Clock,
     Search,
     Filter,
-    X
+    X,
+    Copy,
+    Check
 } from "lucide-react"
 import {
     LevelSelector,
@@ -105,6 +107,18 @@ export function UserManagementClient({
     const [searchQuery, setSearchQuery] = useState("")
     const [classFilter, setClassFilter] = useState("all")
     const [roleFilter, setRoleFilter] = useState("all")
+    const [copiedId, setCopiedId] = useState<string | null>(null)
+
+    // Copy user ID to clipboard
+    const copyUserId = async (userId: string) => {
+        try {
+            await navigator.clipboard.writeText(userId)
+            setCopiedId(userId)
+            setTimeout(() => setCopiedId(null), 2000)
+        } catch (err) {
+            console.error('Failed to copy:', err)
+        }
+    }
 
     // Memoized Filtering
     const filteredUsers = useMemo(() => {
@@ -352,11 +366,30 @@ export function UserManagementClient({
                                                                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
                                                             )}
                                                         </div>
-                                                        <div className="font-medium flex items-center gap-2">
+                                                        <div className="font-medium flex items-center gap-2 group/name">
                                                             {getFullName(user.first_name, user.last_name)}
                                                             {isCurrentUser && (
                                                                 <Badge variant="outline" className="text-xs">Siz</Badge>
                                                             )}
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <button
+                                                                            onClick={() => copyUserId(user.id)}
+                                                                            className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                                        >
+                                                                            {copiedId === user.id ? (
+                                                                                <Check className="h-3.5 w-3.5 text-green-500" />
+                                                                            ) : (
+                                                                                <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                            )}
+                                                                        </button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{copiedId === user.id ? 'Kopyalandı!' : 'UID Kopyala'}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
                                                         </div>
                                                     </div>
                                                 </TableCell>

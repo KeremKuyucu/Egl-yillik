@@ -36,7 +36,7 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
                     <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
                         Anketlere katılım şu an için durdurulmuştur. Lütfen daha sonra tekrar deneyiniz.
                     </p>
-                    <Link href="/dashboard">
+                    <Link href="/home">
                         <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
                             Ana Sayfaya Dön
                         </Button>

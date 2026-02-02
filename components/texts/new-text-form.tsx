@@ -123,7 +123,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
         return
       }
 
-      router.push("/dashboard")
+      router.push("/home")
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Bir hata oluştu")
@@ -326,7 +326,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/home")}
             className="h-12 px-6 border-input text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             <X className="mr-2 h-4 w-4" />

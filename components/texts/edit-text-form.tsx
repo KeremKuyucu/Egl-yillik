@@ -46,7 +46,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
       if (result.error) {
         setError(result.error)
       } else {
-        router.push("/dashboard")
+        router.push("/home")
         router.refresh()
       }
     } catch (err) {
@@ -67,7 +67,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
         setError(result.error)
         setIsDeleting(false)
       } else {
-        router.push("/dashboard")
+        router.push("/home")
         router.refresh()
       }
     } catch (err) {
@@ -127,7 +127,7 @@ export default function EditTextForm({ text }: EditTextFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/home")}
           className="h-11 border-input text-muted-foreground hover:text-foreground hover:bg-muted"
         >
           <Undo2 className="mr-2 h-4 w-4" />

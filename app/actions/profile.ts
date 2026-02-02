@@ -53,6 +53,6 @@ export async function completeProfile(formData: {
         return { error: data.error ?? "Geçersiz işlem" }
     }
 
-    revalidatePath("/dashboard")
+    revalidatePath("/home")
     return { success: true }
 }

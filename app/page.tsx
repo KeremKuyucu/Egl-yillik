@@ -6,7 +6,7 @@ export default async function HomePage() {
   const user = await getCurrentUser()
 
   if (user) {
-    redirect("/dashboard") // loginli kullanıcı dashboard’a
+    redirect("/home") // loginli kullanıcı home’a
   } else {
     redirect("/login")     // loginli değilse login sayfasına
   }

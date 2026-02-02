@@ -33,7 +33,7 @@ export default async function EditTextPage({
           <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
             Anı düzenleme ve silme işlemleri şu an için sistem yöneticisi tarafından durdurulmuştur.
           </p>
-          <Link href="/dashboard">
+          <Link href="/home">
             <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
               Ana Sayfaya Dön
             </Button>
@@ -57,7 +57,7 @@ export default async function EditTextPage({
     .single()
 
   if (textError || !text || text.author_id !== user.id) {
-    redirect("/dashboard")
+    redirect("/home")
   }
 
   // Veri güvenliği kontrolü
@@ -85,7 +85,7 @@ export default async function EditTextPage({
           </span>
         </div>
 
-        <Link href="/dashboard" prefetch={false}>
+        <Link href="/home" prefetch={false}>
           <Button variant="ghost" size="sm" className="gap-2 text-slate-500 hover:text-purple-600">
             <X className="h-4 w-4" />
             <span className="hidden sm:inline">İptal</span>

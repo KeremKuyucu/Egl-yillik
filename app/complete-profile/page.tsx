@@ -19,7 +19,7 @@ export default async function CompleteProfilePage() {
 
     // Profil varsa zaten tamam; kayıt kapalı/açık önemli değil
     if (profile) {
-        redirect("/dashboard")
+        redirect("/home")
     }
 
     // Profil yoksa: kayıt kapalıysa bu sayfayı da kapat

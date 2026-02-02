@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react"
 
-export default function DashboardLoading() {
+export default function HomeLoading() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">

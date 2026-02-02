@@ -25,7 +25,7 @@ export function AppHeader({ userProfile, signOut, level }: AppHeaderProps) {
     const pathname = usePathname()
 
     const navItems = [
-        { href: "/dashboard", label: "Ana Sayfa", icon: Home },
+        { href: "/home", label: "Ana Sayfa", icon: Home },
         { href: "/my-texts", label: "Yazılarım", icon: FileText },
         { href: "/surveys", label: "Anketler", icon: Vote },
         { href: `/school?year=${userProfile.user_year}`, label: "Okul", icon: Users },
@@ -43,7 +43,7 @@ export function AppHeader({ userProfile, signOut, level }: AppHeaderProps) {
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 {/* Logo & Desktop Nav */}
                 <div className="flex items-center gap-8">
-                    <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <Link href="/home" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                         <div className="relative w-8 h-8">
                             <div className="absolute inset-0 bg-indigo-500 rounded-lg rotate-6 opacity-20"></div>
                             <img src="/image.png" className="w-8 h-8 relative z-10" alt="Logo" />

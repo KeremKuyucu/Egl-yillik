@@ -53,7 +53,7 @@ export default function CompleteProfileForm({ initialData }: CompleteProfileForm
             }
 
             toast.success("Profiliniz başarıyla oluşturuldu!")
-            router.push("/dashboard")
+            router.push("/home")
             router.refresh()
         } catch {
             setError("Bir hata oluştu.")

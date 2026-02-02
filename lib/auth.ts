@@ -96,7 +96,7 @@ export async function requireLevel(minLevel: number) {
     }
 
     if (level < minLevel) {
-        redirect("/dashboard")
+        redirect("/home")
     }
 
     return { user, level, profile }

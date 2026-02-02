@@ -104,7 +104,7 @@ export default function UnsubscribePage() {
                             Fikrinizi değiştirirseniz Ayarlar sayfasından istediğiniz zaman tekrar aktif edebilirsiniz.
                         </p>
                         <div className="pt-6">
-                            <Link href="/dashboard" passHref>
+                            <Link href="/home" passHref>
                                 <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12">
                                     Panele Git
                                 </Button>

@@ -70,7 +70,7 @@ export default function UpdatePasswordPage() {
             setSuccess(true)
 
             setTimeout(() => {
-                router.push("/dashboard")
+                router.push("/home")
                 router.refresh()
             }, 2000)
         } catch (error: unknown) {
@@ -235,11 +235,11 @@ export default function UpdatePasswordPage() {
 
             <CardFooter className="bg-emerald-50/50 dark:bg-emerald-950/30 border-t border-emerald-100 dark:border-emerald-900/30 p-3 justify-center">
                 <Link
-                    href="/dashboard"
+                    href="/home"
                     prefetch={false}
                     className="text-xs sm:text-sm text-muted-foreground hover:text-foreground font-medium"
                 >
-                    Dashboard'a Git
+                    Ana Sayfaya Git
                 </Link>
             </CardFooter>
         </Card>

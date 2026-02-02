@@ -3,18 +3,17 @@ import { Suspense } from "react"
 export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth"
-import SurveyCard, { SurveyCardSkeleton } from "@/components/dashboard/survey-card"
-import SuggestionCard from "@/components/dashboard/suggestion-card"
-import StatsBar from "@/components/dashboard/stats-bar"
-import ProfileCard from "@/components/dashboard/profile-card"
-import CountdownCard from "@/components/dashboard/countdown-card"
-import LockedCard from "@/components/dashboard/locked-card"
-import { Pen, Feather, Crown, Trophy, BookOpen } from "lucide-react"
-import DashboardMessage from "@/components/dashboard/dashboard-message"
+import SurveyCard, { SurveyCardSkeleton } from "@/components/home/survey-card"
+import SuggestionCard from "@/components/home/suggestion-card"
+import StatsBar from "@/components/home/stats-bar"
+import ProfileCard from "@/components/home/profile-card"
+import CountdownCard from "@/components/home/countdown-card"
+import LockedCard from "@/components/home/locked-card"
+import HomeMessage from "@/components/home/home-message"
 import { getDetailedGreeting, getBadge } from "@/lib/profile-utils"
 
 
-export default async function DashboardPage() {
+export default async function HomePage() {
   const supabase = await createClient()
 
   const user = await getCurrentUser()
@@ -22,21 +21,21 @@ export default async function DashboardPage() {
     throw new Error("Invariant violated: user is null in protected page")
   }
 
-  const { data: dashboardData, error: dashboardError } =
+  const { data: homeData, error: homeError } =
     await supabase.rpc("get_dashboard_data_v4")
 
-  if (dashboardError || !dashboardData?.profile) {
-    console.error("Dashboard veri hatası:", dashboardError)
+  if (homeError || !homeData?.profile) {
+    console.error("Home veri hatası:", homeError)
     redirect("/complete-profile")
   }
 
   // Verileri çıkar
-  const userProfile = dashboardData.profile
-  const stats = dashboardData.stats
-  const progress = dashboardData.progress
-  const surveyStats = dashboardData.survey_stats || { total: 0, voted: 0 }
-  const suggestion = dashboardData.suggestion
-  const systemInfo = dashboardData.system_info || {}
+  const userProfile = homeData.profile
+  const stats = homeData.stats
+  const progress = homeData.progress
+  const surveyStats = homeData.survey_stats || { total: 0, voted: 0 }
+  const suggestion = homeData.suggestion
+  const systemInfo = homeData.system_info || {}
 
   // Tarihleri al
   const deadlineDate = new Date(systemInfo.deadline)
@@ -67,7 +66,7 @@ export default async function DashboardPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
       <Suspense fallback={null}>
-        <DashboardMessage />
+        <HomeMessage />
       </Suspense>
 
       <StatsBar

@@ -7,8 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles,
-    ChevronRight
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles
 } from "lucide-react"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
 import { getBadge } from "@/lib/profile-utils"

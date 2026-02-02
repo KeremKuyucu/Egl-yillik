@@ -99,7 +99,7 @@ ${deadline}
 ` : ''}
 
 Bağlantılar:
-${!isTextComplete ? `• Yazı Yaz: ${appUrl}/dashboard/texts\n` : ''}${!isSurveyComplete ? `• Anketlere Git: ${appUrl}/dashboard/surveys\n` : ''}${isFullyComplete ? `• Yıllığı Görüntüle: ${appUrl}/dashboard\n` : ''}
+${!isTextComplete ? `• Yazı Yaz: ${appUrl}/texts\n` : ''}${!isSurveyComplete ? `• Anketlere Git: ${appUrl}/surveys\n` : ''}${isFullyComplete ? `• Yıllığı Görüntüle: ${appUrl}/home\n` : ''}
 
 ${!isFullyComplete ? `
 💜 Her yazı bir anının, her oy bir arkadaşlığın hatırası.
@@ -231,31 +231,31 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                                 <tr>
                                     ${!isTextComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard/texts" style="display: block; background: #059669; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}//texts" style="display: block; background: #059669; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             ✍️ Yazı Yaz
                                         </a>
                                         <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
-                                            ${appUrl}/dashboard/texts
+                                            ${appUrl}/texts
                                         </p>
                                     </td>
                                     ` : ''}
                                     ${!isSurveyComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard/surveys" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/surveys" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             🗳️ Anketlere Git
                                         </a>
                                         <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
-                                            ${appUrl}/dashboard/surveys
+                                            ${appUrl}/surveys
                                         </p>
                                     </td>
                                     ` : ''}
                                     ${isFullyComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}/dashboard" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/home" style="display: block; background: #8b5cf6; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             📚 Yıllığı Görüntüle
                                         </a>
                                         <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
-                                            ${appUrl}/dashboard
+                                            ${appUrl}/home
                                         </p>
                                     </td>
                                     ` : ''}

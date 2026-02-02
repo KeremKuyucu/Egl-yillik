@@ -107,7 +107,7 @@ export default function LoginPage() {
       if (error) throw error
 
       const searchParams = new URLSearchParams(window.location.search)
-      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+      const callbackUrl = searchParams.get("callbackUrl") || "/home"
 
       router.push(callbackUrl)
       router.refresh()
