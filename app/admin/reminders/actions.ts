@@ -321,24 +321,6 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
 }
 
 /**
- * Public email gönderim fonksiyonu - yetki kontrolü YAPAR
- * Tekil email göndermek için kullanılır
- */
-export async function sendReminderEmail(
-    userId: string,
-    email: string,
-    userName: string,
-    stats: ClassStats,
-    surveyStats?: SurveyStats
-): Promise<EmailResult> {
-    // Merkezi super admin kontrolü
-    const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
-
-    return sendReminderEmailInternal(email, userName, stats, surveyStats)
-}
-
-/**
  * Bulk email gönderimi için internal fonksiyon
  * Yetki kontrolü YAPMAZ - sendBulkUsersReminders tarafından çağrılır
  */
@@ -348,10 +330,17 @@ export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
     // Deadline'ı sadece bir kez çek - performans optimizasyonu
     const deadline = await getCachedDeadline()
 
-    // Gönderim döngüsü (Rate limit koruması için chunk'lı)
-    const CHUNK_SIZE = 5
+    // Resend rate limit: saniyede max 2 istek
+    // Güvenli tarafta kalmak için chunk size = 2, delay = 600ms
+    const CHUNK_SIZE = 2
+    const DELAY_BETWEEN_CHUNKS = 600 // ms
+
+    console.log(`[Bulk Reminders] Starting to send ${targets.length} emails (chunk size: ${CHUNK_SIZE})`)
+
     for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
         const chunk = targets.slice(i, i + CHUNK_SIZE)
+        const chunkNumber = Math.floor(i / CHUNK_SIZE) + 1
+        const totalChunks = Math.ceil(targets.length / CHUNK_SIZE)
 
         await Promise.all(chunk.map(async (user) => {
             if (!user.email) {
@@ -377,8 +366,26 @@ export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
 
             const userName = `${user.first_name} ${user.last_name}`.trim()
 
-            // Internal fonksiyonu kullan - yetki kontrolü sendBulkUsersReminders'da yapıldı
-            const res = await sendReminderEmailInternal(user.email, userName, stats, surveyStats, deadline)
+            // Rate limit retry mekanizması
+            let attempts = 0
+            const maxAttempts = 3
+            let res: EmailResult = { error: 'Unknown error' }
+
+            while (attempts < maxAttempts) {
+                attempts++
+                res = await sendReminderEmailInternal(user.email, userName, stats, surveyStats, deadline)
+
+                // Başarılı veya rate limit dışı hata
+                if (res.success || !res.error?.includes('rate_limit')) {
+                    break
+                }
+
+                // Rate limit hatası - bekle ve tekrar dene
+                if (attempts < maxAttempts) {
+                    console.warn(`[Bulk Reminders] Rate limit hit for ${user.email}, retrying in 2s (attempt ${attempts}/${maxAttempts})`)
+                    await new Promise(resolve => setTimeout(resolve, 2000))
+                }
+            }
 
             results[user.user_id] = {
                 success: !!res.success,
@@ -386,8 +393,15 @@ export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
             }
         }))
 
+        // Sonraki chunk için bekle (rate limit koruması)
         if (i + CHUNK_SIZE < targets.length) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_CHUNKS))
+        }
+
+        // İlerleme logu (her 10 chunk'ta bir)
+        if (chunkNumber % 10 === 0 || chunkNumber === totalChunks) {
+            const successSoFar = Object.values(results).filter(r => r.success).length
+            console.log(`[Bulk Reminders] Progress: ${chunkNumber}/${totalChunks} chunks, ${successSoFar}/${i + chunk.length} sent`)
         }
     }
 
