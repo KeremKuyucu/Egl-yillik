@@ -8,17 +8,31 @@ import type { ClassStats, SurveyStats, EmailResult, BulkStatsRPCResponse } from 
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export async function sendReminderEmail(
-    userId: string,
+// Deadline cache - bulk işlemlerde tekrar tekrar çekilmesin
+let cachedDeadline: { display: string; timestamp: number } | null = null
+const DEADLINE_CACHE_TTL = 60000 // 1 dakika
+
+async function getCachedDeadline(): Promise<string> {
+    const now = Date.now()
+    if (cachedDeadline && (now - cachedDeadline.timestamp) < DEADLINE_CACHE_TTL) {
+        return cachedDeadline.display
+    }
+    const deadlineData = await getDeadline()
+    cachedDeadline = { display: deadlineData.display, timestamp: now }
+    return cachedDeadline.display
+}
+
+/**
+ * Internal email gönderim fonksiyonu - yetki kontrolü YAPMAZ
+ * Sadece processBulkReminders gibi zaten yetki kontrolü yapılmış yerlerden çağrılmalı
+ */
+async function sendReminderEmailInternal(
     email: string,
     userName: string,
     stats: ClassStats,
-    surveyStats?: SurveyStats
+    surveyStats?: SurveyStats,
+    deadline?: string
 ): Promise<EmailResult> {
-    // Merkezi super admin kontrolü
-    const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
-
     if (!email) {
         return { error: 'Email not found for user' }
     }
@@ -28,9 +42,8 @@ export async function sendReminderEmail(
         return { error: 'Invalid stats object' }
     }
 
-    // Son teslim tarihini veritabanından çek
-    const deadlineData = await getDeadline()
-    const deadline = deadlineData.display
+    // Deadline sağlanmadıysa çek
+    const finalDeadline = deadline || await getCachedDeadline()
     const appUrl = process.env.NEXT_PUBLIC_APP_URL
     const unsubscribeUrl = `${appUrl}/settings/unsubscribe`
 
@@ -95,7 +108,7 @@ ${isSurveyComplete ? '🏆' : '🗳️'} Sınıf Anketleri ${isSurveyComplete ? 
 
 ${!isFullyComplete ? `
 ⏰ Son Teslim Tarihi
-${deadline}
+${finalDeadline}
 ` : ''}
 
 Bağlantılar:
@@ -222,7 +235,7 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                             <div style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
                                 <div style="font-size: 32px; margin-bottom: 8px;">⏰</div>
                                 <div style="color: #ffffff; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Son Teslim Tarihi</div>
-                                <div style="color: #ffffff; font-size: 24px; font-weight: 700;">${deadline}</div>
+                                <div style="color: #ffffff; font-size: 24px; font-weight: 700;">${finalDeadline}</div>
                             </div>
                             ` : ''}
 
@@ -231,7 +244,7 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                                 <tr>
                                     ${!isTextComplete ? `
                                     <td style="padding: 8px;">
-                                        <a href="${appUrl}//texts" style="display: block; background: #059669; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                                        <a href="${appUrl}/texts" style="display: block; background: #059669; color: #ffffff; text-align: center; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                                             ✍️ Yazı Yaz
                                         </a>
                                         <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">
@@ -307,10 +320,35 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
     }
 }
 
+/**
+ * Public email gönderim fonksiyonu - yetki kontrolü YAPAR
+ * Tekil email göndermek için kullanılır
+ */
+export async function sendReminderEmail(
+    userId: string,
+    email: string,
+    userName: string,
+    stats: ClassStats,
+    surveyStats?: SurveyStats
+): Promise<EmailResult> {
+    // Merkezi super admin kontrolü
+    const auth = await checkSuperAdmin()
+    if (!auth.success) return { error: auth.error }
+
+    return sendReminderEmailInternal(email, userName, stats, surveyStats)
+}
+
+/**
+ * Bulk email gönderimi için internal fonksiyon
+ * Yetki kontrolü YAPMAZ - sendBulkUsersReminders tarafından çağrılır
+ */
 export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
     const results: Record<string, { success: boolean, error?: string }> = {}
 
-    // 4. Gönderim döngüsü (Rate limit koruması için sıralı veya chunk'lı)
+    // Deadline'ı sadece bir kez çek - performans optimizasyonu
+    const deadline = await getCachedDeadline()
+
+    // Gönderim döngüsü (Rate limit koruması için chunk'lı)
     const CHUNK_SIZE = 5
     for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
         const chunk = targets.slice(i, i + CHUNK_SIZE)
@@ -339,7 +377,8 @@ export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
 
             const userName = `${user.first_name} ${user.last_name}`.trim()
 
-            const res = await sendReminderEmail(user.user_id, user.email, userName, stats, surveyStats)
+            // Internal fonksiyonu kullan - yetki kontrolü sendBulkUsersReminders'da yapıldı
+            const res = await sendReminderEmailInternal(user.email, userName, stats, surveyStats, deadline)
 
             results[user.user_id] = {
                 success: !!res.success,

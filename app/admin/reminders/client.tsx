@@ -11,13 +11,11 @@ import {
     Mail,
     CheckCircle,
     AlertCircle,
-    ArrowLeft,
     Users,
     Search,
     BarChart3,
     Send,
     CheckCheck,
-    Clock,
     AlertTriangle,
     Sparkles,
     X,
@@ -25,12 +23,11 @@ import {
     PenLine,
     BellOff
 } from "lucide-react"
-import Link from "next/link"
+
 import { getColorFromName } from "@/lib/survey-categories"
 import { AutoReminderSettings } from "@/components/admin/auto-reminder-settings"
 
 import { UserWithStats, FilterStatus, FilterClass, EmailStatus } from "@/types/reminder"
-import { requireSuperAdmin } from "@/lib/auth"
 import {
     BarChart,
     Bar,
@@ -39,8 +36,7 @@ import {
     CartesianGrid,
     Tooltip,
     Legend,
-    ResponsiveContainer,
-    Cell
+    ResponsiveContainer
 } from 'recharts'
 
 interface ReminderClientPageProps {
@@ -220,7 +216,9 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
         return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase()
     }
 
-    const allFilteredSelected = filteredUsers.length > 0 && filteredUsers.every(u => selectedUsers.includes(u.id))
+    // Opted-out olmayan kullanıcıların tümü seçili mi kontrolü
+    const selectableUsers = filteredUsers.filter(u => !u.is_opted_out)
+    const allFilteredSelected = selectableUsers.length > 0 && selectableUsers.every(u => selectedUsers.includes(u.id))
 
     return (
         <div className="space-y-6">
