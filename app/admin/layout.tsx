@@ -218,15 +218,6 @@ export default async function AdminLayout({
                                             )}
                                         </DropdownMenuGroup>
                                     ))}
-
-                                    {/* Quick Actions */}
-                                    <DropdownMenuSeparator className="my-2" />
-                                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                                        <Link href="/home" className="flex items-center gap-3 w-full py-2.5 px-3">
-                                            <Home className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium text-sm">Siteye Dön</span>
-                                        </Link>
-                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
