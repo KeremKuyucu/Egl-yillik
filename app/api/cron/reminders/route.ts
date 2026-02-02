@@ -1,14 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { processBulkReminders } from "@/app/admin/reminders/actions"
 import { NextResponse } from "next/server"
-import type { BulkStatsRPCResponse } from "@/types/reminder"
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60 // 1 dakika timeout (email gönderimi uzun sürebilir)
+export const maxDuration = 60
 
 export async function GET(req: Request) {
-    const startTime = Date.now()
-
     try {
         // 1. Güvenlik Kontrolü (CRON_SECRET)
         const authHeader = req.headers.get('authorization')
@@ -69,75 +65,38 @@ export async function GET(req: Request) {
             }
         }
 
-        // 4. Hedef Kullanıcıları Belirle (Eksik işi olanlar)
-        const { data: usersData, error: rpcError } = await supabase
-            .rpc('get_bulk_user_stats') as { data: BulkStatsRPCResponse[] | null, error: any }
+        // 4. Merkezi API'ye istek at
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL
+        const response = await fetch(`${appUrl}/api/reminders/send`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.CRON_SECRET}`
+            },
+            body: JSON.stringify({ source: 'cron' })
+        })
 
-        if (rpcError) {
-            console.error('[CRON Reminders] RPC error:', rpcError)
-            return NextResponse.json({
-                error: 'Kullanıcı verileri alınamadı',
-                details: rpcError.message
-            }, { status: 500 })
+        const result = await response.json()
+
+        if (!response.ok) {
+            console.error('[CRON Reminders] API error:', result)
+            return NextResponse.json(result, { status: response.status })
         }
 
-        if (!usersData || usersData.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'Sistemde kullanıcı bulunamadı',
-                total: 0
-            })
-        }
-
-        // Eksik işi olan ve opted-out olmayan kullanıcıları filtrele
-        const targets = usersData.filter(u =>
-            ((u.remaining_classmates > 0) || (u.remaining_surveys > 0)) &&
-            u.email &&
-            !u.is_opted_out
-        )
-
-        if (targets.length === 0) {
-            // Çalışma zamanını güncelle (boş olsa bile periyodu sıfırlayalım)
-            await supabase
-                .from('site_settings')
-                .update({ value: new Date().toISOString() })
-                .eq('key', 'reminder_last_run')
-
-            return NextResponse.json({
-                success: true,
-                message: 'Hatırlatılacak kullanıcı bulunamadı',
-                totalUsers: usersData.length,
-                eligibleUsers: 0
-            })
-        }
-
-        console.log(`[CRON Reminders] Starting bulk send to ${targets.length} users`)
-
-        // 5. Gönderimi Başlat
-        const results = await processBulkReminders(targets)
-
-        // Son çalışma zamanını güncelle
+        // 5. Son çalışma zamanını güncelle
         await supabase
             .from('site_settings')
             .update({ value: new Date().toISOString() })
             .eq('key', 'reminder_last_run')
 
-        const successCount = Object.values(results).filter(r => r.success).length
-        const errorCount = Object.values(results).filter(r => !r.success).length
-        const duration = Date.now() - startTime
-
-        console.log(`[CRON Reminders] Completed: ${successCount}/${targets.length} sent in ${duration}ms`)
+        console.log(`[CRON Reminders] Completed: ${result.stats?.sent}/${result.stats?.total} sent`)
 
         return NextResponse.json({
             success: true,
             message: 'Otomatik hatırlatma tamamlandı',
-            stats: {
-                total: targets.length,
-                sent: successCount,
-                failed: errorCount,
-                durationMs: duration
-            }
+            stats: result.stats
         })
+
     } catch (error) {
         console.error('[CRON Reminders] Unexpected error:', error)
         return NextResponse.json({

@@ -190,7 +190,8 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                 let sent = 0
                 let errors = 0
 
-                Object.entries(response.results).forEach(([userId, res]) => {
+                const resultsTyped = response.results as Record<string, { success: boolean, error?: string }>
+                Object.entries(resultsTyped).forEach(([userId, res]) => {
                     currentResults[userId] = res.success ? 'success' : 'error'
                     if (res.success) sent++
                     else errors++
