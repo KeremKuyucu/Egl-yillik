@@ -14,6 +14,7 @@ interface Suggestion {
     description: string
     color: string
     status: string
+    approved_category_id: string | null
     admin_note: string | null
     created_at: string
     reviewed_at: string | null
@@ -139,6 +140,11 @@ export default async function AdminSuggestionsPage() {
                                                     {suggestion.status === "pending" ? "Bekliyor" :
                                                         suggestion.status === "approved" ? "Onaylandı" : "Reddedildi"}
                                                 </Badge>
+                                                {suggestion.status === "approved" && !suggestion.approved_category_id && (
+                                                    <Badge variant="outline" className="border-slate-300 text-slate-600 bg-slate-50 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600">
+                                                        Silindi
+                                                    </Badge>
+                                                )}
                                             </div>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
                                                 {suggestion.description}

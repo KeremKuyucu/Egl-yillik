@@ -48,13 +48,15 @@ export default async function SchoolPage({
     const supabase = await createClient()
 
     // 1. Veritabanından mevcut sınıfları ve sistemdeki mevcut yılları çek
-    const [settingsResponse, yearsResponse] = await Promise.all([
+    const [settingsResponse, yearsResponse, siteCountsResponse] = await Promise.all([
         supabase.from('site_settings').select('value').eq('key', 'valid_classes').single(),
-        supabase.rpc('get_available_years')
+        supabase.rpc('get_available_years'),
+        supabase.rpc('get_public_site_counts')
     ])
 
     const CLASSES: string[] = settingsResponse.data?.value ? settingsResponse.data.value.split(',') : []
     const uniqueYears = (yearsResponse.data as { year: number }[] || []).map(d => d.year)
+    const siteCounts = siteCountsResponse.data || { users: 0, active_texts: 0, votes: 0 }
 
     // 2. Okul Verilerini RPC ile çek
     const { data: stats, error } = await supabase.rpc('get_school_data', {
@@ -85,6 +87,61 @@ export default async function SchoolPage({
 
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
+
+            {/* Global Site Statistics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="group relative overflow-hidden rounded-2xl border border-indigo-200/50 dark:border-indigo-800/30 bg-gradient-to-br from-indigo-50/90 to-blue-50/90 dark:from-indigo-950/60 dark:to-blue-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                    <div className="absolute -right-6 -bottom-6 text-indigo-200/40 dark:text-indigo-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                        <Users size={100} strokeWidth={1} />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                Toplam Kullanıcı
+                            </p>
+                        </div>
+                        <p className="text-4xl font-bold text-indigo-700 dark:text-indigo-300 tabular-nums">{siteCounts.users}</p>
+                    </div>
+                </div>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/90 to-pink-50/90 dark:from-purple-950/60 dark:to-pink-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                    <div className="absolute -right-6 -bottom-6 text-purple-200/40 dark:text-purple-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                        <PenLine size={100} strokeWidth={1} />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="p-2 bg-purple-500/10 rounded-lg">
+                                <PenLine className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                                Aktif Anı
+                            </p>
+                        </div>
+                        <p className="text-4xl font-bold text-purple-700 dark:text-purple-300 tabular-nums">{siteCounts.active_texts}</p>
+                    </div>
+                </div>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50/90 to-orange-50/90 dark:from-amber-950/60 dark:to-orange-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                    <div className="absolute -right-6 -bottom-6 text-amber-200/40 dark:text-amber-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                        <Star size={100} strokeWidth={1} />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="p-2 bg-amber-500/10 rounded-lg">
+                                <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                Toplam Oy
+                            </p>
+                        </div>
+                        <p className="text-4xl font-bold text-amber-700 dark:text-amber-300 tabular-nums">{siteCounts.votes}</p>
+                    </div>
+                </div>
+            </div>
+
 
             {/* Header & Controls */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-indigo-100 dark:border-indigo-900/50 pb-8">

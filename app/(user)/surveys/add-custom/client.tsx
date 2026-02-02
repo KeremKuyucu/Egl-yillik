@@ -38,6 +38,38 @@ export default function AddCustomClient({ }: AddCustomClientProps) {
     const [success, setSuccess] = useState<string | null>(null)
     const router = useRouter()
 
+    // Emoji sayısını doğru şekilde saymak için yardımcı fonksiyon
+    const getEmojiCount = (str: string) => {
+        // Segmenter API ile grapheme cluster sayısını al (emoji'leri doğru sayar)
+        if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+            const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
+            return Array.from(segmenter.segment(str)).length
+        }
+        // Fallback: spread operator ile unicode karakterlerini say
+        return [...str].length
+    }
+
+    // Emoji input handler - sadece 1 emoji'ye izin ver
+    const handleEmojiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        const emojiCount = getEmojiCount(value)
+
+        // Eğer 1 veya daha az emoji varsa kabul et
+        if (emojiCount <= 1) {
+            setCategoryEmoji(value)
+        }
+        // Eğer 1'den fazla emoji varsa, sadece ilk emoji'yi al
+        else if (emojiCount > 1) {
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
+                const segments = Array.from(segmenter.segment(value))
+                setCategoryEmoji(segments[0].segment)
+            } else {
+                setCategoryEmoji([...value][0])
+            }
+        }
+    }
+
     const handleSubmitCategory = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -74,9 +106,9 @@ export default function AddCustomClient({ }: AddCustomClientProps) {
                 color: categoryColor
             })
 
-            if (result.error) {
+            if (result && result.error) {
                 setError(result.error)
-            } else {
+            } else if (result) {
                 setSuccess("Kategori öneriniz gönderildi! Admin onayından sonra eklenecek.")
                 setCategoryTitle("")
                 setCategoryEmoji("")
@@ -125,10 +157,9 @@ export default function AddCustomClient({ }: AddCustomClientProps) {
                                 <input
                                     type="text"
                                     value={categoryEmoji}
-                                    onChange={(e) => setCategoryEmoji(e.target.value)}
+                                    onChange={handleEmojiChange}
                                     placeholder="🎉"
                                     className="w-full h-11 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                                    maxLength={4}
                                 />
                             </div>
                         </div>
@@ -160,8 +191,8 @@ export default function AddCustomClient({ }: AddCustomClientProps) {
                                         type="button"
                                         onClick={() => setCategoryColor(option.value)}
                                         className={`h-8 w-10 rounded-lg bg-gradient-to-r ${option.value} transition-all ${categoryColor === option.value
-                                                ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
-                                                : 'hover:scale-105'
+                                            ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
+                                            : 'hover:scale-105'
                                             }`}
                                         title={option.label}
                                     />

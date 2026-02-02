@@ -177,7 +177,7 @@ export default async function SurveysPage() {
                                 Kendin Ekle
                             </h3>
                             <p className="text-sm text-purple-600/80 dark:text-purple-400/80">
-                                Yeni kategori öner veya özel seçenek ekle
+                                Yeni kategori öner
                             </p>
                         </div>
                     </div>

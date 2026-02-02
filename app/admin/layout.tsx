@@ -38,9 +38,8 @@ export default async function AdminLayout({
             icon: Database,
             gradient: "from-purple-600 to-pink-600",
             items: [
-                { href: "/admin/texts", label: "Mesaj Yönetimi", icon: FileText, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-purple-600 to-pink-600" },
                 { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-indigo-600 to-purple-600" },
-                { href: "/admin/surveys", label: "Anketler", icon: Vote, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-pink-600 to-rose-600" },
+                { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-orange-600 to-amber-600" },
             ]
         },
         {
@@ -49,7 +48,6 @@ export default async function AdminLayout({
             gradient: "from-green-600 to-emerald-600",
             items: [
                 { href: "/admin/users", label: "Öğrenciler", icon: Users, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-green-600 to-emerald-600" },
-                { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-orange-600 to-amber-600" },
                 { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, roles: [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.OWNER], gradient: "from-teal-600 to-cyan-600" },
             ]
         },

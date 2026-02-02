@@ -87,7 +87,7 @@ export default async function AdminPage() {
             icon: Vote,
             color: "text-amber-600 dark:text-amber-400",
             bg: "bg-amber-100/50 dark:bg-amber-900/20",
-            href: "/admin/surveys",
+            href: "#",
             description: "Kullanılan toplam oy"
         },
         {
@@ -96,7 +96,7 @@ export default async function AdminPage() {
             icon: FileText,
             color: "text-indigo-600 dark:text-indigo-400",
             bg: "bg-indigo-100/50 dark:bg-indigo-900/20",
-            href: "/admin/texts",
+            href: "#",
             description: "Aktif mesaj sayısı"
         },
         {
@@ -111,12 +111,12 @@ export default async function AdminPage() {
     ]
 
     const quickLinks = [
-        { label: "Öğrencileri Yönet", href: "/admin/users", icon: Users, role: ROLES.ADMIN },
-        { label: "Anketleri Düzenle", href: "/admin/surveys", icon: Vote, role: ROLES.ADMIN },
+        { label: "Öğrenciler", href: "/admin/users", icon: Users, role: ROLES.ADMIN },
         { label: "Site Ayarları", href: "/admin/settings", icon: Settings, role: ROLES.SUPER_ADMIN },
         { label: "Geri Bildirimler", href: "/admin/feedback", icon: MessageSquare, role: ROLES.ADMIN },
-        { label: "Kategorileri Yönet", href: "/admin/categories", icon: LayoutDashboard, role: ROLES.ADMIN },
+        { label: "Kategoriler", href: "/admin/categories", icon: LayoutDashboard, role: ROLES.ADMIN },
         { label: "Duyuru Gönder", href: "/admin/reminders", icon: Bell, role: ROLES.SUPER_ADMIN },
+        { label: "Kategori Önerileri", href: "/admin/suggestions", icon: MessageSquare, role: ROLES.ADMIN },
     ].filter(link => level >= link.role)
 
     return (
@@ -304,60 +304,6 @@ export default async function AdminPage() {
                             </CardContent>
                         </Card>
                     </div>
-
-                    {/* System Logs */}
-                    <Card className="border-none shadow-lg bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base font-bold flex items-center gap-2">
-                                    <Activity className="h-4 w-4 text-blue-500" />
-                                    Sistem Logları
-                                </CardTitle>
-                                <Button variant="ghost" size="sm" asChild className="h-8 text-xs underline decoration-indigo-500/30 underline-offset-4">
-                                    <Link href="/admin/logs">Tümü</Link>
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="divide-y divide-indigo-50/50 dark:divide-slate-800/50">
-                                {systemLogs && systemLogs.length > 0 ? (
-                                    systemLogs.map((log: any) => (
-                                        <div key={log.id} className="p-4 hover:bg-white/80 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${log.operation === 'INSERT' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                                                    log.operation === 'UPDATE' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                        log.operation === 'DELETE' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                                                            'bg-gray-100 text-gray-600'
-                                                    }`}>
-                                                    <Activity className="h-4 w-4" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                                        {log.table_name} • {log.operation}
-                                                    </span>
-                                                    <span className="text-sm font-medium">
-                                                        {log.profiles ? `${log.profiles.first_name} ${log.profiles.last_name}` : 'Sistem'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-[10px] text-muted-foreground block">
-                                                    {new Date(log.changed_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
-                                                </span>
-                                                <span className="text-[10px] text-muted-foreground block">
-                                                    {new Date(log.changed_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' })}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-8 text-center text-sm text-muted-foreground">
-                                        Henüz log kaydı yok.
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 {/* Sidebar Info */}
@@ -424,6 +370,60 @@ export default async function AdminPage() {
                                         Bakım modu şu anda {isMaintenance ? 'AKTİF' : 'kapalı'}.
                                     </span>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* System Logs */}
+                    <Card className="border-none shadow-lg bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base font-bold flex items-center gap-2">
+                                    <Activity className="h-4 w-4 text-blue-500" />
+                                    Sistem Logları
+                                </CardTitle>
+                                <Button variant="ghost" size="sm" asChild className="h-8 text-xs underline decoration-indigo-500/30 underline-offset-4">
+                                    <Link href="/admin/logs">Tümü</Link>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="divide-y divide-indigo-50/50 dark:divide-slate-800/50">
+                                {systemLogs && systemLogs.length > 0 ? (
+                                    systemLogs.map((log: any) => (
+                                        <div key={log.id} className="p-4 hover:bg-white/80 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${log.operation === 'INSERT' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                                                    log.operation === 'UPDATE' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                        log.operation === 'DELETE' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                                                            'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                    <Activity className="h-4 w-4" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                        {log.table_name} • {log.operation}
+                                                    </span>
+                                                    <span className="text-sm font-medium">
+                                                        {log.profiles ? `${log.profiles.first_name} ${log.profiles.last_name}` : 'Sistem'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] text-muted-foreground block">
+                                                    {new Date(log.changed_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground block">
+                                                    {new Date(log.changed_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-8 text-center text-sm text-muted-foreground">
+                                        Henüz log kaydı yok.
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

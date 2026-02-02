@@ -183,35 +183,19 @@ export async function deleteCategory(categoryId: string) {
 
     const supabase = await createClient()
 
-    // Kategoriye ait oy var mı kontrol et
-    const { data: votes } = await supabase
-        .from("survey_votes")
-        .select("id")
-        .eq("category_id", categoryId)
-        .limit(1)
+    // survey_votes.category_id FK'si ON DELETE CASCADE ise:
+    // kategori silinince oylar otomatik silinir.
+    // user_category_suggestions.approved_category_id FK'si ON DELETE SET NULL ise:
+    // kategori silinince otomatik null olur.
 
-    if (votes && votes.length > 0) {
-        return { error: "Bu kategoride oylar var, önce oyları silmeniz gerekiyor veya kategoriyi pasife alın" }
-    }
-
-    // Fix FK constraint issue manually
-    const { error: updateError } = await supabase
-        .from("user_category_suggestions")
-        .update({ approved_category_id: null })
-        .eq("approved_category_id", categoryId)
-
-    if (updateError) {
-        console.error("Update related suggestions error:", updateError)
-    }
-
-    const { error } = await supabase
+    const { error: deleteError } = await supabase
         .from("survey_categories")
         .delete()
         .eq("id", categoryId)
 
-    if (error) {
-        console.error("Delete category error:", error)
-        return { error: "Kategori silinirken hata oluştu" }
+    if (deleteError) {
+        console.error("Delete category error:", deleteError)
+        return { error: deleteError.message || "Kategori silinirken hata oluştu" }
     }
 
     await reorderCategories(supabase)
@@ -221,6 +205,7 @@ export async function deleteCategory(categoryId: string) {
 
     return { success: true }
 }
+
 
 export async function updateCategory(categoryId: string, data: Partial<CategoryFormData>) {
     // Merkezi admin kontrolü
@@ -270,51 +255,4 @@ export async function updateCategory(categoryId: string, data: Partial<CategoryF
     revalidatePath("/surveys")
 
     return { success: true }
-}
-
-export async function deleteVotesForCategory(categoryId: string) {
-    // Merkezi admin kontrolü (UI / API güvenliği için)
-    const auth = await checkAdmin()
-    const adminClient = await createAdminClient()
-    if (!auth.success) return { error: auth.error }
-
-    // Önce kaç oy var al (admin client → RLS yok)
-    const { count, error: countError } = await adminClient
-        .from("survey_votes")
-        .select("id", { count: "exact", head: true })
-        .eq("category_id", categoryId)
-
-    if (countError) {
-        return { error: "Oy sayısı alınamadı: " + countError.message }
-    }
-
-    // Oyları sil
-    const { error: deleteError } = await adminClient
-        .from("survey_votes")
-        .delete()
-        .eq("category_id", categoryId)
-
-    if (deleteError) {
-        return { error: "Oylar silinirken hata oluştu: " + deleteError.message }
-    }
-
-    revalidatePath("/admin/categories")
-    revalidatePath("/surveys")
-    revalidatePath(`/surveys/${categoryId}`)
-
-    return {
-        success: true,
-        deletedCount: count ?? 0,
-    }
-}
-
-export async function getVoteCountForCategory(categoryId: string) {
-    const supabase = await createClient()
-
-    const { count } = await supabase
-        .from("survey_votes")
-        .select("id", { count: 'exact', head: true })
-        .eq("category_id", categoryId)
-
-    return count || 0
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { updateCategory, deleteVotesForCategory, getVoteCountForCategory } from "./actions"
+import { updateCategory } from "./actions"
 import { type SurveyCategory } from "@/lib/survey-categories"
 import { X, Save, Loader2, Trash2, AlertTriangle, Vote } from "lucide-react"
 
@@ -43,9 +43,6 @@ export default function CategoryEditModal({ category, isOpen, onClose }: Categor
         sort_order: category.sort_order || 0
     })
     const [isLoading, setIsLoading] = useState(false)
-    const [isDeletingVotes, setIsDeletingVotes] = useState(false)
-    const [showDeleteVotesConfirm, setShowDeleteVotesConfirm] = useState(false)
-    const [voteCount, setVoteCount] = useState<number | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [mounted, setMounted] = useState(false)
@@ -84,12 +81,6 @@ export default function CategoryEditModal({ category, isOpen, onClose }: Categor
             })
             setError(null)
             setSuccess(null)
-            setShowDeleteVotesConfirm(false)
-
-            // Oy sayısını al
-            getVoteCountForCategory(category.id).then(count => {
-                setVoteCount(count)
-            })
         }
     }, [category, isOpen])
 
@@ -127,28 +118,6 @@ export default function CategoryEditModal({ category, isOpen, onClose }: Categor
             setError("Bir hata oluştu")
         } finally {
             setIsLoading(false)
-        }
-    }
-
-    const handleDeleteVotes = async () => {
-        setIsDeletingVotes(true)
-        setError(null)
-        setSuccess(null)
-
-        try {
-            const result = await deleteVotesForCategory(category.id)
-            if (result.error) {
-                setError(result.error)
-            } else {
-                setSuccess(`${result.deletedCount} oy başarıyla silindi!`)
-                setVoteCount(0)
-                setShowDeleteVotesConfirm(false)
-                router.refresh()
-            }
-        } catch {
-            setError("Oylar silinirken bir hata oluştu")
-        } finally {
-            setIsDeletingVotes(false)
         }
     }
 
@@ -257,8 +226,8 @@ export default function CategoryEditModal({ category, isOpen, onClose }: Categor
                                     type="button"
                                     onClick={() => setFormData({ ...formData, color: option.value })}
                                     className={`h-8 w-12 rounded-lg bg-gradient-to-r ${option.value} transition-all ${formData.color === option.value
-                                            ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
-                                            : 'hover:scale-105'
+                                        ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
+                                        : 'hover:scale-105'
                                         }`}
                                     title={option.label}
                                 />
@@ -278,77 +247,6 @@ export default function CategoryEditModal({ category, isOpen, onClose }: Categor
                                 <p className="text-sm text-slate-500">{formData.description}</p>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Oyları Sil Bölümü */}
-                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Vote className="h-4 w-4 text-amber-600" />
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Oy Yönetimi
-                            </span>
-                            {voteCount !== null && (
-                                <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold">
-                                    {voteCount} oy
-                                </span>
-                            )}
-                        </div>
-
-                        {showDeleteVotesConfirm ? (
-                            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                                            Tüm oylar silinecek!
-                                        </p>
-                                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                                            Bu kategorideki {voteCount} oy geri alınamaz şekilde silinecek.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={handleDeleteVotes}
-                                        disabled={isDeletingVotes}
-                                        className="flex-1"
-                                    >
-                                        {isDeletingVotes ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Evet, Sil
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowDeleteVotesConfirm(false)}
-                                        className="flex-1"
-                                    >
-                                        İptal
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowDeleteVotesConfirm(true)}
-                                disabled={voteCount === 0}
-                                className="w-full text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30 disabled:opacity-50"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Bu Kategorideki Oyları Sil {voteCount !== null && `(${voteCount})`}
-                            </Button>
-                        )}
                     </div>
 
                     {/* Hata */}
