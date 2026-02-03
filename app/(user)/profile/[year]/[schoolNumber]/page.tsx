@@ -15,7 +15,7 @@ import { getBadge } from "@/lib/profile-utils"
 interface ProfilePageProps {
     params: {
         schoolNumber: string
-        year?: string
+        year: string
     }
 }
 

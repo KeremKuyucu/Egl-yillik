@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const user = (await supabase.auth.getUser()).data.user
+  const user = (await supabase.auth.getSession()).data.session?.user
 
   // --- REDIRECT HELPER ---
   const redirect = (path: string, includeCallback = false) => {

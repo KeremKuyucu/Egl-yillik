@@ -22,27 +22,3 @@ export async function updateSiteSetting(key: string, value: string) {
     revalidatePath("/admin/reminders")
     return { success: true }
 }
-
-export async function getReminderSettings() {
-    const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
-
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from("site_settings")
-        .select("key, value")
-        .in("key", ["reminder_auto_enabled", "reminder_auto_interval", "reminder_last_run"])
-
-    if (error) {
-        console.error("Error fetching reminder settings:", error)
-        return { error: error.message }
-    }
-
-    const settings = {
-        enabled: data.find(s => s.key === "reminder_auto_enabled")?.value === "true",
-        interval: parseInt(data.find(s => s.key === "reminder_auto_interval")?.value || "3"),
-        lastRun: data.find(s => s.key === "reminder_last_run")?.value || null
-    }
-
-    return { success: true, settings }
-}

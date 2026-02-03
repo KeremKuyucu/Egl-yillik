@@ -27,7 +27,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { getColorFromName } from "@/lib/survey-categories"
-import { AutoReminderSettings } from "@/components/admin/auto-reminder-settings"
 
 import { UserWithStats, FilterStatus, FilterClass, EmailStatus } from "@/types/reminder"
 import { requireSuperAdmin } from "@/lib/auth"
@@ -267,9 +266,6 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                     </Button>
                 </div>
             </div>
-
-            {/* Otomatik Hatırlatıcı Ayarları */}
-            <AutoReminderSettings />
 
             {/* İstatistik Kartları */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
