@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { getAuthContext } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { isVotingEnabled } from "@/lib/settings"
 
@@ -33,8 +33,9 @@ export async function submitSurveyVote(
         return { error: "Geçersiz veya pasif kategori" }
     }
 
-    // JWT'den kullanıcı ve profil bilgilerini al
-    const { user, profile: userProfile } = await getAuthContext()
+    const user = await getCurrentUser()
+    const userProfile = await getCurrentProfile()
+  
 
     if (!user) {
         return { error: "Oturum açmanız gerekiyor" }
