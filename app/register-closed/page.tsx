@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardTitle, CardDescription, CardHeader, CardContent } from "@/components/ui/card"
 import { Lock } from "lucide-react"
 import Link from "next/link"
+export const dynamic = "force-dynamic"
 import LogoutButton from "@/components/common/logout-button"
 import { getCurrentUser } from "@/lib/auth"
 

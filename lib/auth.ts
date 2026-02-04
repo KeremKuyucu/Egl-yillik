@@ -90,36 +90,3 @@ export const requireAdmin = () => requireLevel(ROLES.ADMIN)
 export const requireUser = () => requireLevel(ROLES.USER)
 export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN)
 export const requireOwner = () => requireLevel(ROLES.OWNER)
-
-// ============================================
-// SERVER ACTION İÇİN (Return Object)
-// ============================================
-
-export type AuthResult = {
-    success: true;
-    user: { id: string; email?: string };
-    level: number;
-} | {
-    success: false;
-    error: string;
-}
-
-export async function checkLevel(minLevel: number): Promise<AuthResult> {
-    const user = await getAuthUser()
-    const level = await getAuthLevel()
-
-    if (!user) {
-        return { success: false, error: "Oturum açmanız gerekiyor" }
-    }
-
-    if (level < minLevel) {
-        return { success: false, error: "Bu işlem için yetkiniz yok" }
-    }
-
-    return { success: true, user, level }
-}
-
-export const checkAdmin = () => checkLevel(ROLES.ADMIN)
-export const checkSuperAdmin = () => checkLevel(ROLES.SUPER_ADMIN)
-export const checkOwner = () => checkLevel(ROLES.OWNER)
-

@@ -1,4 +1,4 @@
-import { requireAdmin, getCurrentUser, getCurrentLevel } from "@/lib/auth"
+import { requireAdmin, getCurrentLevel, getCurrentProfile } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
