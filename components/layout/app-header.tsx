@@ -226,27 +226,225 @@ export function AppHeader({
                       #{userProfile?.school_number}
                     </p>
                   </div>
+                  <div className="ml-auto">
+                    <ModeToggle />
+                  </div>
                 </div>
 
-                {/* Nav items - Premium */}
-                <div className="space-y-1 mb-3">
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
-                          isActive(item.href)
-                            ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                        )}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span className="font-medium text-sm">{item.label}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </div>
+                {/* Nav items - Premium with Categories */}
+                {mode === "admin" ? (
+                  <>
+                    {/* Admin Kategorileri */}
+                    {level >= ROLES.ADMIN && (
+                      <>
+                        <div className="px-3 py-2 mb-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Genel Yönetim
+                          </h3>
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin") && !pathname.includes("/admin/")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <ChartNoAxesCombined className="w-4 h-4" />
+                              <span className="font-medium text-sm">Genel Bakış</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+
+                        <div className="px-3 py-2 mb-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            İçerik Yönetimi
+                          </h3>
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/categories"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/categories")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <LayoutDashboard className="w-4 h-4" />
+                              <span className="font-medium text-sm">Kategoriler</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/suggestions"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/suggestions")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              <span className="font-medium text-sm">Kategori Önerileri</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+
+                        <div className="px-3 py-2 mb-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Kullanıcı Yönetimi
+                          </h3>
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/users"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/users")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <Users className="w-4 h-4" />
+                              <span className="font-medium text-sm">Öğrenciler</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/feedback"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/feedback")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <MessageSquarePlus className="w-4 h-4" />
+                              <span className="font-medium text-sm">Geri Bildirimler</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Super Admin Kategorileri */}
+                    {level >= ROLES.SUPER_ADMIN && (
+                      <>
+                        <div className="px-3 py-2 mb-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
+                            Gelişmiş Yönetim
+                          </h3>
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/texts"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/texts")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span className="font-medium text-sm">Yazılar</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/votes"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/votes")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <Vote className="w-4 h-4" />
+                              <span className="font-medium text-sm">Anket Sonuçları</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/reminders"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/reminders")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <Bell className="w-4 h-4" />
+                              <span className="font-medium text-sm">Hatırlatıcılar</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+
+                        <div className="px-3 py-2 mb-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
+                            Sistem Yönetimi
+                          </h3>
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/settings"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/settings")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <Settings className="w-4 h-4" />
+                              <span className="font-medium text-sm">Site Ayarları</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/admin/logs"
+                              className={cn(
+                                "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                                isActive("/admin/logs")
+                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <ShieldAlert className="w-4 h-4" />
+                              <span className="font-medium text-sm">Aktivite Logları</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  /* User Sayfaları - Kategori olmadan */
+                  <div className="space-y-1 mb-3">
+                    {navItems.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                            isActive(item.href)
+                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span className="font-medium text-sm">{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
 
                 {mode === "admin" && (
                   <>
@@ -348,24 +546,195 @@ export function AppHeader({
 
               {mode === "admin" && (
                 <>
-                  <div className="space-y-1 mb-2">
-                    {navItems.map((item) => (
-                      <DropdownMenuItem key={item.href} asChild>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
-                            isActive(item.href)
-                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
-                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                          )}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span className="font-medium text-sm">{item.label}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </div>
+                  {/* Admin Kategorileri - Desktop */}
+                  {level >= ROLES.ADMIN && (
+                    <>
+                      <div className="px-3 py-1.5 mb-1">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Genel Yönetim
+                        </h3>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin") && !pathname.includes("/admin/")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <ChartNoAxesCombined className="w-4 h-4" />
+                            <span className="font-medium text-sm">Genel Bakış</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+
+                      <div className="px-3 py-1.5 mb-1">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          İçerik Yönetimi
+                        </h3>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/categories"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/categories")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            <span className="font-medium text-sm">Kategoriler</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/suggestions"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/suggestions")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            <span className="font-medium text-sm">Kategori Önerileri</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+
+                      <div className="px-3 py-1.5 mb-1">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Kullanıcı Yönetimi
+                        </h3>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/users"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/users")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <Users className="w-4 h-4" />
+                            <span className="font-medium text-sm">Öğrenciler</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/feedback"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/feedback")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <MessageSquarePlus className="w-4 h-4" />
+                            <span className="font-medium text-sm">Geri Bildirimler</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Super Admin Kategorileri - Desktop */}
+                  {level >= ROLES.SUPER_ADMIN && (
+                    <>
+                      <div className="px-3 py-1.5 mb-1">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
+                          Gelişmiş Yönetim
+                        </h3>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/texts"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/texts")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span className="font-medium text-sm">Yazılar</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/votes"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/votes")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <Vote className="w-4 h-4" />
+                            <span className="font-medium text-sm">Anket Sonuçları</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/reminders"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/reminders")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <Bell className="w-4 h-4" />
+                            <span className="font-medium text-sm">Hatırlatıcılar</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+
+                      <div className="px-3 py-1.5 mb-1">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
+                          Sistem Yönetimi
+                        </h3>
+                      </div>
+                      <div className="space-y-1 mb-2">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/settings"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/settings")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <Settings className="w-4 h-4" />
+                            <span className="font-medium text-sm">Site Ayarları</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin/logs"
+                            className={cn(
+                              "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                              isActive("/admin/logs")
+                                ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                            <span className="font-medium text-sm">Aktivite Logları</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+                    </>
+                  )}
                   <DropdownMenuSeparator className="my-2 bg-slate-200 dark:bg-slate-800" />
                 </>
               )}
