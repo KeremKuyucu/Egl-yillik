@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth"
+import { getCurrentLevel, getCurrentProfile, getCurrentUser} from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -31,7 +31,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 export default async function AdminPage() {
-    const { user, profile, level } = await requireAdmin()
+    
+    const user = await getCurrentUser()
+    const profile = await getCurrentProfile()
+    const level = await getCurrentLevel()
+  
     const supabase = await createClient()
 
     // Fetch overview stats via RPC

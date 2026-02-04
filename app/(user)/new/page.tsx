@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getAuthContext } from "@/lib/auth"
+import { getCurrentUser, getCurrentProfile } from "@/lib/auth"
 import NewTextForm from "@/components/texts/new-text-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,9 +21,9 @@ export default async function NewTextPage({
 }) {
   const { recipientId } = await searchParams
 
-  // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
-  const { user, profile: userProfile } = await getAuthContext()
-
+  const user = await getCurrentUser()
+  const userProfile = await getCurrentProfile()
+  
   // TypeScript için null check (middleware zaten kontrol ediyor)
   if (!user || !userProfile) {
     return null

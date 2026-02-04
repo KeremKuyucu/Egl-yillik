@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth"
+import { requireAdmin, getCurrentUser, getCurrentLevel } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,7 +43,9 @@ export default async function AdminLayout({
 }: {
     children: React.ReactNode
 }) {
-    const { profile: currentProfile, level: currentLevel } = await requireAdmin()
+    await requireAdmin()
+    const currentProfile = await getCurrentProfile()
+    const currentLevel = await getCurrentLevel()
     const levelInfo = getLevelInfo(currentLevel)
 
     // Categorized navigation structure

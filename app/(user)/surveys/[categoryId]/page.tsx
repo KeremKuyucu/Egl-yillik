@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getAuthContext } from "@/lib/auth"
+import { getCurrentProfile,getCurrentUser } from "@/lib/auth"
 import { notFound } from "next/navigation"
 import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
@@ -15,8 +15,8 @@ interface SurveyCategoryPageProps {
 export default async function SurveyCategoryPage({ params }: SurveyCategoryPageProps) {
     const { categoryId } = await params
 
-    // JWT'den user ve profile bilgilerini al (middleware zaten auth kontrolü yapıyor)
-    const { user, profile: userProfile } = await getAuthContext()
+    const user = await getCurrentUser()
+    const userProfile = await getCurrentProfile()
 
     // TypeScript için null check
     if (!user || !userProfile) {

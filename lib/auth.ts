@@ -52,14 +52,6 @@ export const getAuthProfile = cache(async () => {
 
     return data
 })
-export const getAuthContext = cache(async () => {
-    const [user, level, profile] = await Promise.all([
-        getAuthUser(),
-        getAuthLevel(),
-        getAuthProfile()
-    ])
-    return { user, level, profile }
-})
 
 // ============================================
 // HELPER FUNCTIONS

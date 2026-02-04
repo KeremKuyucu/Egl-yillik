@@ -9,7 +9,6 @@ import { Mail, BellOff, Loader2, CheckCircle2, ArrowLeft } from "lucide-react"
 import { toggleEmailReminders, getEmailPreference } from "@/app/actions/email-preferences"
 import { toast } from "sonner"
 import Link from "next/link"
-import { getAuthContext } from "@/lib/auth"
 
 export default function UnsubscribePage() {
     const [isOptedOut, setIsOptedOut] = useState(false)
