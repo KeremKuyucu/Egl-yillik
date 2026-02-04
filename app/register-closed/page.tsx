@@ -6,7 +6,7 @@ import LogoutButton from "@/components/common/logout-button"
 import { getCurrentUser } from "@/lib/auth"
 
 export default async function RegisterClosedPage() {
-    user = getCurrentUser()
+    const user = await getCurrentUser()
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
             <div className="w-full max-w-md">
