@@ -43,7 +43,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils'
-import { useRequireSuperAdmin } from '@/lib/auth-client'
 
 interface Profile {
     id: string
@@ -70,8 +69,6 @@ export default function AdminTextsPage() {
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<FilterType>('all')
     const [searchQuery, setSearchQuery] = useState('')
-
-    useRequireSuperAdmin()
 
     const fetchTexts = async () => {
         setIsLoading(true)

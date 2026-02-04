@@ -1,11 +1,9 @@
-import { requireSuperAdmin } from "@/lib/auth"
+
 import ReminderClientPage from "./client"
 import type { BulkStatsRPCResponse, UserWithStats } from "@/types/reminder"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function ReminderPage() {
-    await requireSuperAdmin()
-
     const supabase = await createClient();
 
     // ✅ TEK BİR RPC ÇAĞRISI - Email dahil tüm veriler birleşik geliyor

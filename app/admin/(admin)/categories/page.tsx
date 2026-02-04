@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { requireAdmin } from "@/lib/auth"
 import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,8 +16,6 @@ import CategoryForm from "./category-form"
 import CategoryActions from "./category-actions"
 
 export default async function AdminCategoriesPage() {
-    await requireAdmin()
-
     const supabase = await createClient()
 
     // Tüm kategorileri çek (aktif ve pasif)

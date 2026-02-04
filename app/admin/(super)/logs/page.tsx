@@ -1,4 +1,3 @@
-import { requireSuperAdmin } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import LogsClient from "./logs-client"
 
@@ -8,7 +7,6 @@ export const metadata = {
 }
 
 export default async function AdminLogsPage() {
-    await requireSuperAdmin()
     const supabase = await createClient()
 
     const { data: logs } = await supabase

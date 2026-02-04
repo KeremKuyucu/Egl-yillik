@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar, Save, Loader2, AlertCircle, MessageSquare, Vote, UserPlus, GraduationCap, LockOpen, Construction, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate, updateTextSetting } from "@/app/admin/settings/actions"
+import { useRequireSuperAdmin } from '@/lib/auth-client'
 
 export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true)
@@ -37,7 +38,7 @@ export default function AdminSettingsPage() {
     const [savingAnnouncement, setSavingAnnouncement] = useState(false)
     const [announcementMessage, setAnnouncementMessage] = useState("")
 
-
+    useRequireSuperAdmin()
 
     useEffect(() => {
         loadSettings()

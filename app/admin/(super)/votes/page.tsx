@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { requireSuperAdmin } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -47,7 +46,6 @@ interface VotesData {
 }
 
 export default async function AdminVotesPage() {
-    await requireSuperAdmin()
     const supabase = await createClient()
 
 

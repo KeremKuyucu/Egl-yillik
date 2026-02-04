@@ -1,11 +1,9 @@
 "use server"
 
 import { createClient } from '@/lib/supabase/server';
-import { checkSuperAdmin } from '@/lib/auth';
 
 export async function updateGraduationDate(dateString: string, year?: number) {
     // Merkezi super admin kontrolü
-    const auth = await checkSuperAdmin();
     if (!auth.success) return { error: auth.error };
 
     const supabase = await createClient();

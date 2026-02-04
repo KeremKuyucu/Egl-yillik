@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { requireAdmin } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,8 +30,6 @@ interface Suggestion {
 }
 
 export default async function AdminSuggestionsPage() {
-    await requireAdmin()
-
     const supabase = await createClient()
 
     // Tüm önerileri çek
