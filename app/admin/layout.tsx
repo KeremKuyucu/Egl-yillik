@@ -7,7 +7,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const currentProfile = await getCurrentProfile()
   const currentLevel = await getCurrentLevel()
-
+    
+  const handleSignOut = async () => {
+    "use server"
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect("/login")
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground font-sans transition-colors duration-300">
       {/* aynı user layout’taki gibi blobları istersen buraya da koy */}
