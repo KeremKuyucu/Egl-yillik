@@ -40,7 +40,7 @@ type NavItem = {
   href: string
   label: string
   icon: any
-  minRole?: number // admin nav için
+  minRole?: number
 }
 
 interface PrettyAppHeaderProps {
@@ -48,11 +48,9 @@ interface PrettyAppHeaderProps {
   userProfile: any
   level: number
   signOut: () => Promise<void>
-
-  // opsiyonel
-  brandHref?: string // default: user=/home, admin=/admin
-  brandLabel?: string // default: EGL
-  showNewButton?: boolean // default: user=true, admin=false
+  brandHref?: string
+  brandLabel?: string
+  showNewButton?: boolean
 }
 
 export function AppHeader({
@@ -73,11 +71,8 @@ export function AppHeader({
 
   const profileLink = `/profile/${userProfile.user_year}/${userProfile.school_number}`
 
-  const computedBrandHref =
-    brandHref ?? (mode === "admin" ? "/admin" : "/home")
-
-  const computedShowNewButton =
-    showNewButton ?? (mode === "user")
+  const computedBrandHref = brandHref ?? (mode === "admin" ? "/admin" : "/home")
+  const computedShowNewButton = showNewButton ?? (mode === "user")
 
   const userNavItems: NavItem[] = [
     { href: "/home", label: "Ana Sayfa", icon: Home },
@@ -93,7 +88,6 @@ export function AppHeader({
     { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, minRole: ROLES.ADMIN },
     { href: "/admin/users", label: "Öğrenciler", icon: Users, minRole: ROLES.ADMIN },
     { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, minRole: ROLES.ADMIN },
-
     { href: "/admin/texts", label: "Yazılar", icon: FileText, minRole: ROLES.SUPER_ADMIN },
     { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, minRole: ROLES.SUPER_ADMIN },
     { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, minRole: ROLES.SUPER_ADMIN },
@@ -104,43 +98,54 @@ export function AppHeader({
   const navItems = mode === "admin" ? adminNavItems : userNavItems
 
   return (
-    <header className="border-b border-indigo-100/50 dark:border-indigo-900/30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl sticky top-0 z-50 shadow-lg transition-all duration-300">
+    <header className="border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-lg ring-1 ring-slate-200/50 dark:ring-slate-800/50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left: Logo + Pills */}
-        <div className="flex items-center gap-8">
-          <Link href={computedBrandHref} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="relative w-8 h-8">
-              <div className="absolute inset-0 bg-indigo-500 rounded-lg rotate-6 opacity-20"></div>
-              <img src="/image.png" className="w-8 h-8 relative z-10" alt="Logo" />
+        <div className="flex items-center gap-6">
+          <Link 
+            href={computedBrandHref} 
+            className="flex items-center gap-3 group transition-all duration-300"
+          >
+            <div className="relative w-10 h-10">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl rotate-6 opacity-20 group-hover:rotate-12 group-hover:opacity-30 transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl opacity-10 group-hover:opacity-20 transition-opacity duration-300"></div>
+              <img 
+                src="/image.png" 
+                className="w-10 h-10 relative z-10 drop-shadow-lg group-hover:scale-105 transition-transform duration-300" 
+                alt="Logo" 
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-serif">
+            <div className="flex items-center gap-2.5">
+              <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent font-serif tracking-tight">
                 {brandLabel}
               </span>
 
               {mode === "admin" && (
-                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gradient-to-r from-red-50 to-rose-50 text-red-700 dark:from-red-950/30 dark:to-rose-950/30 dark:text-red-300 border border-red-200 dark:border-red-800 shadow-sm">
                   Admin
                 </span>
               )}
             </div>
           </Link>
 
-          {/* Desktop Pills */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl">
+          {/* Desktop Pills - Premium Style */}
+          <nav className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-slate-50/80 to-slate-100/80 dark:from-slate-800/50 dark:to-slate-800/30 p-1.5 rounded-2xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "gap-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 transition-all",
-                    isActive(item.href) && "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
+                    "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
+                    "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
+                    isActive(item.href) && 
+                    "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
-                  {item.label}
+                  <span>{item.label}</span>
                 </Button>
               </Link>
             ))}
@@ -148,14 +153,14 @@ export function AppHeader({
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-2">
-          {/* User modunda admin shortcut */}
+        <div className="flex items-center gap-3">
+          {/* Admin Shortcut - Premium Style */}
           {mode === "user" && level >= ROLES.ADMIN && (
             <Link href="/admin" className="hidden lg:flex">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                className="gap-2 px-4 rounded-xl font-medium border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
               >
                 <Shield className="w-4 h-4" />
                 <span className="hidden xl:inline">Yönetim</span>
@@ -163,12 +168,12 @@ export function AppHeader({
             </Link>
           )}
 
-          {/* New Button (user varsayılan açık, admin kapalı) */}
+          {/* New Button - Premium Style */}
           {computedShowNewButton && (
             <Link href="/new" className="hidden sm:flex">
               <Button
                 size="sm"
-                className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20 rounded-xl"
+                className="gap-2 px-5 h-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden lg:inline">Yazı Yaz</span>
@@ -186,7 +191,7 @@ export function AppHeader({
               <Link href="/new">
                 <Button
                   size="icon"
-                  className="h-9 w-9 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-md"
+                  className="h-10 w-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-105"
                 >
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -195,101 +200,108 @@ export function AppHeader({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300"
+                >
                   <Menu className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-72 p-2">
-                {/* Header Card */}
-                <div className="flex items-center gap-3 p-2 mb-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold">
+              <DropdownMenuContent 
+                align="end" 
+                className="w-80 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-2xl"
+              >
+                {/* Header Card - Premium */}
+                <div className="flex items-center gap-3 p-3 mb-3 bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
                     {userProfile?.first_name?.[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">
+                    <p className="font-semibold text-sm truncate text-slate-900 dark:text-white">
                       {userProfile?.first_name} {userProfile?.last_name}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                       #{userProfile?.school_number}
                     </p>
                   </div>
                 </div>
 
-                {/* Nav items */}
-                {navItems.map((item) => (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 cursor-pointer p-2.5 rounded-lg mb-1",
-                        isActive(item.href)
-                          ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
-                          : "text-slate-600 dark:text-slate-400"
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
+                {/* Nav items - Premium */}
+                <div className="space-y-1 mb-3">
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
+                          isActive(item.href)
+                            ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/30"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        )}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span className="font-medium text-sm">{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </div>
 
-                {/* Admin modunda hızlı “siteye dön” */}
                 {mode === "admin" && (
                   <>
-                    <DropdownMenuSeparator className="my-2" />
+                    <DropdownMenuSeparator className="my-3 bg-slate-200 dark:bg-slate-800" />
                     <DropdownMenuItem asChild>
                       <Link
                         href="/home"
-                        className="flex items-center gap-3 cursor-pointer text-slate-600 dark:text-slate-400"
+                        className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                       >
-                        <ChevronRight className="w-4 h-4 opacity-70" />
-                        Siteye Dön
+                        <ChevronRight className="w-4 h-4" />
+                        <span className="font-medium text-sm">Siteye Dön</span>
                       </Link>
                     </DropdownMenuItem>
                   </>
                 )}
 
-                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuSeparator className="my-3 bg-slate-200 dark:bg-slate-800" />
 
                 {/* Profile + Settings */}
                 <DropdownMenuItem asChild>
                   <Link
                     href={profileLink}
-                    className="flex items-center gap-3 cursor-pointer text-slate-600 dark:text-slate-400"
+                    className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                   >
                     <User className="w-4 h-4" />
-                    Profilim
+                    <span className="font-medium text-sm">Profilim</span>
                   </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
                   <Link
                     href={mode === "admin" ? "/admin/settings" : "/settings"}
-                    className="flex items-center gap-3 cursor-pointer text-slate-600 dark:text-slate-400"
+                    className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                   >
                     <Settings className="w-4 h-4" />
-                    Ayarlar
+                    <span className="font-medium text-sm">Ayarlar</span>
                   </Link>
                 </DropdownMenuItem>
 
-                {/* User modunda Yönetim Paneli shortcut */}
                 {mode === "user" && level >= ROLES.ADMIN && (
                   <DropdownMenuItem asChild>
                     <Link
                       href="/admin"
-                      className="flex items-center gap-3 cursor-pointer text-rose-600 dark:text-rose-400"
+                      className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
                     >
                       <Shield className="w-4 h-4" />
-                      Yönetim Paneli
+                      <span className="font-medium text-sm">Yönetim Paneli</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
 
-                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuSeparator className="my-3 bg-slate-200 dark:bg-slate-800" />
 
                 <form action={signOut}>
-                  <button className="w-full flex items-center gap-3 px-2 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors">
+                  <button className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all">
                     <LogOut className="w-4 h-4" />
                     Çıkış Yap
                   </button>
@@ -298,81 +310,102 @@ export function AppHeader({
             </DropdownMenu>
           </div>
 
-          {/* Desktop User Menu (name click) */}
+          {/* Desktop User Menu - Premium */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="hidden md:flex">
               <Button
                 variant="ghost"
-                className="gap-3 pl-2 pr-4 h-10 rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                className="gap-3 pl-2 pr-4 h-11 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-105 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
               >
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                   {userProfile?.first_name?.[0]}
                 </div>
-                <div className="flex flex-col items-start text-xs">
-                  <span className="font-semibold">{userProfile?.first_name}</span>
+                <div className="flex flex-col items-start">
+                  <span className="font-semibold text-sm text-slate-900 dark:text-white">
+                    {userProfile?.first_name}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                    #{userProfile?.school_number}
+                  </span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-64 mt-2 p-2">
-              <div className="px-2 py-1.5 text-xs text-slate-500 font-medium">
-                {userProfile?.first_name} {userProfile?.last_name}
+            <DropdownMenuContent 
+              align="end" 
+              className="w-72 mt-2 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-2xl"
+            >
+              <div className="px-3 py-2 mb-2 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800/30 dark:to-slate-800/20">
+                <p className="font-semibold text-sm text-slate-900 dark:text-white">
+                  {userProfile?.first_name} {userProfile?.last_name}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  #{userProfile?.school_number}
+                </p>
               </div>
 
-              <DropdownMenuSeparator className="my-2" />
+              <DropdownMenuSeparator className="my-2 bg-slate-200 dark:bg-slate-800" />
 
-              {/* Admin modunda dropdown içine admin nav da koy (tek yerden yönetim) */}
               {mode === "admin" && (
                 <>
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 cursor-pointer p-2.5 rounded-lg mb-1",
-                          isActive(item.href)
-                            ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
-                            : "text-slate-600 dark:text-slate-400"
-                        )}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-
-                  <DropdownMenuSeparator className="my-2" />
+                  <div className="space-y-1 mb-2">
+                    {navItems.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                            isActive(item.href)
+                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span className="font-medium text-sm">{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                  <DropdownMenuSeparator className="my-2 bg-slate-200 dark:bg-slate-800" />
                 </>
               )}
 
               <DropdownMenuItem asChild>
-                <Link href={profileLink} className="cursor-pointer gap-2">
+                <Link 
+                  href={profileLink} 
+                  className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
+                >
                   <User className="w-4 h-4" />
-                  Profilim
+                  <span className="font-medium text-sm">Profilim</span>
                 </Link>
               </DropdownMenuItem>
 
               <DropdownMenuItem asChild>
-                <Link href={mode === "admin" ? "/admin/settings" : "/settings"} className="cursor-pointer gap-2">
+                <Link 
+                  href={mode === "admin" ? "/admin/settings" : "/settings"} 
+                  className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
+                >
                   <Settings className="w-4 h-4" />
-                  Ayarlar
+                  <span className="font-medium text-sm">Ayarlar</span>
                 </Link>
               </DropdownMenuItem>
 
-              {/* Admin modunda siteye dön */}
               {mode === "admin" && (
                 <DropdownMenuItem asChild>
-                  <Link href="/home" className="cursor-pointer gap-2">
+                  <Link 
+                    href="/home" 
+                    className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
+                  >
                     <Home className="w-4 h-4" />
-                    Siteye Dön
+                    <span className="font-medium text-sm">Siteye Dön</span>
                   </Link>
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuSeparator className="my-2" />
+              <DropdownMenuSeparator className="my-2 bg-slate-200 dark:bg-slate-800" />
 
               <form action={signOut}>
-                <button className="w-full text-left flex items-center gap-2 px-2 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg">
+                <button className="w-full text-left flex items-center gap-3 px-3 py-3 text-sm font-medium text-red-600 dark:text-red-400 cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all">
                   <LogOut className="w-4 h-4" />
                   Çıkış Yap
                 </button>
