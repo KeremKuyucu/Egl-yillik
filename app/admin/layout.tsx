@@ -1,6 +1,6 @@
 import { requireAdmin, getCurrentLevel, getCurrentProfile } from "@/lib/auth"
 import Footer from "@/components/layout/footer"
-import { AdminHeader } from "@/components/layout/admin-header"
+import { AppHeader } from "@/components/layout/app-header"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin()
@@ -11,7 +11,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground font-sans transition-colors duration-300">
       {/* aynı user layout’taki gibi blobları istersen buraya da koy */}
-      <AdminHeader currentProfile={currentProfile} currentLevel={currentLevel} />
+      <AppHeader
+         mode="admin"
+         userProfile={currentProfile}
+         level={currentLevel}
+         signOut={handleSignOut}
+      />
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-32">
         {children}

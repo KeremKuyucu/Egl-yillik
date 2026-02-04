@@ -37,7 +37,12 @@ export default async function UserLayout({
                 <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-6000 dark:opacity-5"></div>
             </div>
 
-            <AppHeader userProfile={profile} signOut={handleSignOut} level={level} />
+            <AppHeader
+                mode="user"
+                userProfile={profile}
+                level={level}
+                signOut={handleSignOut}
+            />
 
             <main className="animate-in fade-in zoom-in-95 duration-500">
                 {children}
