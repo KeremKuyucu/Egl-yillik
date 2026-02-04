@@ -6,15 +6,8 @@ const hybridPaths = ["/update-password", "/auth/callback", "/register-closed"]
 
 export const config = {
   matcher: [
-    /*
-     * Aşağıdakiler hariç tüm istekleri yakala:
-     * - api (özellikle cron ve webhooks için muafiyet)
-     * - _next/static (statik dosyalar)
-     * - _next/image (resim optimizasyonu)
-     * - favicon.ico, logo.png vb. (statik varlıklar)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
-  ]
+    "/((?!api|_next/static|_next/image|favicon.ico|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 }
 
 export async function middleware(request: NextRequest) {
