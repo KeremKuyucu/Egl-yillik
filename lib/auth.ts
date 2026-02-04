@@ -79,19 +79,11 @@ export async function getCurrentProfile() {
 // ============================================
 
 export async function requireLevel(minLevel: number) {
-    const user = await getAuthUser()
-    const level = await getAuthLevel()
-    const profile = await getAuthProfile()
+  const user = await getAuthUser()
+  if (!user) redirect("/login")
 
-    if (!user) {
-        redirect("/login")
-    }
-
-    if (level < minLevel) {
-        redirect("/home")
-    }
-
-    return { user, level, profile }
+  const level = await getAuthLevel()
+  if (level < minLevel) redirect("/home")
 }
 
 export const requireAdmin = () => requireLevel(ROLES.ADMIN)
