@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { checkAdmin } from "@/lib/auth"
-import { createAdminClient } from "@/lib/supabase/admin"
 interface CategoryFormData {
     id: string
     title: string
