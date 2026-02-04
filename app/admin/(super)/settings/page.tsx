@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Calendar, Save, Loader2, AlertCircle, MessageSquare, Vote, UserPlus, GraduationCap, LockOpen, Construction, Megaphone } from "lucide-react"
 import { toast } from "sonner"
-import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate, updateTextSetting } from "@/app/admin/settings/actions"
+import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate, updateTextSetting } from "./actions"
 import { useRequireSuperAdmin } from '@/lib/auth-client'
 
 export default function AdminSettingsPage() {

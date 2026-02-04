@@ -2,13 +2,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardTitle, CardDescription, CardHeader, CardContent } from "@/components/ui/card"
 import { Lock } from "lucide-react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import LogoutButton from "@/components/common/logout-button"
 
 export default async function RegisterClosedPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
             <div className="w-full max-w-md">

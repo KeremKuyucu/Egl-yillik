@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getAuthContext } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth"
 import FutureMeForm from "@/components/future/future-me-form" // Assuming I just created this
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -9,7 +9,7 @@ import { isMessagingEnabled } from "@/lib/settings"
 export const dynamic = "force-dynamic"
 
 export default async function FutureMePage() {
-    const { user } = await getAuthContext()
+    const user  = await getCurrentUser()
     if (!user) return null
 
     // Sistem kontrolü
