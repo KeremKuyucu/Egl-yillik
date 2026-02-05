@@ -64,7 +64,6 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
         .select("id, first_name, last_name, class, school_number, user_year")
         .eq("class", userProfile.class)
         .eq("user_year", userProfile.user_year)
-        .neq("id", user.id)
         .order("first_name")
 
     // Kullanıcının bu kategoride daha önce oy verip vermediğini kontrol et

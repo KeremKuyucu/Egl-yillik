@@ -45,12 +45,6 @@ export async function submitSurveyVote(
         return { error: "Kullanıcı profili bulunamadı" }
     }
 
-    // Oy verilecek kişi kontrolü
-    // Kendine oy veremez
-    if (user.id === votedForId) {
-        return { error: "Kendinize oy veremezsiniz" }
-    }
-
     // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
     // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
     const { data: votedFor } = await supabase
