@@ -65,10 +65,9 @@ export default async function NewTextPage({
 
   // Kullanıcının daha önce yazdığı metinler
   const { data: existingTexts, error: textsErr } = await supabase
-  .from("texts")
-  .select("recipient_id")
-  .eq("author_id", user.id)
-  .eq("user_year", userProfile.user_year)
+    .from("texts")
+    .select("recipient_id")
+    .eq("author_id", user.id)
 
   if (textsErr) console.error(textsErr)
 
