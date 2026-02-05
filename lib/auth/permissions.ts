@@ -26,6 +26,8 @@ export const PERMS = {
     EMAIL_OPT_OUTS_READ: "email_opt_outs.read",
     SITE_SETTINGS_WRITE: "site.settings.write",
     SYSTEM_LOGS_CLEANUP: "system.logs.cleanup",
+    REMINDERS_SEND: "reminders.send",
+    REMINDERS_READ: "reminders.read",
 } as const;
 
 export type PermKey = (typeof PERMS)[keyof typeof PERMS];
@@ -135,6 +137,13 @@ export const requireSiteSettingsWrite = makeRequire(PERMS.SITE_SETTINGS_WRITE);
 // system logs
 export const checkSystemLogsCleanup = makeCheck(PERMS.SYSTEM_LOGS_CLEANUP);
 export const requireSystemLogsCleanup = makeRequire(PERMS.SYSTEM_LOGS_CLEANUP);
+
+// reminders
+export const checkRemindersSend = makeCheck(PERMS.REMINDERS_SEND);
+export const requireRemindersSend = makeRequire(PERMS.REMINDERS_SEND);
+
+export const checkRemindersRead = makeCheck(PERMS.REMINDERS_READ);
+export const requireRemindersRead = makeRequire(PERMS.REMINDERS_READ);
 
 // -------------------- Role Checks --------------------
 

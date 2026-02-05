@@ -1,7 +1,7 @@
 "use server"
 
 import { Resend } from 'resend'
-import { checkSuperAdmin } from '@/lib/auth'
+import { checkRemindersSend } from '@/lib/auth/permissions'
 import { getDeadline } from '@/lib/settings'
 import { createClient } from "@/lib/supabase/server"
 import type { ClassStats, SurveyStats, EmailResult, BulkStatsRPCResponse } from '@/types/reminder'
@@ -16,8 +16,8 @@ export async function sendReminderEmail(
     surveyStats?: SurveyStats
 ): Promise<EmailResult> {
     // Merkezi super admin kontrolü
-    const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkRemindersSend()
+    if (!auth.ok) return { error: auth.error }
 
     if (!email) {
         return { error: 'Email not found for user' }
@@ -308,6 +308,10 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
 }
 
 export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
+    // Merkezi super admin kontrolü
+    const auth = await checkRemindersSend()
+    if (!auth.ok) return { error: auth.error }
+
     const results: Record<string, { success: boolean, error?: string }> = {}
 
     // 4. Gönderim döngüsü (Rate limit koruması için sıralı veya chunk'lı)
@@ -357,8 +361,8 @@ export async function processBulkReminders(targets: BulkStatsRPCResponse[]) {
 
 export async function sendBulkUsersReminders(userIds: string[]) {
     // 1. Yetki kontrolü
-    const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkRemindersSend()
+    if (!auth.ok) return { error: auth.error }
 
     // 2. Verileri taze çek
     const supabase = await createClient()
