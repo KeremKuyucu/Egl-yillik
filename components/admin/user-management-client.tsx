@@ -349,7 +349,7 @@ export function UserManagementClient({
                                         const userLevel = user.level ?? 0
                                         const canEditLevel = currentUserLevel > userLevel
                                         const isCurrentUser = user.id === currentUser.id
-                                        const canEditProfile = currentUserLevel >= ROLES.ADMIN && canEditLevel
+                                        const canEditProfile = (currentUserLevel >= ROLES.ADMIN && canEditLevel) || isCurrentUser
                                         const avatarColor = getAvatarColor(user.first_name)
                                         const initials = getInitials(user.first_name, user.last_name)
                                         const { text: activeText, isRecent } = formatLastActive(user.last_active)

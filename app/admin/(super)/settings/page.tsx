@@ -172,7 +172,6 @@ export default function AdminSettingsPage() {
                     messaging_enabled: 'Mesaj yazma',
                     voting_enabled: 'Oylama',
                     registration_enabled: 'Kayıt',
-                    maintenance_mode: 'Bakım modu',
                     announcement_enabled: 'Duyuru bannerı'
                 }
                 toast.success(`${labels[key]} ${value ? 'açıldı' : 'kapatıldı'}`)

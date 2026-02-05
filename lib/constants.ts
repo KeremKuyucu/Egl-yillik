@@ -1,6 +1,7 @@
 // lib/constants.ts
 
 export const ROLES = {
+    noAuth: 0,
     USER: 1,
     ADMIN: 50,
     SUPER_ADMIN: 100,
@@ -33,15 +34,22 @@ export const ROLE_DETAILS = {
         label: "Kullanıcı",
         description: "Standart: Sadece kendi profilini görebilir ve mesaj yazabilir.",
         badgeColor: "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900"
+    },
+    [ROLES.noAuth]: {
+        label: "Giriş Yapmamış",
+        description: "Standart: Hiçbir şey yapamaz.",
+        badgeColor: "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900"
     }
 } as const;
 
-export function getLevelInfo(level: number) {
+export function getLevelInfo(level: number | null) {
+    if (level === null) return ROLE_DETAILS[ROLES.noAuth];
     if (level >= ROLES.OWNER) return ROLE_DETAILS[ROLES.OWNER];
     if (level >= ROLES.SYSTEM_ADMIN) return ROLE_DETAILS[ROLES.SYSTEM_ADMIN];
     if (level >= ROLES.SUPER_ADMIN) return ROLE_DETAILS[ROLES.SUPER_ADMIN];
     if (level >= ROLES.ADMIN) return ROLE_DETAILS[ROLES.ADMIN];
-    return ROLE_DETAILS[ROLES.USER];
+    if (level >= ROLES.USER) return ROLE_DETAILS[ROLES.USER];
+    return ROLE_DETAILS[ROLES.noAuth];
 }
 
 // Tip güvenliği için (Opsiyonel ama önerilir)

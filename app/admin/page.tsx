@@ -1,4 +1,4 @@
-import { getCurrentLevel, getCurrentProfile, getCurrentUser} from "@/lib/auth"
+import { getCurrentLevel, getCurrentProfile, getCurrentUser } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -31,11 +31,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 export default async function AdminPage() {
-    
-    const user = await getCurrentUser()
+
     const profile = await getCurrentProfile()
     const level = await getCurrentLevel()
-  
+
     const supabase = await createClient()
 
     // Fetch overview stats via RPC
@@ -191,7 +190,7 @@ export default async function AdminPage() {
             role: ROLES.SUPER_ADMIN,
             gradient: "from-amber-500 to-orange-500"
         }
-    ].filter(link => level >= link.role)
+    ].filter(link => (level ?? 0) >= link.role)
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
