@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentProfile,getCurrentUser } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { notFound } from "next/navigation"
 import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"

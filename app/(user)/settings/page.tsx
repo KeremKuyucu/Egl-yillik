@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 import { ShieldCheck, KeyRound } from "lucide-react"
 import ChangePassword from "@/components/settings/change-password"
 import ChangeEmail from "@/components/settings/change-email"

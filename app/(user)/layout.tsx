@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentLevel, getCurrentProfile, getCurrentUser} from "@/lib/auth"
+import { getCurrentLevel, getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/layout/app-header"
 import Footer from "@/components/layout/footer"
@@ -12,7 +12,7 @@ export default async function UserLayout({
     const user = await getCurrentUser()
     const profile = await getCurrentProfile()
     const level = await getCurrentLevel()
-  
+
     if (!user) {
         redirect("/login")
     }

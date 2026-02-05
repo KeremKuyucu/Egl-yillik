@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 
 export async function toggleEmailReminders(isOptedOut: boolean) {
     // getUser() yerine merkezi fonksiyonu çağırıyoruz

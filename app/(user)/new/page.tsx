@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser, getCurrentProfile } from "@/lib/auth"
+import { getCurrentUser, getCurrentProfile } from "@/lib/auth/data"
 import NewTextForm from "@/components/texts/new-text-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,7 +23,7 @@ export default async function NewTextPage({
 
   const user = await getCurrentUser()
   const userProfile = await getCurrentProfile()
-  
+
   // TypeScript için null check (middleware zaten kontrol ediyor)
   if (!user || !userProfile) {
     return null

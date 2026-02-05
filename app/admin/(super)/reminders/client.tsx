@@ -25,11 +25,9 @@ import {
     PenLine,
     BellOff
 } from "lucide-react"
-import Link from "next/link"
 import { getColorFromName } from "@/lib/survey-categories"
 
 import { UserWithStats, FilterStatus, FilterClass, EmailStatus } from "@/types/reminder"
-import { requireSuperAdmin } from "@/lib/auth"
 import {
     BarChart,
     Bar,

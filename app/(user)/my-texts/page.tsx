@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import TextsGrid from "@/components/texts/texts-grid"

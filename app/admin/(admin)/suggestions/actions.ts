@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkAdmin } from "@/lib/auth"
+import { checkAdmin, checkAdminSuggestionsUpdate } from "@/lib/auth/permissions"
+import { getCurrentUser } from "@/lib/auth/data"
 
 interface ApproveData {
     suggestionId: string
@@ -15,8 +16,10 @@ interface ApproveData {
 
 export async function approveSuggestion(data: ApproveData) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkAdminSuggestionsUpdate()
+    const user = await getCurrentUser()
+    if (!auth.ok) return { error: auth.error }
+    if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
 
@@ -95,7 +98,7 @@ export async function approveSuggestion(data: ApproveData) {
         .update({
             status: "approved",
             admin_note: data.adminNote || null,
-            reviewed_by: auth.user.id,
+            reviewed_by: user.id,
             reviewed_at: new Date().toISOString(),
             approved_category_id: finalCategoryId
         })
@@ -115,8 +118,10 @@ export async function approveSuggestion(data: ApproveData) {
 
 export async function rejectSuggestion(suggestionId: string, adminNote: string = "") {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkAdminSuggestionsUpdate()
+    const user = await getCurrentUser()
+    if (!auth.ok) return { error: auth.error }
+    if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
 
@@ -125,7 +130,7 @@ export async function rejectSuggestion(suggestionId: string, adminNote: string =
         .update({
             status: "rejected",
             admin_note: adminNote || null,
-            reviewed_by: auth.user.id,
+            reviewed_by: user.id,
             reviewed_at: new Date().toISOString()
         })
         .eq("id", suggestionId)
@@ -142,8 +147,10 @@ export async function rejectSuggestion(suggestionId: string, adminNote: string =
 
 export async function deleteSuggestion(suggestionId: string) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkAdminSuggestionsUpdate()
+    const user = await getCurrentUser()
+    if (!auth.ok) return { error: auth.error }
+    if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
 

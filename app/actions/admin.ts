@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkAdmin } from "@/lib/auth"
+import { checkAdminLevelsUpdate, checkAdminUsersUpdate } from "@/lib/auth/permissions"
 
 interface UpdateUserProfileData {
     first_name: string
@@ -13,7 +13,7 @@ interface UpdateUserProfileData {
 
 export async function updateUserLevel(userId: string, newLevel: number) {
     try {
-        const auth = await checkAdmin()
+        const auth = await checkAdminLevelsUpdate()
         if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
         const supabase = await createClient()
@@ -41,7 +41,7 @@ export async function updateUserProfile(
     data: UpdateUserProfileData
 ) {
     try {
-        const auth = await checkAdmin()
+        const auth = await checkAdminUsersUpdate()
         if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
         const supabase = await createClient()

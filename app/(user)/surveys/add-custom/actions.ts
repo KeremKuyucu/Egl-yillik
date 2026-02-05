@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 
 interface SuggestCategoryData {
     title: string

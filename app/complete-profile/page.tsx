@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import CompleteProfileForm from "@/components/profile/complete-profile-form"
-import { getCurrentProfile } from "@/lib/auth"
+import { getCurrentProfile } from "@/lib/auth/data"
 import { isRegistrationEnabled } from "@/lib/settings"
 
 export default async function CompleteProfilePage() {

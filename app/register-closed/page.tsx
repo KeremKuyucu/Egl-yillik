@@ -4,7 +4,7 @@ import { Lock } from "lucide-react"
 import Link from "next/link"
 export const dynamic = "force-dynamic"
 import LogoutButton from "@/components/common/logout-button"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 
 export default async function RegisterClosedPage() {
     const user = await getCurrentUser()

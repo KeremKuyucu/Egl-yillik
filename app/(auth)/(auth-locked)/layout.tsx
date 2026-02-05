@@ -1,5 +1,5 @@
 // app/(auth-locked)/layout.tsx
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 import { redirect } from "next/navigation"
 
 export default async function AuthLockedLayout({

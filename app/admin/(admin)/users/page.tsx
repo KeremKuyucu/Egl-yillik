@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentLevel, getCurrentUser } from "@/lib/auth"
+import { getCurrentLevel, getCurrentUser } from "@/lib/auth/data"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
 

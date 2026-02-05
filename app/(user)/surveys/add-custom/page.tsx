@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentProfile, getCurrentUser } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import AddCustomClient from "./client"
@@ -11,10 +11,10 @@ import {
 } from "lucide-react"
 
 export default async function AddCustomPage() {
-    
+
     const user = await getCurrentUser()
     const profile = await getCurrentProfile()
-  
+
     if (!user || !profile) return null;
 
     const supabase = await createClient()

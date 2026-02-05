@@ -2,10 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkSuperAdmin } from "@/lib/auth"
+import { checkSiteSettingsWrite } from "@/lib/auth/permissions"
 
 export async function updateSiteSetting(key: string, value: string) {
-    const auth = await checkSuperAdmin()
+    const auth = await checkSiteSettingsWrite()
     if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
     const supabase = await createClient()

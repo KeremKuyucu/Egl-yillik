@@ -1,6 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { type SurveyCategory } from "@/lib/survey-categories"
 import Link from "next/link"
 import {
     CheckCircle2,
@@ -11,7 +9,7 @@ import {
 } from "lucide-react"
 import { isVotingEnabled } from "@/lib/settings"
 import { Button } from "@/components/ui/button"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 
 export default async function SurveysPage() {
     const supabase = await createClient()

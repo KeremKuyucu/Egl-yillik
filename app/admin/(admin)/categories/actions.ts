@@ -2,7 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkAdmin } from "@/lib/auth"
+import { checkSurveyCategoriesWrite } from "@/lib/auth/permissions"
+import { getCurrentUser } from "@/lib/auth/data"
+
 interface CategoryFormData {
     id: string
     title: string
@@ -61,8 +63,10 @@ async function shiftCategoriesFrom(supabase: any, fromOrder: number, excludeId?:
 
 export async function addCategory(data: CategoryFormData) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkSurveyCategoriesWrite()
+    const user = await getCurrentUser()
+    if (!auth.ok) return { error: auth.error }
+    if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
 
@@ -114,7 +118,7 @@ export async function addCategory(data: CategoryFormData) {
             sort_order: data.sort_order || 0,
             is_active: true,
             is_user_suggested: true,
-            suggested_by: auth.user.id
+            suggested_by: user.id
         })
         .select()
         .single()
@@ -134,8 +138,8 @@ export async function addCategory(data: CategoryFormData) {
                 description: data.description,
                 color: data.color,
                 status: 'approved',
-                suggested_by: auth.user.id,
-                reviewed_by: auth.user.id,
+                suggested_by: user.id,
+                reviewed_by: user.id,
                 reviewed_at: new Date().toISOString(),
                 approved_category_id: data.id,
                 admin_note: 'Admin tarafından doğrudan eklendi'
@@ -154,8 +158,8 @@ export async function addCategory(data: CategoryFormData) {
 
 export async function toggleCategoryStatus(categoryId: string, newStatus: boolean) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkSurveyCategoriesWrite()
+    if (!auth.ok) return { error: auth.error }
 
     const supabase = await createClient()
 
@@ -177,8 +181,8 @@ export async function toggleCategoryStatus(categoryId: string, newStatus: boolea
 
 export async function deleteCategory(categoryId: string) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkSurveyCategoriesWrite()
+    if (!auth.ok) return { error: auth.error }
 
     const supabase = await createClient()
 
@@ -208,8 +212,8 @@ export async function deleteCategory(categoryId: string) {
 
 export async function updateCategory(categoryId: string, data: Partial<CategoryFormData>) {
     // Merkezi admin kontrolü
-    const auth = await checkAdmin()
-    if (!auth.success) return { error: auth.error }
+    const auth = await checkSurveyCategoriesWrite()
+    if (!auth.ok) return { error: auth.error }
 
     const supabase = await createClient()
 

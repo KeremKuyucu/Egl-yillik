@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentProfile, getCurrentUser } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { revalidatePath } from "next/cache"
 import { isVotingEnabled } from "@/lib/settings"
 

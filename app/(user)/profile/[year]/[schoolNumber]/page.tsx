@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth/data"
 import { notFound } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
 import { getColorFromName, SurveyCategory } from "@/lib/survey-categories"

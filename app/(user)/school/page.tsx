@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { getFullName, getInitials } from "@/lib/utils"
 import { Search, GraduationCap, Users, PenLine, Star, Calendar } from "lucide-react"
-import { getCurrentProfile, getCurrentUser } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { YearSelector } from "@/components/school/year-selector"
 
 const avatarColors = [
@@ -32,7 +32,7 @@ export default async function SchoolPage({
 }) {
     const user = await getCurrentUser()
     const profile = await getCurrentProfile()
-  
+
     if (!profile || !user) { return null; }
 
     const search = await searchParams
