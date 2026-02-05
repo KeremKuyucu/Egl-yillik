@@ -6,7 +6,7 @@ import { checkSuperAdmin } from "@/lib/auth"
 
 export async function updateSiteSetting(key: string, value: string) {
     const auth = await checkSuperAdmin()
-    if (!auth.success) return { error: auth.error }
+    if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
     const supabase = await createClient()
     const { error } = await supabase

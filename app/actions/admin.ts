@@ -11,16 +11,13 @@ interface UpdateUserProfileData {
     class: string
 }
 
-{/* Yapımcı GitHub:KeremKuyucu */ }
 export async function updateUserLevel(userId: string, newLevel: number) {
     try {
-        // Oturum kontrolü
         const auth = await checkAdmin()
-        if (!auth.success) return { success: false, error: auth.error }
+        if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
         const supabase = await createClient()
 
-        // RPC çağrısı - Tüm yetki ve mantık kontrolleri DB tarafında yapılacak
         const { error } = await supabase.rpc('admin_update_user_level', {
             target_user_id: userId,
             new_level: newLevel
@@ -28,7 +25,6 @@ export async function updateUserLevel(userId: string, newLevel: number) {
 
         if (error) {
             console.error("Level güncelleme hatası:", error)
-            // RPC'den dönen özel hataları kullanıcıya göster
             return { success: false, error: error.message }
         }
 
@@ -45,9 +41,11 @@ export async function updateUserProfile(
     data: UpdateUserProfileData
 ) {
     try {
+        const auth = await checkAdmin()
+        if (!auth) return { success: false, error: 'Yetkisiz işlem' }
+
         const supabase = await createClient()
 
-        // RPC çağrısı - Tüm yetki ve mantık kontrolleri DB tarafında yapılacak
         const { data: result, error } = await supabase.rpc('admin_update_user_profile', {
             target_user_id: userId,
             new_first_name: data.first_name,
@@ -61,14 +59,11 @@ export async function updateUserProfile(
             return { success: false, error: error.message }
         }
 
-        // RPC'den dönen sonucu kontrol et
         if (result && !result.success) {
             return { success: false, error: result.error }
         }
 
-        // Sayfayı yenile
         revalidatePath("/admin/users")
-
         return { success: true }
     } catch (error) {
         console.error("Server action hatası:", error)

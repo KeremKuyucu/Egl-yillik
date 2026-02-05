@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
 import { getLevelInfo, AVAILABLE_LEVELS } from "@/lib/constants"
-import { updateUserLevel } from "@/lib/actions"
+import { updateUserLevel } from "@/app/actions/admin"
 import { deleteTextAction } from "@/app/actions/texts"
 import { EditUserForm } from "./edit-user-form"
 import { toast } from "sonner"

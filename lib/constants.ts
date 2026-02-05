@@ -1,7 +1,7 @@
 // lib/constants.ts
 
 export const ROLES = {
-    USER: 0,
+    USER: 1,
     ADMIN: 50,
     SUPER_ADMIN: 100,
     SYSTEM_ADMIN: 500,

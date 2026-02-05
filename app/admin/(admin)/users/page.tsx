@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentLevel,getCurrentUser } from "@/lib/auth"
+import { getCurrentLevel, getCurrentUser } from "@/lib/auth"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
 
@@ -7,7 +7,11 @@ export default async function UsersAdminPage() {
     // Merkezi admin kontrolü
     const currentUser = await getCurrentUser()
     const currentUserLevel = await getCurrentLevel()
-  
+
+    if (!currentUser || !currentUserLevel) {
+        return null
+    }
+
     const supabase = await createClient()
 
     // 1. Kullanıcı verilerini ve Sınıf ayarlarını paralel olarak çekiyoruz

@@ -1,108 +1,89 @@
 // lib/auth.ts
-// Server-side auth fonksiyonları
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { ROLES } from "@/lib/constants"
-import { cache } from "react"
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { cache } from "react";
+import { ROLES } from "@/lib/constants"; // tek kaynak
 
-// Ortak type ve utility'leri re-export et (checkPermission, getRoleInfo, types)
-export * from "@/lib/auth-utils"
-import type { JWTProfile } from "@/lib/auth-utils"
+type SupabaseClientT = Awaited<ReturnType<typeof createClient>>;
+type UserT = Awaited<ReturnType<SupabaseClientT["auth"]["getUser"]>>["data"]["user"];
 
-// ============================================
-// CORE DATA FETCHING (CACHED)
-// ============================================
+type AuthContext = {
+    user: UserT | null;
+    level: number | null;
+    profile: any | null;
+};
 
-/**
- * Request Memoization (React Cache) kullanarak
- * bir istek döngüsü içinde veriyi sadece 1 kez çeker.
- * 
- * Level bilgisi DB'den çekilir (JWT stale olabilir)
- */
-export const getAuthUser = cache(async () => {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    return user ?? null
-})
-
-export const getAuthLevel = cache(async () => {
-    const user = await getAuthUser()
-    if (!user) return 0
+export const getAuthContext = cache(async (): Promise<AuthContext> => {
 
     const supabase = await createClient()
-    const { data } = await supabase
-        .from("user_levels")
-        .select("level")
-        .eq("id", user.id)
-        .maybeSingle()
+    const { data: { user }, error: userErr } = await supabase.auth.getUser()
+    if (userErr) {
+        // loglamak iyi fikir
+        // console.error("auth.getUser error", userErr);
+    }
+    if (!user) return { user: null, level: null, profile: null };
 
-    return data?.level ?? 0
-})
+    // paralel çek (aynı request içinde tek sefer)
+    const [lvlRes, profRes] = await Promise.all([
+        supabase.from("user_levels").select("level").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("id, first_name, last_name, school_number, class, user_year").eq("id", user.id).maybeSingle(),
+    ]);
 
-export const getAuthProfile = cache(async () => {
-    const user = await getAuthUser()
-    if (!user) return null
+    // console.error("level error", lvlRes.error);
+    // console.error("profile error", profRes.error);
 
-    const supabase = await createClient()
-    const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle()
+    return {
+        user,
+        level: lvlRes.data?.level ?? 0,
+        profile: profRes.data ?? null,
+    };
+});
 
-    return data
-})
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
-/**
- * Sadece user objesini döner (Cache mekanizmasından yararlanır).
- */
 export async function getCurrentUser() {
-    const user = await getAuthUser()
-    return user
+    return (await getAuthContext()).user;
 }
+
 export async function getCurrentLevel() {
-    const level = await getAuthLevel()
-    return level
+    return (await getAuthContext()).level ?? 0;
 }
+
 export async function getCurrentProfile() {
-    const profile = await getAuthProfile()
-    return profile
+    return (await getAuthContext()).profile;
 }
 
-
-// ============================================
-// PAGE/LAYOUT İÇİN (Redirect yapar)
-// ============================================
-
+// Redirect’li guard
 export async function requireLevel(minLevel: number) {
-  const user = await getAuthUser()
-  if (!user) redirect("/login")
-
-  const level = await getAuthLevel()
-  if (level < minLevel) redirect("/home")
+    const { user, level } = await getAuthContext();
+    if (!user || level === null) redirect("/login");
+    if (level < minLevel) redirect("/home");
 }
 
-export const requireAdmin = () => requireLevel(ROLES.ADMIN)
-export const requireUser = () => requireLevel(ROLES.USER)
-export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN)
-export const requireSystemAdmin = () => requireLevel(ROLES.SYSTEM_ADMIN)
-export const requireOwner = () => requireLevel(ROLES.OWNER)
+// Boolean guard (action için)
+export type AuthCheckResult =
+    | { ok: true }
+    | { ok: false; error: "UNAUTHENTICATED" | "FORBIDDEN" };
 
-export async function hasMinRole(minRole: number): Promise<boolean> {
-  const user = await getAuthUser()
-  if (!user) return false
+export async function hasMinLevel(
+    minLevel: number
+): Promise<AuthCheckResult> {
+    const { user, level } = await getAuthContext();
 
-  const level = await getAuthLevel()
-  return level >= minRole
+    if (!user || level === null) {
+        return { ok: false, error: "UNAUTHENTICATED" };
+    }
+
+    if (level < minLevel) {
+        return { ok: false, error: "FORBIDDEN" };
+    }
+
+    return { ok: true };
 }
 
-// İstersen kısa wrapper’lar:
-export const checkUser = () => hasMinRole(ROLES.USER)
-export const checkAdmin = () => hasMinRole(ROLES.ADMIN)
-export const checkSuperAdmin = () => hasMinRole(ROLES.SUPER_ADMIN)
-export const checkSystemAdmin = () => hasMinRole(ROLES.SYSTEM_ADMIN)
-export const checkOwner = () => hasMinRole(ROLES.OWNER)
+// Shorthands
+export const requireAdmin = () => requireLevel(ROLES.ADMIN);
+export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN);
+export const requireOwner = () => requireLevel(ROLES.OWNER);
+
+export const checkAdmin = () => hasMinLevel(ROLES.ADMIN);
+export const checkSuperAdmin = () => hasMinLevel(ROLES.SUPER_ADMIN);
+export const checkOwner = () => hasMinLevel(ROLES.OWNER);

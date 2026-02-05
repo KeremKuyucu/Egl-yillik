@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Save } from "lucide-react"
 import { toast } from "sonner"
-import { updateUserProfile } from "@/lib/actions"
+import { updateUserProfile } from "@/app/actions/admin"
 
 interface UserProfile {
     id: string

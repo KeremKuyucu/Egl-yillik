@@ -102,17 +102,17 @@ export function AppHeader({
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left: Logo + Pills */}
         <div className="flex items-center gap-6">
-          <Link 
-            href={computedBrandHref} 
+          <Link
+            href={computedBrandHref}
             className="flex items-center gap-3 group transition-all duration-300"
           >
             <div className="relative w-10 h-10">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl rotate-6 opacity-20 group-hover:rotate-12 group-hover:opacity-30 transition-all duration-300"></div>
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl opacity-10 group-hover:opacity-20 transition-opacity duration-300"></div>
-              <img 
-                src="/image.png" 
-                className="w-10 h-10 relative z-10 drop-shadow-lg group-hover:scale-105 transition-transform duration-300" 
-                alt="Logo" 
+              <img
+                src="/image.png"
+                className="w-10 h-10 relative z-10 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+                alt="Logo"
               />
             </div>
 
@@ -131,24 +131,71 @@ export function AppHeader({
 
           {/* Desktop Pills - Premium Style */}
           <nav className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-slate-50/80 to-slate-100/80 dark:from-slate-800/50 dark:to-slate-800/30 p-1.5 rounded-2xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
-                    "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
-                    "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
-                    isActive(item.href) && 
-                    "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Button>
-              </Link>
-            ))}
+            {/* İlk 4 öğeyi göster (admin için) veya tümünü (user için) */}
+            {(mode === "admin" ? navItems.slice(0, 4) : navItems).map((item) => {
+              const Icon = item.icon
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
+                      "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
+                      "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
+                      isActive(item.href) &&
+                      "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Button>
+                </Link>
+              )
+            })}
+
+            {/* Admin için Daha Fazla dropdown'u */}
+            {mode === "admin" && navItems.length > 4 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
+                      "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
+                      "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
+                      navItems.slice(4).some(item => isActive(item.href)) &&
+                      "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
+                    )}
+                  >
+                    <span>Daha Fazla</span>
+                    <ChevronRight className="w-4 h-4 rotate-90" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl">
+                  {navItems.slice(4).map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
+                            isActive(item.href)
+                              ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-400"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="font-medium text-sm">{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </nav>
         </div>
 
@@ -200,17 +247,17 @@ export function AppHeader({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300"
                 >
                   <Menu className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent 
-                align="end" 
+              <DropdownMenuContent
+                align="end"
                 className="w-80 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-2xl"
               >
                 {/* Header Card - Premium */}
@@ -529,8 +576,8 @@ export function AppHeader({
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent 
-              align="end" 
+            <DropdownMenuContent
+              align="end"
               className="w-72 mt-2 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-2xl rounded-2xl"
             >
               <div className="px-3 py-2 mb-2 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/30 dark:from-slate-800/30 dark:to-slate-800/20">
@@ -740,8 +787,8 @@ export function AppHeader({
               )}
 
               <DropdownMenuItem asChild>
-                <Link 
-                  href={profileLink} 
+                <Link
+                  href={profileLink}
                   className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                 >
                   <User className="w-4 h-4" />
@@ -750,8 +797,8 @@ export function AppHeader({
               </DropdownMenuItem>
 
               <DropdownMenuItem asChild>
-                <Link 
-                  href={mode === "admin" ? "/admin/settings" : "/settings"} 
+                <Link
+                  href={mode === "admin" ? "/admin/settings" : "/settings"}
                   className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                 >
                   <Settings className="w-4 h-4" />
@@ -761,8 +808,8 @@ export function AppHeader({
 
               {mode === "admin" && (
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/home" 
+                  <Link
+                    href="/home"
                     className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                   >
                     <Home className="w-4 h-4" />
