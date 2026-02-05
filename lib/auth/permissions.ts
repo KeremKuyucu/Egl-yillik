@@ -12,6 +12,7 @@ import type { AuthContext, AuthCheckResult } from "./types";
  */
 export const PERMS = {
     ADMIN_FEEDBACK_DELETE: "admin.feedback.delete",
+    ADMIN_FEEDBACK_READ: "admin.feedback.read",
     ADMIN_LEVELS_READ: "admin.levels.read",
     ADMIN_LEVELS_UPDATE: "admin.levels.update",
     ADMIN_STATS_READ: "admin.stats.read",
@@ -26,8 +27,8 @@ export const PERMS = {
     EMAIL_OPT_OUTS_READ: "email_opt_outs.read",
     SITE_SETTINGS_WRITE: "site.settings.write",
     SYSTEM_LOGS_CLEANUP: "system.logs.cleanup",
-    REMINDERS_SEND: "reminders.send",
-    REMINDERS_READ: "reminders.read",
+    REMINDERS_SEND: "admin.reminders.send",
+    REMINDERS_READ: "admin.reminders.read",
 } as const;
 
 export type PermKey = (typeof PERMS)[keyof typeof PERMS];
