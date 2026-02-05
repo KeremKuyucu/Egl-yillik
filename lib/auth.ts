@@ -89,6 +89,7 @@ export async function requireLevel(minLevel: number) {
 export const requireAdmin = () => requireLevel(ROLES.ADMIN)
 export const requireUser = () => requireLevel(ROLES.USER)
 export const requireSuperAdmin = () => requireLevel(ROLES.SUPER_ADMIN)
+export const requireSystemAdmim = () => requireLevel(ROLES.SYSTEM_ADMIN)
 export const requireOwner = () => requireLevel(ROLES.OWNER)
 
 export async function hasMinRole(minRole: number): Promise<boolean> {
@@ -103,4 +104,5 @@ export async function hasMinRole(minRole: number): Promise<boolean> {
 export const checkUser = () => hasMinRole(ROLES.USER)
 export const checkAdmin = () => hasMinRole(ROLES.ADMIN)
 export const checkSuperAdmin = () => hasMinRole(ROLES.SUPER_ADMIN)
+export const checkSystemAdmin = () => hasMinRole(ROLES.SYSTEM_ADMIN)
 export const checkOwner = () => hasMinRole(ROLES.OWNER)
