@@ -64,10 +64,13 @@ export default async function NewTextPage({
     .order("first_name", { ascending: true })
 
   // Kullanıcının daha önce yazdığı metinler
-  const { data: existingTexts } = await supabase
-    .from("texts")
-    .select("recipient_id")
-    .eq("author_id", user.id)
+  const { data: existingTexts, error: textsErr } = await supabase
+  .from("texts")
+  .select("recipient_id")
+  .eq("author_id", user.id)
+  .eq("user_year", userProfile.user_year)
+
+  if (textsErr) console.error(textsErr)
 
   const writtenRecipientIds = existingTexts?.map((t) => t.recipient_id) ?? []
 
