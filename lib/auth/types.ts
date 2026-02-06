@@ -8,7 +8,6 @@ export type UserT = Awaited<ReturnType<SupabaseClientT["auth"]["getUser"]>>["dat
 export type UserData = {
     user: UserT | null;
     profile: any | null;
-    level: number | null;
 };
 
 /** Yetki kontrolü amaçlı: güvenlik kararları için */

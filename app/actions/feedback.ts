@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth/data'
 
 export type FeedbackType = 'bug' | 'suggestion' | 'complaint' | 'other'
 

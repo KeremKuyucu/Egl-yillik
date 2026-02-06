@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/layout/mode-toggle"
 import { cn } from "@/lib/utils"
-import { ROLES } from "@/lib/constants"
+import { ROLE_KEYS, ROLE_LEVELS, getHighestRoleKey, type RealRoleKey } from "@/lib/constants"
 import {
   Shield,
   Settings,
@@ -40,13 +40,13 @@ type NavItem = {
   href: string
   label: string
   icon: any
-  minRole?: number
+  minLevel?: number
 }
 
 interface PrettyAppHeaderProps {
   mode: HeaderMode
   userProfile: any
-  level: number
+  roles: string[]
   signOut: () => Promise<void>
   brandHref?: string
   brandLabel?: string
@@ -56,7 +56,7 @@ interface PrettyAppHeaderProps {
 export function AppHeader({
   mode,
   userProfile,
-  level,
+  roles,
   signOut,
   brandHref,
   brandLabel = "EGL",
@@ -74,6 +74,10 @@ export function AppHeader({
   const computedBrandHref = brandHref ?? (mode === "admin" ? "/admin" : "/home")
   const computedShowNewButton = showNewButton ?? (mode === "user")
 
+  // Mevcut kullanıcının en yüksek rol seviyesini hesapla
+  const highestRole = getHighestRoleKey(roles) as RealRoleKey
+  const currentLevel = ROLE_LEVELS[highestRole] || 0
+
   const userNavItems: NavItem[] = [
     { href: "/home", label: "Ana Sayfa", icon: Home },
     { href: "/my-texts", label: "Yazılarım", icon: FileText },
@@ -83,17 +87,17 @@ export function AppHeader({
   ]
 
   const adminNavItems: NavItem[] = [
-    { href: "/admin", label: "Genel Bakış", icon: ChartNoAxesCombined, minRole: ROLES.ADMIN },
-    { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, minRole: ROLES.ADMIN },
-    { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, minRole: ROLES.ADMIN },
-    { href: "/admin/users", label: "Öğrenciler", icon: Users, minRole: ROLES.ADMIN },
-    { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, minRole: ROLES.ADMIN },
-    { href: "/admin/texts", label: "Yazılar", icon: FileText, minRole: ROLES.SUPER_ADMIN },
-    { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, minRole: ROLES.SUPER_ADMIN },
-    { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, minRole: ROLES.SUPER_ADMIN },
-    { href: "/admin/settings", label: "Site Ayarları", icon: Settings, minRole: ROLES.SUPER_ADMIN },
-    { href: "/admin/logs", label: "Aktivite Logları", icon: ShieldAlert, minRole: ROLES.SUPER_ADMIN },
-  ].filter((i) => (i.minRole ? level >= i.minRole : true))
+    { href: "/admin", label: "Genel Bakış", icon: ChartNoAxesCombined, minLevel: ROLE_LEVELS.admin },
+    { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, minLevel: ROLE_LEVELS.admin },
+    { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, minLevel: ROLE_LEVELS.admin },
+    { href: "/admin/users", label: "Öğrenciler", icon: Users, minLevel: ROLE_LEVELS.admin },
+    { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, minLevel: ROLE_LEVELS.admin },
+    { href: "/admin/texts", label: "Yazılar", icon: FileText, minLevel: ROLE_LEVELS.super_admin },
+    { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, minLevel: ROLE_LEVELS.super_admin },
+    { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, minLevel: ROLE_LEVELS.super_admin },
+    { href: "/admin/settings", label: "Site Ayarları", icon: Settings, minLevel: ROLE_LEVELS.super_admin },
+    { href: "/admin/logs", label: "Aktivite Logları", icon: ShieldAlert, minLevel: ROLE_LEVELS.system_admin },
+  ].filter((i) => (i.minLevel ? currentLevel >= i.minLevel : true))
 
   const navItems = mode === "admin" ? adminNavItems : userNavItems
 
@@ -202,7 +206,7 @@ export function AppHeader({
         {/* Right */}
         <div className="flex items-center gap-3">
           {/* Admin Shortcut - Premium Style */}
-          {mode === "user" && level >= ROLES.ADMIN && (
+          {mode === "user" && currentLevel >= ROLE_LEVELS.admin && (
             <Link href="/admin" className="hidden lg:flex">
               <Button
                 variant="outline"
@@ -282,7 +286,7 @@ export function AppHeader({
                 {mode === "admin" ? (
                   <>
                     {/* Admin Kategorileri */}
-                    {level >= ROLES.ADMIN && (
+                    {currentLevel >= ROLE_LEVELS.admin && (
                       <>
                         <div className="px-3 py-2 mb-1">
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -381,7 +385,7 @@ export function AppHeader({
                     )}
 
                     {/* Super Admin Kategorileri */}
-                    {level >= ROLES.SUPER_ADMIN && (
+                    {currentLevel >= ROLE_LEVELS.super_admin && (
                       <>
                         <div className="px-3 py-2 mb-1">
                           <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
@@ -531,7 +535,7 @@ export function AppHeader({
                   </Link>
                 </DropdownMenuItem>
 
-                {mode === "user" && level >= ROLES.ADMIN && (
+                {mode === "user" && currentLevel >= ROLE_LEVELS.admin && (
                   <DropdownMenuItem asChild>
                     <Link
                       href="/admin"
@@ -594,7 +598,7 @@ export function AppHeader({
               {mode === "admin" && (
                 <>
                   {/* Admin Kategorileri - Desktop */}
-                  {level >= ROLES.ADMIN && (
+                  {currentLevel >= ROLE_LEVELS.admin && (
                     <>
                       <div className="px-3 py-1.5 mb-1">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -693,7 +697,7 @@ export function AppHeader({
                   )}
 
                   {/* Super Admin Kategorileri - Desktop */}
-                  {level >= ROLES.SUPER_ADMIN && (
+                  {currentLevel >= ROLE_LEVELS.super_admin && (
                     <>
                       <div className="px-3 py-1.5 mb-1">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">

@@ -1,11 +1,11 @@
-// app/admin/(system)/layout.tsx
-import { requireOwner } from "@/lib/auth/permissions"
+"use server";
+import { requireSystemAdmin } from "@/lib/auth/permissions"
 
-export default async function OwnerGuardLayout({
+export default async function SystemAdminGuardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  await requireOwner()
+  await requireSystemAdmin()
   return <>{children}</>
 }

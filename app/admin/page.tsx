@@ -1,4 +1,4 @@
-import { getCurrentLevel, getCurrentProfile, getCurrentUser } from "@/lib/auth"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -26,14 +26,15 @@ import {
     User
 } from "lucide-react"
 import Link from "next/link"
-import { getLevelInfo, ROLES } from "@/lib/constants"
+import { getRoleInfoFromRoles, ROLE_KEYS, getHighestRoleKey, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getCurrentRoles } from "@/lib/auth/permissions"
 
 export default async function AdminPage() {
 
     const profile = await getCurrentProfile()
-    const level = await getCurrentLevel()
+    const roles = await getCurrentRoles()
 
     const supabase = await createClient()
 
@@ -84,7 +85,7 @@ export default async function AdminPage() {
         .order('changed_at', { ascending: false })
         .limit(6)
 
-    const levelInfo = getLevelInfo(level)
+    const roleInfo = getRoleInfoFromRoles(roles)
 
     const systemStatus = [
         {
@@ -117,13 +118,17 @@ export default async function AdminPage() {
         }
     ]
 
+    // Kullanıcının en yüksek yetki seviyesini hesapla
+    const highestRole = getHighestRoleKey(roles) as RealRoleKey
+    const currentLevel = ROLE_LEVELS[highestRole] || 0
+
     const quickActions = [
         {
             label: "Öğrenciler",
             description: "Profilleri yönet",
             href: "/admin/users",
             icon: Users,
-            role: ROLES.ADMIN,
+            role: ROLE_KEYS.ADMIN,
             gradient: "from-blue-500 to-cyan-500"
         },
         {
@@ -131,7 +136,7 @@ export default async function AdminPage() {
             description: "Anket kategorileri",
             href: "/admin/categories",
             icon: LayoutDashboard,
-            role: ROLES.ADMIN,
+            role: ROLE_KEYS.ADMIN,
             gradient: "from-indigo-500 to-purple-500"
         },
         {
@@ -139,7 +144,7 @@ export default async function AdminPage() {
             description: "Kullanıcı mesajları",
             href: "/admin/feedback",
             icon: MessageSquare,
-            role: ROLES.ADMIN,
+            role: ROLE_KEYS.ADMIN,
             gradient: "from-pink-500 to-rose-500"
         },
         {
@@ -147,7 +152,7 @@ export default async function AdminPage() {
             description: "Kategori önerileri",
             href: "/admin/suggestions",
             icon: Star,
-            role: ROLES.ADMIN,
+            role: ROLE_KEYS.ADMIN,
             gradient: "from-amber-500 to-orange-500"
         },
         {
@@ -155,7 +160,7 @@ export default async function AdminPage() {
             description: "Sistem konfigürasyonu",
             href: "/admin/settings",
             icon: Settings,
-            role: ROLES.SUPER_ADMIN,
+            role: ROLE_KEYS.SUPER_ADMIN,
             gradient: "from-slate-500 to-gray-600"
         },
         {
@@ -163,7 +168,7 @@ export default async function AdminPage() {
             description: "Bildirim gönder",
             href: "/admin/reminders",
             icon: Bell,
-            role: ROLES.SUPER_ADMIN,
+            role: ROLE_KEYS.SUPER_ADMIN,
             gradient: "from-green-500 to-emerald-500"
         },
         {
@@ -171,7 +176,7 @@ export default async function AdminPage() {
             description: "Sistem olaylarını görüntüle",
             href: "/admin/logs",
             icon: FileText,
-            role: ROLES.SUPER_ADMIN,
+            role: ROLE_KEYS.SUPER_ADMIN,
             gradient: "from-slate-500 to-gray-600"
         },
         {
@@ -179,7 +184,7 @@ export default async function AdminPage() {
             description: "Yıllık yazılarını görüntüle",
             href: "/admin/texts",
             icon: FileText,
-            role: ROLES.SUPER_ADMIN,
+            role: ROLE_KEYS.SUPER_ADMIN,
             gradient: "from-violet-500 to-purple-500"
         },
         {
@@ -187,10 +192,10 @@ export default async function AdminPage() {
             description: "Oyları görüntüle",
             href: "/admin/votes",
             icon: Vote,
-            role: ROLES.SUPER_ADMIN,
+            role: ROLE_KEYS.SUPER_ADMIN,
             gradient: "from-amber-500 to-orange-500"
         }
-    ].filter(link => (level ?? 0) >= link.role)
+    ].filter(link => currentLevel >= ROLE_LEVELS[link.role as RealRoleKey])
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
@@ -207,9 +212,9 @@ export default async function AdminPage() {
                 <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3 flex-wrap">
-                            <Badge className={`${levelInfo.badgeColor} backdrop-blur-xl border-white/10 px-3 py-1`}>
+                            <Badge className={`${roleInfo.badgeColor} backdrop-blur-xl border-white/10 px-3 py-1`}>
                                 <ShieldCheck className="h-3 w-3 mr-1" />
-                                {levelInfo.label}
+                                {roleInfo.label}
                             </Badge>
                             <div className="flex items-center gap-2 text-white/50 text-sm">
                                 <Clock className="h-3.5 w-3.5" />

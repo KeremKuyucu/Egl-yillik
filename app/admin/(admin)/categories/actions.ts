@@ -16,6 +16,9 @@ interface CategoryFormData {
 
 // Sıra numaralarını yeniden düzenle (boşlukları kapat)
 async function reorderCategories(supabase: any) {
+    const auth = await checkSurveyCategoriesWrite()
+    if (!auth.ok) return { error: auth.error }
+
     const { data: categories } = await supabase
         .from("survey_categories")
         .select("id, sort_order")
@@ -38,6 +41,9 @@ async function reorderCategories(supabase: any) {
 // Belirli bir sıra numarasından itibaren kaydır
 async function shiftCategoriesFrom(supabase: any, fromOrder: number, excludeId?: string) {
     // fromOrder ve üzerindeki tüm kategorileri al
+    const auth = await checkSurveyCategoriesWrite()
+    if (!auth.ok) return { error: auth.error }
+
     let query = supabase
         .from("survey_categories")
         .select("id, sort_order")

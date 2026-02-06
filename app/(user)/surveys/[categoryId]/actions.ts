@@ -35,7 +35,7 @@ export async function submitSurveyVote(
 
     const user = await getCurrentUser()
     const userProfile = await getCurrentProfile()
-  
+
 
     if (!user) {
         return { error: "Oturum açmanız gerekiyor" }
@@ -45,7 +45,6 @@ export async function submitSurveyVote(
         return { error: "Kullanıcı profili bulunamadı" }
     }
 
-    // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
     // Oy verilecek kişi gerçekten var mı ve aynı sınıfta mı?
     const { data: votedFor } = await supabase
         .from("profiles")
@@ -85,7 +84,10 @@ export async function submitSurveyVote(
 
         if (error) {
             console.error("Vote update error:", error)
-            return { error: "Oy güncellenirken hata oluştu" }
+            if (error.code === "P0001") {
+                return { error: error.message }
+            }
+            return { error: "Beklenmeyen bir hata oluştu" }
         }
     } else {
         // Yeni oy ekle
@@ -98,9 +100,13 @@ export async function submitSurveyVote(
             })
 
         if (error) {
-            console.error("Vote insert error:", error)
-            return { error: "Oy kaydedilirken hata oluştu" }
+            console.error("Vote update error:", error)
+            if (error.code === "P0001") {
+                return { error: error.message }
+            }
+            return { error: "Beklenmeyen bir hata oluştu" }
         }
+
     }
 
     revalidatePath("/surveys")

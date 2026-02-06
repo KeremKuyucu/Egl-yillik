@@ -1,14 +1,15 @@
 import { createClient } from "@/lib/supabase/server"
-import { getCurrentLevel, getCurrentUser } from "@/lib/auth/data"
+import { getCurrentUser } from "@/lib/auth/data"
+import { getCurrentRoles } from "@/lib/auth/permissions"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
 
 export default async function UsersAdminPage() {
     // Merkezi admin kontrolü
     const currentUser = await getCurrentUser()
-    const currentUserLevel = await getCurrentLevel()
+    const currentUserRoles = await getCurrentRoles()
 
-    if (!currentUser || !currentUserLevel) {
+    if (!currentUser || !currentUserRoles) {
         return null
     }
 
@@ -53,7 +54,7 @@ export default async function UsersAdminPage() {
         <UserManagementClient
             initialUsers={usersData || []}
             currentUser={{ id: currentUser.id }}
-            currentUserLevel={currentUserLevel}
+            currentUserRoles={currentUserRoles}
             classes={dynamicClasses} // Artık dinamik liste gidiyor
         />
     )

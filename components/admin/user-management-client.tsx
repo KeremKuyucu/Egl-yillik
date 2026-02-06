@@ -1,7 +1,14 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { ROLES, getLevelInfo } from "@/lib/constants"
+import {
+    ROLE_KEYS,
+    ROLE_LEVELS,
+    ROLE_DETAILS,
+    getHighestRoleKey,
+    type RealRoleKey,
+    RoleKey
+} from "@/lib/constants"
 import { getFullName, getInitials } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +43,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 interface UserProfile {
     id: string
@@ -50,7 +58,7 @@ interface UserProfile {
 interface UserManagementClientProps {
     initialUsers: UserProfile[]
     currentUser: { id: string }
-    currentUserLevel: number
+    currentUserRoles: string[]
     classes: string[]
 }
 
@@ -100,9 +108,13 @@ function formatLastActive(dateString: string | null): { text: string; isRecent: 
 export function UserManagementClient({
     initialUsers,
     currentUser,
-    currentUserLevel,
+    currentUserRoles,
     classes
 }: UserManagementClientProps) {
+    // Current user context
+    const currentUserHighestRole = getHighestRoleKey(currentUserRoles) as RealRoleKey
+    const currentUserLevel = ROLE_LEVELS[currentUserHighestRole] || 0
+
     // Local State
     const [searchQuery, setSearchQuery] = useState("")
     const [classFilter, setClassFilter] = useState("all")
@@ -135,35 +147,40 @@ export function UserManagementClient({
             // 3. Role Filter
             let matchesRole = true
             if (roleFilter === "admin") {
-                matchesRole = (user.level ?? 0) >= ROLES.ADMIN
+                matchesRole = (user.level ?? 0) >= ROLE_LEVELS.admin
             } else if (roleFilter === "user") {
-                matchesRole = (user.level ?? 0) < ROLES.ADMIN
+                matchesRole = (user.level ?? 0) < ROLE_LEVELS.admin
             }
 
             return matchesSearch && matchesClass && matchesRole
         })
     }, [initialUsers, searchQuery, classFilter, roleFilter])
 
-    // Stats based on filtered data (or all data? user usually wants stats for what they see)
+    // Stats based on filtered data
     const stats = useMemo(() => {
         return {
             total: filteredUsers.length,
-            superAdmins: filteredUsers.filter(u => (u.level ?? 0) >= ROLES.SUPER_ADMIN).length,
-            admins: filteredUsers.filter(u => (u.level ?? 0) >= ROLES.ADMIN && (u.level ?? 0) < ROLES.SUPER_ADMIN).length,
-            users: filteredUsers.filter(u => (u.level ?? 0) < ROLES.ADMIN).length,
+            superAdmins: filteredUsers.filter(u => (u.level ?? 0) >= ROLE_LEVELS.super_admin).length,
+            admins: filteredUsers.filter(u => (u.level ?? 0) >= ROLE_LEVELS.admin && (u.level ?? 0) < ROLE_LEVELS.super_admin).length,
+            users: filteredUsers.filter(u => (u.level ?? 0) < ROLE_LEVELS.admin).length,
         }
     }, [filteredUsers])
 
     const getLevelBadge = (level: number) => {
-        const info = getLevelInfo(level)
-        const Icon = level >= ROLES.ADMIN ? Shield : null
-        const isOwner = level >= ROLES.OWNER
+        // Find role key by level
+        const roleKey = (Object.keys(ROLE_LEVELS).find(
+            key => ROLE_LEVELS[key as RealRoleKey] === level
+        ) as RoleKey) || (level >= ROLE_LEVELS.owner ? 'owner' : 'user')
+
+        const info = ROLE_DETAILS[roleKey] || ROLE_DETAILS.user
+        const Icon = level >= ROLE_LEVELS.admin ? Shield : null
+        const isOwner = level >= ROLE_LEVELS.owner
 
         return (
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Badge variant={level >= ROLES.ADMIN ? "default" : "secondary"} className="gap-1">
+                        <Badge variant={level >= ROLE_LEVELS.admin ? "default" : "secondary"} className={cn("gap-1", info.badgeColor)}>
                             {isOwner ? <Crown className="h-3 w-3" /> : Icon && <Icon className="h-3 w-3" />}
                             {info.label}
                         </Badge>
@@ -203,7 +220,7 @@ export function UserManagementClient({
                         </div>
                         <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                             <Shield className="h-4 w-4" />
-                            {getLevelInfo(currentUserLevel).label} Paneli
+                            {ROLE_DETAILS[currentUserHighestRole]?.label || "Kullanıcı"} Paneli
                         </p>
                     </div>
                 </div>
@@ -263,7 +280,7 @@ export function UserManagementClient({
                                 Kullanıcı Listesi
                             </CardTitle>
                             <CardDescription>
-                                {currentUserLevel >= ROLES.SUPER_ADMIN ? "Kullanıcıları yönetin." : "Kullanıcıları görüntüleyin."}
+                                {currentUserLevel >= ROLE_LEVELS.super_admin ? "Kullanıcıları yönetin." : "Kullanıcıları görüntüleyin."}
                             </CardDescription>
                         </div>
                         <Badge variant="secondary" className="gap-1">
@@ -349,7 +366,7 @@ export function UserManagementClient({
                                         const userLevel = user.level ?? 0
                                         const canEditLevel = currentUserLevel > userLevel
                                         const isCurrentUser = user.id === currentUser.id
-                                        const canEditProfile = (currentUserLevel >= ROLES.ADMIN && canEditLevel) || isCurrentUser
+                                        const canEditProfile = (currentUserLevel >= ROLE_LEVELS.admin && canEditLevel) || isCurrentUser
                                         const avatarColor = getAvatarColor(user.first_name)
                                         const initials = getInitials(user.first_name, user.last_name)
                                         const { text: activeText, isRecent } = formatLastActive(user.last_active)
@@ -411,7 +428,7 @@ export function UserManagementClient({
                                                                 currentUserLevel={currentUserLevel}
                                                             />
                                                         )}
-                                                        {currentUserLevel >= ROLES.SUPER_ADMIN && canEditLevel && (
+                                                        {currentUserLevel >= ROLE_LEVELS.super_admin && canEditLevel && (
                                                             <LevelSelector
                                                                 userId={user.id}
                                                                 currentLevel={userLevel}

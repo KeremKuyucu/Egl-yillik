@@ -1,74 +1,105 @@
-// lib/constants.ts
-
-export const ROLES = {
-    noAuth: 0,
-    USER: 1,
-    ADMIN: 50,
-    SUPER_ADMIN: 100,
-    SYSTEM_ADMIN: 500,
-    OWNER: 1000,
+export const ROLE_KEYS = {
+    noAuth: "noAuth",
+    USER: "user",
+    ADMIN: "admin",
+    SUPER_ADMIN: "super_admin",
+    SYSTEM_ADMIN: "system_admin",
+    OWNER: "owner",
 } as const;
 
-export const ROLE_DETAILS = {
-    [ROLES.OWNER]: {
-        label: "Owner",
-        description: "Tam Yetki: System Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
-        badgeColor: "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/50 animate-pulse"
-    },
-    [ROLES.SYSTEM_ADMIN]: {
-        label: "System Admin",
-        description: "Çok Yüksek Yetki: Süper Adminleri yönetebilir, sistem ayarlarına erişir. Owner hariç her şeye yetkisi vardır.",
-        badgeColor: "bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-0 hover:from-indigo-700 hover:to-blue-700 shadow-md shadow-indigo-500/50"
-    },
-    [ROLES.SUPER_ADMIN]: {
-        label: "Süper Admin",
-        description: "Yüksek Yetki: Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
-        badgeColor: "bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 hover:from-red-700 hover:to-orange-700 shadow-md shadow-red-500/50"
-    },
-    [ROLES.ADMIN]: {
-        label: "Admin",
-        description: "Yönetim: İçerikleri yönetebilir, kullanıcıları düzenleyebilir.",
-        badgeColor: "bg-gradient-to-r from-amber-600 to-yellow-600 text-white border-0 hover:from-amber-700 hover:to-yellow-700 shadow-md shadow-amber-500/50"
-    },
-    [ROLES.USER]: {
-        label: "Kullanıcı",
-        description: "Standart: Sadece kendi profilini görebilir ve mesaj yazabilir.",
-        badgeColor: "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900"
-    },
-    [ROLES.noAuth]: {
+export type RoleKey = typeof ROLE_KEYS[keyof typeof ROLE_KEYS];
+export type RealRoleKey = Exclude<RoleKey, "noAuth">;
+
+export const ROLE_LEVELS: Record<RealRoleKey, number> = {
+    user: 1,
+    admin: 50,
+    super_admin: 100,
+    system_admin: 500,
+    owner: 1000,
+};
+
+export const ROLE_DETAILS: Record<RoleKey, {
+    label: string;
+    description: string;
+    badgeColor: string;
+}> = {
+    noAuth: {
         label: "Giriş Yapmamış",
         description: "Standart: Hiçbir şey yapamaz.",
-        badgeColor: "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900"
-    }
-} as const;
+        badgeColor:
+            "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900",
+    },
+    owner: {
+        label: "Owner",
+        description: "Tam Yetki: System Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
+        badgeColor:
+            "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/50 animate-pulse",
+    },
+    system_admin: {
+        label: "System Admin",
+        description: "Çok Yüksek Yetki: Süper Adminleri yönetebilir, sistem ayarlarına erişir. Owner hariç her şeye yetkisi vardır.",
+        badgeColor:
+            "bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-0 hover:from-indigo-700 hover:to-blue-700 shadow-md shadow-indigo-500/50",
+    },
+    super_admin: {
+        label: "Süper Admin",
+        description: "Yüksek Yetki: Admin atayabilir, tüm içerikleri ve kullanıcıları yönetebilir.",
+        badgeColor:
+            "bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 hover:from-red-700 hover:to-orange-700 shadow-md shadow-red-500/50",
+    },
+    admin: {
+        label: "Admin",
+        description: "Yönetim: İçerikleri yönetebilir, kullanıcıları düzenleyebilir.",
+        badgeColor:
+            "bg-gradient-to-r from-amber-600 to-yellow-600 text-white border-0 hover:from-amber-700 hover:to-yellow-700 shadow-md shadow-amber-500/50",
+    },
+    user: {
+        label: "Kullanıcı",
+        description: "Standart: Sadece kendi profilini görebilir ve mesaj yazabilir.",
+        badgeColor:
+            "border-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-900",
+    },
+};
 
-export function getLevelInfo(level: number | null) {
-    if (level === null) return ROLE_DETAILS[ROLES.noAuth];
-    if (level >= ROLES.OWNER) return ROLE_DETAILS[ROLES.OWNER];
-    if (level >= ROLES.SYSTEM_ADMIN) return ROLE_DETAILS[ROLES.SYSTEM_ADMIN];
-    if (level >= ROLES.SUPER_ADMIN) return ROLE_DETAILS[ROLES.SUPER_ADMIN];
-    if (level >= ROLES.ADMIN) return ROLE_DETAILS[ROLES.ADMIN];
-    if (level >= ROLES.USER) return ROLE_DETAILS[ROLES.USER];
-    return ROLE_DETAILS[ROLES.noAuth];
+// Admin panelinde atanabilir roller (OWNER yok)
+export const AVAILABLE_ROLES = [
+    { value: ROLE_KEYS.USER, label: ROLE_DETAILS.user.label },
+    { value: ROLE_KEYS.ADMIN, label: ROLE_DETAILS.admin.label },
+    { value: ROLE_KEYS.SUPER_ADMIN, label: ROLE_DETAILS.super_admin.label },
+    { value: ROLE_KEYS.SYSTEM_ADMIN, label: ROLE_DETAILS.system_admin.label },
+] as const;
+
+export function getHighestRoleKey(userRoles: string[] | null | undefined): RoleKey {
+    if (!userRoles?.length) return ROLE_KEYS.noAuth;
+
+    let best: RealRoleKey | null = null;
+    let bestLevel = -1;
+
+    for (const r of userRoles) {
+        if (Object.prototype.hasOwnProperty.call(ROLE_LEVELS, r)) {
+            const level = ROLE_LEVELS[r as RealRoleKey];
+            if (level > bestLevel) {
+                bestLevel = level;
+                best = r as RealRoleKey;
+            }
+        }
+    }
+
+    return best ?? ROLE_KEYS.noAuth;
 }
 
-// Tip güvenliği için (Opsiyonel ama önerilir)
-export type RoleLevel = typeof ROLES[keyof typeof ROLES];
+export function getRoleInfoFromRoles(userRoles: string[] | null | undefined) {
+    return ROLE_DETAILS[getHighestRoleKey(userRoles)];
+}
 
-// Admin panelinde atanabilir seviyeler (OWNER hariç)
-// Not: SYSTEM_ADMIN seviyesini pratikte sadece OWNER atayabilmeli (UI + server-side kontrol şart)
-export const AVAILABLE_LEVELS = [
-    { value: ROLES.USER, label: ROLE_DETAILS[ROLES.USER].label },
-    { value: ROLES.ADMIN, label: ROLE_DETAILS[ROLES.ADMIN].label },
-    { value: ROLES.SUPER_ADMIN, label: ROLE_DETAILS[ROLES.SUPER_ADMIN].label },
-    { value: ROLES.SYSTEM_ADMIN, label: ROLE_DETAILS[ROLES.SYSTEM_ADMIN].label },
-] as const;
+export function getRoleNameByLevel(level: number): string {
+    // Find role key by level value
+    const roleKey = Object.keys(ROLE_LEVELS).find(
+        key => ROLE_LEVELS[key as RealRoleKey] === level
+    ) as RealRoleKey | undefined
 
-export const CLASSES = [
-    "12A",
-    "12B",
-    "12C",
-    "12D",
-    "12E",
-    "12F",
-] as const;
+    if (roleKey && ROLE_DETAILS[roleKey]) {
+        return ROLE_DETAILS[roleKey].label
+    }
+    return "Kullanıcı"
+}

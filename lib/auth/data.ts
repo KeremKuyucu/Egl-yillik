@@ -11,10 +11,9 @@ export const getUserData = cache(async (): Promise<UserData> => {
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { user: null, profile: null, level: null };
+    if (!user) return { user: null, profile: null };
 
-    const [lvlRes, profRes] = await Promise.all([
-        supabase.from("user_levels").select("level").eq("id", user.id).maybeSingle(),
+    const [profRes] = await Promise.all([
         supabase
             .from("profiles")
             .select("id, first_name, last_name, school_number, class, user_year")
@@ -25,7 +24,6 @@ export const getUserData = cache(async (): Promise<UserData> => {
     return {
         user,
         profile: profRes.data ?? null,
-        level: lvlRes.data?.level ?? null,
     };
 });
 
@@ -37,8 +35,4 @@ export async function getCurrentUser() {
 
 export async function getCurrentProfile() {
     return (await getUserData()).profile;
-}
-
-export async function getCurrentLevel() {
-    return (await getUserData()).level ?? 0;
 }

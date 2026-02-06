@@ -1,4 +1,4 @@
-// app/admin/(owner)/layout.tsx
+"use server";
 import { requireOwner } from "@/lib/auth/permissions"
 
 export default async function OwnerGuardLayout({

@@ -2,14 +2,15 @@ import Footer from "@/components/layout/footer"
 import { AppHeader } from "@/components/layout/app-header"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { getCurrentLevel, getCurrentProfile } from "@/lib/auth/data"
-import { requireAdmin } from "@/lib/auth/permissions"
+import { getCurrentProfile } from "@/lib/auth/data"
+
+import { getCurrentRoles, requireAdmin } from "@/lib/auth/permissions"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin()
 
   const currentProfile = await getCurrentProfile()
-  const currentLevel = await getCurrentLevel()
+  const roles = await getCurrentRoles()
 
   const handleSignOut = async () => {
     "use server"
@@ -24,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AppHeader
         mode="admin"
         userProfile={currentProfile}
-        level={currentLevel}
+        roles={roles}
         signOut={handleSignOut}
       />
 

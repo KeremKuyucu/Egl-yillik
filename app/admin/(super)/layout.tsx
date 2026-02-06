@@ -1,3 +1,4 @@
+"use server";
 import { requireSuperAdmin } from "@/lib/auth/permissions"
 
 export default async function SuperAdminGuardLayout({

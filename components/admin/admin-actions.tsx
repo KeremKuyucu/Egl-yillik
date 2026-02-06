@@ -32,7 +32,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
-import { getLevelInfo, AVAILABLE_LEVELS } from "@/lib/constants"
+import { getRoleNameByLevel, AVAILABLE_ROLES, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
 import { updateUserLevel } from "@/app/actions/admin"
 import { deleteTextAction } from "@/app/actions/texts"
 import { EditUserForm } from "./edit-user-form"
@@ -133,9 +133,6 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
 // --------------------------------------------------------
 // 1. LEVEL SELECTOR (Kullanıcı Seviyesi Değiştirme)
 // --------------------------------------------------------
-function getRoleName(level: number): string {
-    return getLevelInfo(level).label;
-}
 
 interface LevelSelectorProps {
     userId: string
@@ -148,10 +145,15 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
     const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel.toString())
     const router = useRouter()
 
-    const availableLevels = AVAILABLE_LEVELS.map((level: any) => ({
-        ...level,
-        disabled: level.value >= maxLevel
-    }))
+    // AVAILABLE_ROLES'u level değerlerine dönüştür
+    const availableLevels = AVAILABLE_ROLES.map((role) => {
+        const level = ROLE_LEVELS[role.value as RealRoleKey] || 0
+        return {
+            value: level,
+            label: role.label,
+            disabled: level >= maxLevel
+        }
+    })
 
     const handleLevelChange = async () => {
         startTransition(async () => {
@@ -181,7 +183,7 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    {availableLevels.map((level: any) => (
+                    {availableLevels.map((level) => (
                         <SelectItem
                             key={level.value}
                             value={level.value.toString()}
@@ -210,7 +212,7 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
                         <AlertDialogHeader>
                             <AlertDialogTitle>Yetki Değişikliği</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Bu kullanıcının yetkisini <strong>{getRoleName(parseInt(selectedLevel))}</strong> olarak güncellemek istiyor musunuz?
+                                Bu kullanıcının yetkisini <strong>{getRoleNameByLevel(parseInt(selectedLevel))}</strong> olarak güncellemek istiyor musunuz?
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
