@@ -39,7 +39,6 @@ export interface UserWithStats {
     first_name: string
     last_name: string
     class: string
-    level: number
     email: string | null
     stats: ClassStats
     surveyStats: SurveyStats
