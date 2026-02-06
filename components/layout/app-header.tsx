@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/layout/mode-toggle"
 import { cn } from "@/lib/utils"
-import { PERMS, PAGE_PERMS } from "@/lib/auth/permissions"
+import { PERMS, PAGE_PERMS } from "@/lib/auth/perms"
 import {
   Shield,
   Settings,
