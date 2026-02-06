@@ -17,7 +17,7 @@ export default async function UsersAdminPage() {
 
     // 1. Kullanıcı verilerini ve Sınıf ayarlarını paralel olarak çekiyoruz
     const [usersResponse, settingsResponse] = await Promise.all([
-        supabase.rpc('get_admin_users_list', { sort_by: 'level' }),
+        supabase.rpc('get_admin_users_list', { sort_by: 'role' }),
         supabase
             .from('site_settings')
             .select('value')

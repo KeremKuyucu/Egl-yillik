@@ -32,8 +32,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
-import { getRoleNameByLevel, AVAILABLE_ROLES, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
-import { updateUserLevel } from "@/app/actions/admin"
+import { AVAILABLE_ROLES, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
+import { updateUserRole } from "@/app/actions/admin"
 import { deleteTextAction } from "@/app/actions/texts"
 import { EditUserForm } from "./edit-user-form"
 import { toast } from "sonner"
@@ -131,65 +131,67 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
 }
 
 // --------------------------------------------------------
-// 1. LEVEL SELECTOR (Kullanıcı Seviyesi Değiştirme)
+// 1. ROLE SELECTOR (Kullanıcı Rolü Değiştirme)
 // --------------------------------------------------------
 
-interface LevelSelectorProps {
+interface RoleSelectorProps {
     userId: string
-    currentLevel: number
-    maxLevel: number
+    currentRoleKey: string
+    maxLevel: number // Mevcut kullanıcının max seviyesi (filtreleme için)
 }
 
-export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorProps) {
+export function RoleSelector({ userId, currentRoleKey, maxLevel }: RoleSelectorProps) {
     const [isPending, startTransition] = useTransition()
-    const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel.toString())
+    const [selectedRoleKey, setSelectedRoleKey] = useState<string>(currentRoleKey)
     const router = useRouter()
 
-    // AVAILABLE_ROLES'u level değerlerine dönüştür
-    const availableLevels = AVAILABLE_ROLES.map((role) => {
-        const level = ROLE_LEVELS[role.value as RealRoleKey] || 0
+    // Kullanıcının atayabileceği roller (kendi seviyesinden düşük olanlar)
+    const availableRoles = AVAILABLE_ROLES.map((role) => {
+        const roleLevel = ROLE_LEVELS[role.value as RealRoleKey] || 0
         return {
-            value: level,
+            value: role.value,
             label: role.label,
-            disabled: level >= maxLevel
+            disabled: roleLevel >= maxLevel
         }
     })
 
-    const handleLevelChange = async () => {
+    const handleRoleChange = async () => {
         startTransition(async () => {
-            const newLevel = parseInt(selectedLevel)
-            const result = await updateUserLevel(userId, newLevel)
+            const result = await updateUserRole(userId, selectedRoleKey)
 
             if (result.success) {
-                toast.success("Kullanıcı yetkisi güncellendi")
+                toast.success("Kullanıcı rolü güncellendi")
                 router.refresh()
             } else {
                 toast.error(result.error || "Hata oluştu")
-                setSelectedLevel(currentLevel.toString())
+                setSelectedRoleKey(currentRoleKey)
             }
         })
     }
 
-    const hasChanged = parseInt(selectedLevel) !== currentLevel
+    const hasChanged = selectedRoleKey !== currentRoleKey
+
+    // Seçili rolün label'ını bul
+    const selectedRoleLabel = AVAILABLE_ROLES.find(r => r.value === selectedRoleKey)?.label || selectedRoleKey
 
     return (
         <div className="flex items-center gap-2">
             <Select
-                value={selectedLevel}
-                onValueChange={setSelectedLevel}
+                value={selectedRoleKey}
+                onValueChange={setSelectedRoleKey}
                 disabled={isPending}
             >
                 <SelectTrigger className="w-[130px] h-8 text-xs">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    {availableLevels.map((level) => (
+                    {availableRoles.map((role) => (
                         <SelectItem
-                            key={level.value}
-                            value={level.value.toString()}
-                            disabled={level.disabled}
+                            key={role.value}
+                            value={role.value}
+                            disabled={role.disabled}
                         >
-                            {level.label}
+                            {role.label}
                         </SelectItem>
                     ))}
                 </SelectContent>
@@ -212,12 +214,12 @@ export function LevelSelector({ userId, currentLevel, maxLevel }: LevelSelectorP
                         <AlertDialogHeader>
                             <AlertDialogTitle>Yetki Değişikliği</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Bu kullanıcının yetkisini <strong>{getRoleNameByLevel(parseInt(selectedLevel))}</strong> olarak güncellemek istiyor musunuz?
+                                Bu kullanıcının yetkisini <strong>{selectedRoleLabel}</strong> olarak güncellemek istiyor musunuz?
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setSelectedLevel(currentLevel.toString())}>İptal</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleLevelChange}>Onayla</AlertDialogAction>
+                            <AlertDialogCancel onClick={() => setSelectedRoleKey(currentRoleKey)}>İptal</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleRoleChange}>Onayla</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
@@ -235,16 +237,15 @@ interface UserProfile {
     last_name: string
     school_number: string
     class: string
-    level: number
+    role_level: number
     [key: string]: any
 }
 
 interface EditUserButtonProps {
     user: UserProfile
-    currentUserLevel: number
 }
 
-export function EditUserButton({ user, currentUserLevel }: EditUserButtonProps) {
+export function EditUserButton({ user }: EditUserButtonProps) {
     const [open, setOpen] = useState(false)
 
     return (

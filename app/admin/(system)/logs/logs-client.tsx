@@ -31,11 +31,9 @@ interface Log {
     new_data: any
     changed_by: string
     changed_at: string
-    profiles?: {
-        first_name: string
-        last_name: string
-        class: string
-    } | null
+    profile_first_name: string | null
+    profile_last_name: string | null
+    profile_class: string | null
 }
 
 export default function LogsClient({ logs }: { logs: Log[] }) {
@@ -46,7 +44,7 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
     const filteredLogs = logs.filter(log => {
         const matchesSearch =
             log.table_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (log.profiles?.first_name + ' ' + log.profiles?.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (log.profile_first_name + ' ' + log.profile_last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.record_id?.toLowerCase().includes(searchTerm.toLowerCase())
 
         const matchesOperation = operationFilter === 'ALL' || log.operation === operationFilter
@@ -135,13 +133,13 @@ export default function LogsClient({ logs }: { logs: Log[] }) {
                                                 {log.record_id}
                                             </TableCell>
                                             <TableCell>
-                                                {log.profiles ? (
+                                                {log.profile_first_name ? (
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-medium">
-                                                            {log.profiles.first_name} {log.profiles.last_name}
+                                                            {log.profile_first_name} {log.profile_last_name}
                                                         </span>
                                                         <span className="text-[10px] text-muted-foreground">
-                                                            {log.profiles.class}
+                                                            {log.profile_class}
                                                         </span>
                                                     </div>
                                                 ) : (

@@ -9,11 +9,10 @@ export const metadata = {
 export default async function AdminLogsPage() {
     const supabase = await createClient()
 
-    const { data: logs } = await supabase
-        .from('activity_logs')
-        .select('*, profiles:changed_by(first_name, last_name, class)')
-        .order('changed_at', { ascending: false })
-        .limit(100)
+    const { data: logs } = await supabase.rpc(
+        'get_activity_logs_latest',
+        { p_limit: 100 }
+    )
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">

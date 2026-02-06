@@ -31,7 +31,7 @@ import {
     Check
 } from "lucide-react"
 import {
-    LevelSelector,
+    RoleSelector,
     EditUserButton
 } from "@/components/admin/admin-actions"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -51,7 +51,8 @@ interface UserProfile {
     last_name: string
     school_number: string
     class: string
-    level: number
+    role_level: number
+    highest_role_key: string
     last_active: string | null
 }
 
@@ -105,6 +106,11 @@ function formatLastActive(dateString: string | null): { text: string; isRecent: 
     return { text: `${day}.${month}.${displayDate.getUTCFullYear()} ${hours}:${mins}`, isRecent: false }
 }
 
+// Level'dan role key'i bul (artık doğrudan highest_role_key kullanılabilir)
+function getUserRoleKey(user: UserProfile): string {
+    return user.highest_role_key || 'user'
+}
+
 export function UserManagementClient({
     initialUsers,
     currentUser,
@@ -147,9 +153,9 @@ export function UserManagementClient({
             // 3. Role Filter
             let matchesRole = true
             if (roleFilter === "admin") {
-                matchesRole = (user.level ?? 0) >= ROLE_LEVELS.admin
+                matchesRole = (user.role_level ?? 0) >= ROLE_LEVELS.admin
             } else if (roleFilter === "user") {
-                matchesRole = (user.level ?? 0) < ROLE_LEVELS.admin
+                matchesRole = (user.role_level ?? 0) < ROLE_LEVELS.admin
             }
 
             return matchesSearch && matchesClass && matchesRole
@@ -160,27 +166,22 @@ export function UserManagementClient({
     const stats = useMemo(() => {
         return {
             total: filteredUsers.length,
-            superAdmins: filteredUsers.filter(u => (u.level ?? 0) >= ROLE_LEVELS.super_admin).length,
-            admins: filteredUsers.filter(u => (u.level ?? 0) >= ROLE_LEVELS.admin && (u.level ?? 0) < ROLE_LEVELS.super_admin).length,
-            users: filteredUsers.filter(u => (u.level ?? 0) < ROLE_LEVELS.admin).length,
+            superAdmins: filteredUsers.filter(u => (u.role_level ?? 0) >= ROLE_LEVELS.super_admin).length,
+            admins: filteredUsers.filter(u => (u.role_level ?? 0) >= ROLE_LEVELS.admin && (u.role_level ?? 0) < ROLE_LEVELS.super_admin).length,
+            users: filteredUsers.filter(u => (u.role_level ?? 0) < ROLE_LEVELS.admin).length,
         }
     }, [filteredUsers])
 
-    const getLevelBadge = (level: number) => {
-        // Find role key by level
-        const roleKey = (Object.keys(ROLE_LEVELS).find(
-            key => ROLE_LEVELS[key as RealRoleKey] === level
-        ) as RoleKey) || (level >= ROLE_LEVELS.owner ? 'owner' : 'user')
-
-        const info = ROLE_DETAILS[roleKey] || ROLE_DETAILS.user
-        const Icon = level >= ROLE_LEVELS.admin ? Shield : null
-        const isOwner = level >= ROLE_LEVELS.owner
+    const getRoleBadge = (roleKey: string, roleLevel: number) => {
+        const info = ROLE_DETAILS[roleKey as RoleKey] || ROLE_DETAILS.user
+        const Icon = roleLevel >= ROLE_LEVELS.admin ? Shield : null
+        const isOwner = roleLevel >= ROLE_LEVELS.owner
 
         return (
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Badge variant={level >= ROLE_LEVELS.admin ? "default" : "secondary"} className={cn("gap-1", info.badgeColor)}>
+                        <Badge variant={roleLevel >= ROLE_LEVELS.admin ? "default" : "secondary"} className={cn("gap-1", info.badgeColor)}>
                             {isOwner ? <Crown className="h-3 w-3" /> : Icon && <Icon className="h-3 w-3" />}
                             {info.label}
                         </Badge>
@@ -363,10 +364,10 @@ export function UserManagementClient({
                             <TableBody>
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => {
-                                        const userLevel = user.level ?? 0
-                                        const canEditLevel = currentUserLevel > userLevel
+                                        const userLevel = user.role_level ?? 0
+                                        const canEditRole = currentUserLevel > userLevel
                                         const isCurrentUser = user.id === currentUser.id
-                                        const canEditProfile = (currentUserLevel >= ROLE_LEVELS.admin && canEditLevel) || isCurrentUser
+                                        const canEditProfile = (currentUserLevel >= ROLE_LEVELS.admin && canEditRole) || isCurrentUser
                                         const avatarColor = getAvatarColor(user.first_name)
                                         const initials = getInitials(user.first_name, user.last_name)
                                         const { text: activeText, isRecent } = formatLastActive(user.last_active)
@@ -412,7 +413,7 @@ export function UserManagementClient({
                                                 </TableCell>
                                                 <TableCell>{user.school_number}</TableCell>
                                                 <TableCell>{user.class}</TableCell>
-                                                <TableCell>{getLevelBadge(userLevel)}</TableCell>
+                                                <TableCell>{getRoleBadge(user.highest_role_key, userLevel)}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-1.5">
                                                         {isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
@@ -425,13 +426,12 @@ export function UserManagementClient({
                                                         {canEditProfile && (
                                                             <EditUserButton
                                                                 user={user}
-                                                                currentUserLevel={currentUserLevel}
                                                             />
                                                         )}
-                                                        {currentUserLevel >= ROLE_LEVELS.super_admin && canEditLevel && (
-                                                            <LevelSelector
+                                                        {currentUserLevel >= ROLE_LEVELS.super_admin && canEditRole && (
+                                                            <RoleSelector
                                                                 userId={user.id}
-                                                                currentLevel={userLevel}
+                                                                currentRoleKey={getUserRoleKey(user)}
                                                                 maxLevel={currentUserLevel}
                                                             />
                                                         )}

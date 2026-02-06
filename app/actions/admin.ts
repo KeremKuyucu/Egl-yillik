@@ -11,20 +11,20 @@ interface UpdateUserProfileData {
     class: string
 }
 
-export async function updateUserLevel(userId: string, newLevel: number) {
+export async function updateUserRole(userId: string, newRoleKey: string) {
     try {
         const auth = await checkAdminRolesUpdate()
         if (!auth) return { success: false, error: 'Yetkisiz işlem' }
 
         const supabase = await createClient()
 
-        const { error } = await supabase.rpc('admin_update_user_level', {
+        const { error } = await supabase.rpc('admin_update_user_role', {
             target_user_id: userId,
-            new_level: newLevel
+            new_role_key: newRoleKey
         })
 
         if (error) {
-            console.error("Level güncelleme hatası:", error)
+            console.error("Rol güncelleme hatası:", error)
             return { success: false, error: error.message }
         }
 
