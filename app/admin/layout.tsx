@@ -4,13 +4,14 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { getCurrentProfile } from "@/lib/auth/data"
 
-import { getCurrentRoles, requireAdmin } from "@/lib/auth/permissions"
+import { getCurrentRoles, getCurrentPermissions, requireAdmin } from "@/lib/auth/permissions"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin()
 
   const currentProfile = await getCurrentProfile()
   const roles = await getCurrentRoles()
+  const permissions = await getCurrentPermissions()
 
   const handleSignOut = async () => {
     "use server"
@@ -26,6 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         mode="admin"
         userProfile={currentProfile}
         roles={roles}
+        permissions={permissions}
         signOut={handleSignOut}
       />
 

@@ -28,12 +28,12 @@ export const getDetailedGreeting = (userName: string) => {
 }
 
 export const getBadge = (count: number) => {
-    if (count >= 50) return {
+    if (count >= 35) return {
         label: "Mezuniyet İkonu",
         color: "bg-gradient-to-r from-rose-500 to-red-600 text-white border-0 shadow-lg shadow-rose-500/40 ring-1 ring-white/20",
         icon: <Crown className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />
     }
-    if (count >= 30) return {
+    if (count >= 25) return {
         label: "Yıllık Efsanesi",
         color: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 shadow-lg shadow-violet-500/40 ring-1 ring-white/20",
         icon: <Trophy className="h-3 w-3 mr-1.5" strokeWidth={2.5} suppressHydrationWarning />

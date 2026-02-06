@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/layout/mode-toggle"
 import { cn } from "@/lib/utils"
-import { ROLE_KEYS, ROLE_LEVELS, getHighestRoleKey, type RealRoleKey } from "@/lib/constants"
+import { PERMS, PAGE_PERMS } from "@/lib/auth/permissions"
 import {
   Shield,
   Settings,
@@ -40,13 +40,14 @@ type NavItem = {
   href: string
   label: string
   icon: any
-  minLevel?: number
+  requiredPerm?: string // Sayfa erişimi için gerekli permission
 }
 
 interface PrettyAppHeaderProps {
   mode: HeaderMode
   userProfile: any
   roles: string[]
+  permissions: string[] // Kullanıcının sahip olduğu permission'lar
   signOut: () => Promise<void>
   brandHref?: string
   brandLabel?: string
@@ -57,6 +58,7 @@ export function AppHeader({
   mode,
   userProfile,
   roles,
+  permissions,
   signOut,
   brandHref,
   brandLabel = "EGL",
@@ -74,9 +76,9 @@ export function AppHeader({
   const computedBrandHref = brandHref ?? (mode === "admin" ? "/admin" : "/home")
   const computedShowNewButton = showNewButton ?? (mode === "user")
 
-  // Mevcut kullanıcının en yüksek rol seviyesini hesapla
-  const highestRole = getHighestRoleKey(roles) as RealRoleKey
-  const currentLevel = ROLE_LEVELS[highestRole] || 0
+  // Permission kontrolü için helper fonksiyon
+  const hasPerm = (perm: string) => permissions.includes(perm)
+  const hasAdminAccess = hasPerm(PAGE_PERMS.PAGE_ADMIN_ACCESS)
 
   const userNavItems: NavItem[] = [
     { href: "/home", label: "Ana Sayfa", icon: Home },
@@ -86,18 +88,20 @@ export function AppHeader({
     { href: "/future-me", label: "Geleceğe Not", icon: Sparkles },
   ]
 
+  // Admin menü öğeleri - requiredPerm ile hangi sayfaya erişebileceğini belirle
+  // İsimlendirmeleri permissions.ts'den değiştirebilirsin
   const adminNavItems: NavItem[] = [
-    { href: "/admin", label: "Genel Bakış", icon: ChartNoAxesCombined, minLevel: ROLE_LEVELS.admin },
-    { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, minLevel: ROLE_LEVELS.admin },
-    { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, minLevel: ROLE_LEVELS.admin },
-    { href: "/admin/users", label: "Öğrenciler", icon: Users, minLevel: ROLE_LEVELS.admin },
-    { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, minLevel: ROLE_LEVELS.admin },
-    { href: "/admin/texts", label: "Yazılar", icon: FileText, minLevel: ROLE_LEVELS.super_admin },
-    { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, minLevel: ROLE_LEVELS.super_admin },
-    { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, minLevel: ROLE_LEVELS.super_admin },
-    { href: "/admin/settings", label: "Site Ayarları", icon: Settings, minLevel: ROLE_LEVELS.super_admin },
-    { href: "/admin/logs", label: "Aktivite Logları", icon: ShieldAlert, minLevel: ROLE_LEVELS.system_admin },
-  ].filter((i) => (i.minLevel ? currentLevel >= i.minLevel : true))
+    { href: "/admin", label: "Genel Bakış", icon: ChartNoAxesCombined, requiredPerm: PAGE_PERMS.PAGE_ADMIN_OVERVIEW },
+    { href: "/admin/categories", label: "Kategoriler", icon: LayoutDashboard, requiredPerm: PAGE_PERMS.PAGE_ADMIN_CATEGORIES },
+    { href: "/admin/suggestions", label: "Kategori Önerileri", icon: MessageSquare, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SUGGESTIONS },
+    { href: "/admin/users", label: "Öğrenciler", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_USERS },
+    { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, requiredPerm: PAGE_PERMS.PAGE_ADMIN_FEEDBACK },
+    { href: "/admin/texts", label: "Yazılar", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXTS },
+    { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTES },
+    { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS },
+    { href: "/admin/settings", label: "Site Ayarları", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS },
+    { href: "/admin/logs", label: "Aktivite Logları", icon: ShieldAlert, requiredPerm: PAGE_PERMS.PAGE_ADMIN_LOGS },
+  ].filter((i) => (i.requiredPerm ? hasPerm(i.requiredPerm) : true))
 
   const navItems = mode === "admin" ? adminNavItems : userNavItems
 
@@ -206,7 +210,7 @@ export function AppHeader({
         {/* Right */}
         <div className="flex items-center gap-3">
           {/* Admin Shortcut - Premium Style */}
-          {mode === "user" && currentLevel >= ROLE_LEVELS.admin && (
+          {mode === "user" && hasAdminAccess && (
             <Link href="/admin" className="hidden lg:flex">
               <Button
                 variant="outline"
@@ -286,7 +290,7 @@ export function AppHeader({
                 {mode === "admin" ? (
                   <>
                     {/* Admin Kategorileri */}
-                    {currentLevel >= ROLE_LEVELS.admin && (
+                    {hasAdminAccess && (
                       <>
                         <div className="px-3 py-2 mb-1">
                           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -385,7 +389,7 @@ export function AppHeader({
                     )}
 
                     {/* Super Admin Kategorileri */}
-                    {currentLevel >= ROLE_LEVELS.super_admin && (
+                    {navItems.some(item => [PAGE_PERMS.PAGE_ADMIN_TEXTS, PAGE_PERMS.PAGE_ADMIN_VOTES, PAGE_PERMS.PAGE_ADMIN_REMINDERS, PAGE_PERMS.PAGE_ADMIN_SETTINGS, PAGE_PERMS.PAGE_ADMIN_LOGS].includes(item.requiredPerm as any)) && (
                       <>
                         <div className="px-3 py-2 mb-1">
                           <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">
@@ -535,7 +539,7 @@ export function AppHeader({
                   </Link>
                 </DropdownMenuItem>
 
-                {mode === "user" && currentLevel >= ROLE_LEVELS.admin && (
+                {mode === "user" && hasAdminAccess && (
                   <DropdownMenuItem asChild>
                     <Link
                       href="/admin"
@@ -598,7 +602,7 @@ export function AppHeader({
               {mode === "admin" && (
                 <>
                   {/* Admin Kategorileri - Desktop */}
-                  {currentLevel >= ROLE_LEVELS.admin && (
+                  {hasAdminAccess && (
                     <>
                       <div className="px-3 py-1.5 mb-1">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -697,7 +701,7 @@ export function AppHeader({
                   )}
 
                   {/* Super Admin Kategorileri - Desktop */}
-                  {currentLevel >= ROLE_LEVELS.super_admin && (
+                  {navItems.some(item => [PAGE_PERMS.PAGE_ADMIN_TEXTS, PAGE_PERMS.PAGE_ADMIN_VOTES, PAGE_PERMS.PAGE_ADMIN_REMINDERS, PAGE_PERMS.PAGE_ADMIN_SETTINGS, PAGE_PERMS.PAGE_ADMIN_LOGS].includes(item.requiredPerm as any)) && (
                     <>
                       <div className="px-3 py-1.5 mb-1">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400">

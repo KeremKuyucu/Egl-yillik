@@ -16,9 +16,7 @@ interface ApproveData {
 
 export async function approveSuggestion(data: ApproveData) {
     // Merkezi admin kontrolü
-    const auth = await checkAdminSuggestionsUpdate()
     const user = await getCurrentUser()
-    if (!auth.ok) return { error: auth.error }
     if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
@@ -118,9 +116,7 @@ export async function approveSuggestion(data: ApproveData) {
 
 export async function rejectSuggestion(suggestionId: string, adminNote: string = "") {
     // Merkezi admin kontrolü
-    const auth = await checkAdminSuggestionsUpdate()
     const user = await getCurrentUser()
-    if (!auth.ok) return { error: auth.error }
     if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
@@ -147,9 +143,7 @@ export async function rejectSuggestion(suggestionId: string, adminNote: string =
 
 export async function deleteSuggestion(suggestionId: string) {
     // Merkezi admin kontrolü
-    const auth = await checkAdminSuggestionsUpdate()
     const user = await getCurrentUser()
-    if (!auth.ok) return { error: auth.error }
     if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()

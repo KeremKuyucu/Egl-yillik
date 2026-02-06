@@ -12,8 +12,8 @@ import {
     Zap,
     User
 } from "lucide-react"
-import { getRoleInfoFromRoles, ROLE_KEYS, getHighestRoleKey, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
-import { getCurrentRoles } from "@/lib/auth/permissions"
+import { getRoleInfoFromRoles } from "@/lib/constants"
+import { getCurrentRoles, getCurrentPermissions, PAGE_PERMS } from "@/lib/auth/permissions"
 import {
     AdminHeroBanner,
     SystemStatusBar,
@@ -28,9 +28,10 @@ import {
 
 export default async function AdminPage() {
     // Paralel veri çekme
-    const [profile, roles, supabase] = await Promise.all([
+    const [profile, roles, permissions, supabase] = await Promise.all([
         getCurrentProfile(),
         getCurrentRoles(),
+        getCurrentPermissions(),
         createClient()
     ])
 
@@ -98,21 +99,22 @@ export default async function AdminPage() {
         { label: "Yeni Kayıtlar", status: isRegistrationEnabled, activeText: "Açık", inactiveText: "Kapalı", icon: User }
     ]
 
-    // Quick actions based on user role
-    const highestRole = getHighestRoleKey(roles) as RealRoleKey
-    const currentLevel = ROLE_LEVELS[highestRole] || 0
+    // Permission kontrolü için helper
+    const hasPerm = (perm: string) => permissions.includes(perm)
 
+    // Quick actions - permission tabanlı
+    // İsimlendirmeleri permissions.ts'den değiştirebilirsin
     const quickActions = [
-        { label: "Öğrenciler", description: "Profilleri yönet", href: "/admin/users", icon: Users, role: ROLE_KEYS.ADMIN, gradient: "from-blue-500 to-cyan-500" },
-        { label: "Kategoriler", description: "Anket kategorileri", href: "/admin/categories", icon: LayoutDashboard, role: ROLE_KEYS.ADMIN, gradient: "from-indigo-500 to-purple-500" },
-        { label: "Geri Bildirimler", description: "Kullanıcı mesajları", href: "/admin/feedback", icon: MessageSquare, role: ROLE_KEYS.ADMIN, gradient: "from-pink-500 to-rose-500" },
-        { label: "Öneriler", description: "Kategori önerileri", href: "/admin/suggestions", icon: Star, role: ROLE_KEYS.ADMIN, gradient: "from-amber-500 to-orange-500" },
-        { label: "Site Ayarları", description: "Sistem konfigürasyonu", href: "/admin/settings", icon: Settings, role: ROLE_KEYS.SUPER_ADMIN, gradient: "from-slate-500 to-gray-600" },
-        { label: "Duyurular", description: "Bildirim gönder", href: "/admin/reminders", icon: Bell, role: ROLE_KEYS.SUPER_ADMIN, gradient: "from-green-500 to-emerald-500" },
-        { label: "Yıllık Yazıları", description: "Yıllık yazılarını görüntüle", href: "/admin/texts", icon: FileText, role: ROLE_KEYS.SUPER_ADMIN, gradient: "from-violet-500 to-purple-500" },
-        { label: "Oylar", description: "Oyları görüntüle", href: "/admin/votes", icon: Vote, role: ROLE_KEYS.SUPER_ADMIN, gradient: "from-amber-500 to-orange-500" },
-        { label: "Sistem Logları", description: "Sistem olaylarını görüntüle", href: "/admin/logs", icon: FileText, role: ROLE_KEYS.SYSTEM_ADMIN, gradient: "from-slate-500 to-gray-600" }
-    ].filter(link => currentLevel >= ROLE_LEVELS[link.role as RealRoleKey])
+        { label: "Öğrenciler", description: "Profilleri yönet", href: "/admin/users", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_USERS, gradient: "from-blue-500 to-cyan-500" },
+        { label: "Kategoriler", description: "Anket kategorileri", href: "/admin/categories", icon: LayoutDashboard, requiredPerm: PAGE_PERMS.PAGE_ADMIN_CATEGORIES, gradient: "from-indigo-500 to-purple-500" },
+        { label: "Geri Bildirimler", description: "Kullanıcı mesajları", href: "/admin/feedback", icon: MessageSquare, requiredPerm: PAGE_PERMS.PAGE_ADMIN_FEEDBACK, gradient: "from-pink-500 to-rose-500" },
+        { label: "Öneriler", description: "Kategori önerileri", href: "/admin/suggestions", icon: Star, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SUGGESTIONS, gradient: "from-amber-500 to-orange-500" },
+        { label: "Site Ayarları", description: "Sistem konfigürasyonu", href: "/admin/settings", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS, gradient: "from-slate-500 to-gray-600" },
+        { label: "Duyurular", description: "Bildirim gönder", href: "/admin/reminders", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS, gradient: "from-green-500 to-emerald-500" },
+        { label: "Yıllık Yazıları", description: "Yıllık yazılarını görüntüle", href: "/admin/texts", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXTS, gradient: "from-violet-500 to-purple-500" },
+        { label: "Oylar", description: "Oyları görüntüle", href: "/admin/votes", icon: Vote, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTES, gradient: "from-amber-500 to-orange-500" },
+        { label: "Sistem Logları", description: "Sistem olaylarını görüntüle", href: "/admin/logs", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_LOGS, gradient: "from-slate-500 to-gray-600" }
+    ].filter(link => hasPerm(link.requiredPerm))
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">

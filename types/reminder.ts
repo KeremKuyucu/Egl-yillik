@@ -77,20 +77,7 @@ export type FilterStatus =
     | 'survey_incomplete'
     | 'any_incomplete'
 
-/**
- * Sınıf filtreleri (constants'tan import)
- */
-import { FilterClassType } from '@/lib/constants'
-export type FilterClass = FilterClassType
-
-/**
- * Email gönderim durumları
- */
 export type EmailStatus = 'pending' | 'success' | 'error'
-
-/**
- * Sınıf bazlı istatistikler
- */
 export interface ClassStatsSummary {
     total: number
     textsComplete: number

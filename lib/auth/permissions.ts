@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import type { AuthContext, AuthCheckResult } from "./types";
+import type { AuthContext, AuthCheckResult } from "@/types/auth";
 
 // -------------------- Permission Constants --------------------
 
@@ -43,6 +43,20 @@ export const PERMS = {
     REMINDERS_SEND: "admin.reminder.send", // hatırlatıcı gönderme fonksiyonu kullanabilme
 } as const;
 
+export const PAGE_PERMS = {
+    PAGE_ADMIN_OVERVIEW: PERMS.ADMIN_STATS_READ,
+    PAGE_ADMIN_CATEGORIES: PERMS.SURVEY_CATEGORIES_READ_ALL,
+    PAGE_ADMIN_SUGGESTIONS: PERMS.ADMIN_SUGGESTIONS_READ,
+    PAGE_ADMIN_USERS: PERMS.ADMIN_USERS_READ,
+    PAGE_ADMIN_FEEDBACK: PERMS.ADMIN_FEEDBACK_READ,
+    PAGE_ADMIN_TEXTS: PERMS.ADMIN_TEXTS_READ,
+    PAGE_ADMIN_VOTES: PERMS.ADMIN_VOTES_READ,
+    PAGE_ADMIN_REMINDERS: PERMS.REMINDERS_READ,
+    PAGE_ADMIN_SETTINGS: PERMS.SITE_SETTINGS_WRITE,
+    PAGE_ADMIN_LOGS: PERMS.SYSTEM_LOGS_READ,
+
+    PAGE_ADMIN_ACCESS: "role.admin",
+} as const;
 
 export type PermKey = (typeof PERMS)[keyof typeof PERMS];
 
@@ -166,7 +180,6 @@ export const requireSystemLogsRead = makeRequire(PERMS.SYSTEM_LOGS_READ);
 // votes
 export const checkAdminVotesRead = makeCheck(PERMS.ADMIN_VOTES_READ);
 export const requireAdminVotesRead = makeRequire(PERMS.ADMIN_VOTES_READ);
-
 
 // reminders
 export const checkRemindersSend = makeCheck(PERMS.REMINDERS_SEND);

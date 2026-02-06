@@ -1,13 +1,8 @@
 "use server"
 
 import { createClient } from '@/lib/supabase/server';
-import { checkSiteSettingsWrite } from '@/lib/auth/permissions';
 
 export async function updateGraduationDate(dateString: string, year?: number) {
-    // Merkezi super admin kontrolü
-    const auth = await checkSiteSettingsWrite();
-    if (!auth.ok) return { error: auth.error };
-
     const supabase = await createClient();
 
     // Validate date
@@ -40,10 +35,6 @@ export async function updateGraduationDate(dateString: string, year?: number) {
 }
 
 export async function updateDeadline(dateTimeString: string) {
-    // Merkezi super admin kontrolü
-    const auth = await checkSiteSettingsWrite();
-    if (!auth.ok) return { error: auth.error };
-
     const supabase = await createClient();
 
     // Validate date
@@ -73,10 +64,6 @@ export async function updateDeadline(dateTimeString: string) {
 }
 
 export async function updateToggleSetting(key: string, value: boolean) {
-    // Merkezi super admin kontrolü
-    const auth = await checkSiteSettingsWrite();
-    if (!auth.ok) return { error: auth.error };
-
     const supabase = await createClient();
 
     // Validate key
@@ -113,10 +100,6 @@ export async function updateToggleSetting(key: string, value: boolean) {
 }
 
 export async function updateTextSetting(key: string, value: string) {
-    // Merkezi super admin kontrolü
-    const auth = await checkSiteSettingsWrite();
-    if (!auth.ok) return { error: auth.error };
-
     const supabase = await createClient();
 
     // Validate key

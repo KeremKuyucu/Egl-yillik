@@ -1,7 +1,7 @@
 // lib/auth/data.ts (server-only)
 import { createClient } from "@/lib/supabase/server";
 import { cache } from "react";
-import type { UserData } from "./types";
+import type { UserData } from "@/types/auth";
 
 /**
  * Kullanıcı verisini getirir: user, profile, level

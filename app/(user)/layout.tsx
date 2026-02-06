@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
-import { getCurrentRoles } from "@/lib/auth/permissions"
+import { getCurrentRoles, getCurrentPermissions } from "@/lib/auth/permissions"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/layout/app-header"
 import Footer from "@/components/layout/footer"
@@ -13,6 +13,7 @@ export default async function UserLayout({
     const user = await getCurrentUser()
     const profile = await getCurrentProfile()
     const roles = await getCurrentRoles()
+    const permissions = await getCurrentPermissions()
 
     if (!user) {
         redirect("/login")
@@ -42,6 +43,7 @@ export default async function UserLayout({
                 mode="user"
                 userProfile={profile}
                 roles={roles}
+                permissions={permissions}
                 signOut={handleSignOut}
             />
 

@@ -16,9 +16,6 @@ interface CategoryFormData {
 
 // Sıra numaralarını yeniden düzenle (boşlukları kapat)
 async function reorderCategories(supabase: any) {
-    const auth = await checkSurveyCategoriesWrite()
-    if (!auth.ok) return { error: auth.error }
-
     const { data: categories } = await supabase
         .from("survey_categories")
         .select("id, sort_order")
@@ -40,10 +37,6 @@ async function reorderCategories(supabase: any) {
 
 // Belirli bir sıra numarasından itibaren kaydır
 async function shiftCategoriesFrom(supabase: any, fromOrder: number, excludeId?: string) {
-    // fromOrder ve üzerindeki tüm kategorileri al
-    const auth = await checkSurveyCategoriesWrite()
-    if (!auth.ok) return { error: auth.error }
-
     let query = supabase
         .from("survey_categories")
         .select("id, sort_order")
@@ -68,10 +61,7 @@ async function shiftCategoriesFrom(supabase: any, fromOrder: number, excludeId?:
 }
 
 export async function addCategory(data: CategoryFormData) {
-    // Merkezi admin kontrolü
-    const auth = await checkSurveyCategoriesWrite()
     const user = await getCurrentUser()
-    if (!auth.ok) return { error: auth.error }
     if (!user) return { error: "Oturum bulunamadı" }
 
     const supabase = await createClient()
@@ -163,10 +153,6 @@ export async function addCategory(data: CategoryFormData) {
 }
 
 export async function toggleCategoryStatus(categoryId: string, newStatus: boolean) {
-    // Merkezi admin kontrolü
-    const auth = await checkSurveyCategoriesWrite()
-    if (!auth.ok) return { error: auth.error }
-
     const supabase = await createClient()
 
     const { error } = await supabase
@@ -186,10 +172,6 @@ export async function toggleCategoryStatus(categoryId: string, newStatus: boolea
 }
 
 export async function deleteCategory(categoryId: string) {
-    // Merkezi admin kontrolü
-    const auth = await checkSurveyCategoriesWrite()
-    if (!auth.ok) return { error: auth.error }
-
     const supabase = await createClient()
 
     // survey_votes.category_id FK'si ON DELETE CASCADE ise:
@@ -217,10 +199,6 @@ export async function deleteCategory(categoryId: string) {
 
 
 export async function updateCategory(categoryId: string, data: Partial<CategoryFormData>) {
-    // Merkezi admin kontrolü
-    const auth = await checkSurveyCategoriesWrite()
-    if (!auth.ok) return { error: auth.error }
-
     const supabase = await createClient()
 
     // Eğer sıra numarası değişiyorsa, çakışma kontrolü yap

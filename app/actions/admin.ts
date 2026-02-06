@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkAdminRolesUpdate, checkAdminUsersUpdate } from "@/lib/auth/permissions"
 
 interface UpdateUserProfileData {
     first_name: string
@@ -13,9 +12,6 @@ interface UpdateUserProfileData {
 
 export async function updateUserRole(userId: string, newRoleKey: string) {
     try {
-        const auth = await checkAdminRolesUpdate()
-        if (!auth) return { success: false, error: 'Yetkisiz işlem' }
-
         const supabase = await createClient()
 
         const { error } = await supabase.rpc('admin_update_user_role', {
@@ -41,9 +37,6 @@ export async function updateUserProfile(
     data: UpdateUserProfileData
 ) {
     try {
-        const auth = await checkAdminUsersUpdate()
-        if (!auth) return { success: false, error: 'Yetkisiz işlem' }
-
         const supabase = await createClient()
 
         const { data: result, error } = await supabase.rpc('admin_update_user_profile', {
