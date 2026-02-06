@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import type { AuthContext, AuthCheckResult } from "./types";
-import { PERMS, type PermKey } from "./perms";
+export * from "./perms";
 
 // -------------------- Auth Context --------------------
 
