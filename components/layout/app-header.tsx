@@ -78,7 +78,8 @@ export function AppHeader({
 
   // Permission kontrolü için helper fonksiyon
   const hasPerm = (perm: string) => permissions.includes(perm)
-  const hasAdminAccess = hasPerm(PAGE_PERMS.PAGE_ADMIN_ACCESS)
+  const hasRole = (role: string) => roles.includes(role)
+  const hasAdminAccess = hasRole("admin")
 
   const userNavItems: NavItem[] = [
     { href: "/home", label: "Ana Sayfa", icon: Home },
@@ -97,6 +98,7 @@ export function AppHeader({
     { href: "/admin/users", label: "Öğrenciler", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_USERS },
     { href: "/admin/feedback", label: "Geri Bildirimler", icon: MessageSquarePlus, requiredPerm: PAGE_PERMS.PAGE_ADMIN_FEEDBACK },
     { href: "/admin/texts", label: "Yazılar", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXTS },
+    { href: "/admin/roles", label: "Roller", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_ROLES },
     { href: "/admin/votes", label: "Anket Sonuçları", icon: Vote, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTES },
     { href: "/admin/reminders", label: "Hatırlatıcılar", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS },
     { href: "/admin/settings", label: "Site Ayarları", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS },

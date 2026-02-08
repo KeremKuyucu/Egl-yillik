@@ -12,7 +12,7 @@ import {
     Zap,
     User
 } from "lucide-react"
-import { getRoleInfoFromRoles } from "@/lib/constants"
+import { getRoleInfoFromRoles } from "@/lib/roles"
 import { getCurrentRoles, getCurrentPermissions, PAGE_PERMS } from "@/lib/auth/permissions"
 import {
     AdminHeroBanner,
@@ -89,7 +89,7 @@ export default async function AdminPage() {
         ? Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null
 
-    const roleInfo = getRoleInfoFromRoles(roles)
+    const roleInfo = await getRoleInfoFromRoles(roles)
 
     // System status items
     const systemStatus = [
@@ -110,6 +110,7 @@ export default async function AdminPage() {
         { label: "Geri Bildirimler", description: "Kullanıcı mesajları", href: "/admin/feedback", icon: MessageSquare, requiredPerm: PAGE_PERMS.PAGE_ADMIN_FEEDBACK, gradient: "from-pink-500 to-rose-500" },
         { label: "Öneriler", description: "Kategori önerileri", href: "/admin/suggestions", icon: Star, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SUGGESTIONS, gradient: "from-amber-500 to-orange-500" },
         { label: "Site Ayarları", description: "Sistem konfigürasyonu", href: "/admin/settings", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS, gradient: "from-slate-500 to-gray-600" },
+        { label: "Roller", description: "Rolleri yönet", href: "/admin/roles", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_ROLES, gradient: "from-indigo-500 to-purple-500" },
         { label: "Duyurular", description: "Bildirim gönder", href: "/admin/reminders", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS, gradient: "from-green-500 to-emerald-500" },
         { label: "Yıllık Yazıları", description: "Yıllık yazılarını görüntüle", href: "/admin/texts", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXTS, gradient: "from-violet-500 to-purple-500" },
         { label: "Oylar", description: "Oyları görüntüle", href: "/admin/votes", icon: Vote, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTES, gradient: "from-amber-500 to-orange-500" },
@@ -121,7 +122,7 @@ export default async function AdminPage() {
             {/* Hero Welcome Banner */}
             <AdminHeroBanner
                 profile={profile}
-                roleInfo={roleInfo}
+                roleInfo={roleInfo || { label: 'Kullanıcı', badgeColor: 'bg-slate-100' }}
                 stats={stats}
             />
 

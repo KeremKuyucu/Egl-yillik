@@ -1,8 +1,8 @@
 "use server";
 import type { ReactNode } from "react";
-import { requireAdminUsersRead } from "@/lib/auth/permissions";
+import { requirePermission, PAGE_PERMS } from "@/lib/auth/permissions";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-    await requireAdminUsersRead();
+    await requirePermission(PAGE_PERMS.PAGE_ADMIN_USERS);
     return <>{children}</>;
 }

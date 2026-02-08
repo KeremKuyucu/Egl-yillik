@@ -1,8 +1,8 @@
 "use server";
 import type { ReactNode } from "react";
-import { requireRemindersRead } from "@/lib/auth/permissions";
+import { requirePermission, PAGE_PERMS } from "@/lib/auth/permissions";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-    await requireRemindersRead();
+    await requirePermission(PAGE_PERMS.PAGE_ADMIN_REMINDERS);
     return <>{children}</>;
 }

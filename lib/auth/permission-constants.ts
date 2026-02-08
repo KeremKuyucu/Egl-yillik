@@ -15,6 +15,9 @@ export const PERMS = {
     ADMIN_ROLES_READ: "admin.roles.read", // tüm levelleri çekebilme izni yerelde kontrol edilmiyor rls ile kontrol edilecek
     ADMIN_ROLES_UPDATE: "admin.roles.update", // Level sayfası update yerelde kontrol edilmiyor rls ile kontrol edilecek
 
+    ADMIN_ROLE_PERMISSIONS_READ: "admin.role_permissions.read", // Rol izinlerini okuma
+    ADMIN_ROLE_PERMISSIONS_UPDATE: "admin.role_permissions.update", // Rol izinlerini güncelleme
+
     ADMIN_STATS_READ: "admin.stats.read", // Ana sayfadaki fonksiyon için erişim yerelde kontrole gerek yok fonksiyona erişim izni veriyor
 
     ADMIN_SUGGESTIONS_READ: "admin.suggestions.read", // Suggestion sayfası erişim
@@ -36,6 +39,7 @@ export const PERMS = {
 
     REMINDERS_READ: "admin.reminder.read", // hatırlatıcı gönderme sayfasına girme ve fonksiyonun kullanabilme
     REMINDERS_SEND: "admin.reminder.send", // hatırlatıcı gönderme fonksiyonu kullanabilme
+
 } as const;
 
 export const PAGE_PERMS = {
@@ -43,6 +47,7 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_CATEGORIES: PERMS.SURVEY_CATEGORIES_READ_ALL,
     PAGE_ADMIN_SUGGESTIONS: PERMS.ADMIN_SUGGESTIONS_READ,
     PAGE_ADMIN_USERS: PERMS.ADMIN_USERS_READ,
+    PAGE_ADMIN_ROLES: PERMS.ADMIN_ROLES_READ,
     PAGE_ADMIN_FEEDBACK: PERMS.ADMIN_FEEDBACK_READ,
     PAGE_ADMIN_TEXTS: PERMS.ADMIN_TEXTS_READ,
     PAGE_ADMIN_VOTES: PERMS.ADMIN_VOTES_READ,

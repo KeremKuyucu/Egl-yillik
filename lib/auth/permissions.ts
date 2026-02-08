@@ -55,100 +55,39 @@ export async function hasPermission(perm: PermKey | string): Promise<AuthCheckRe
 export async function requirePermission(perm: PermKey | string) {
     const res = await hasPermission(perm);
     if (!res.ok) {
+        console.log("Permission denied", res.error);
         if (res.error === "UNAUTHENTICATED") redirect("/login");
         redirect("/home");
     }
 }
 
-// Factory: tek tek fonksiyon üretmek için
-function makeCheck(perm: PermKey) {
-    return () => hasPermission(perm);
+export async function hasRole(roleKey: string): Promise<AuthCheckResult> {
+    const { user, roles } = await getAuthContext();
+    if (!user) return { ok: false, error: "UNAUTHENTICATED" };
+    if (!roles.includes(roleKey)) return { ok: false, error: "FORBIDDEN" };
+    return { ok: true };
 }
-function makeRequire(perm: PermKey) {
-    return () => requirePermission(perm);
+
+export async function requireRole(roleKey: string) {
+    const res = await hasRole(roleKey);
+    if (!res.ok) {
+        console.log("Role denied", res.error, roleKey);
+        if (res.error === "UNAUTHENTICATED") redirect("/login");
+        redirect("/home");
+    }
 }
-
-// -------------------- Permission Checks --------------------
-
-// feedback
-export const requireAdminFeedbackRead = makeRequire(PERMS.ADMIN_FEEDBACK_READ);
-
-// stats
-export const checkAdminStatsRead = makeCheck(PERMS.ADMIN_STATS_READ);
-export const requireAdminStatsRead = makeRequire(PERMS.ADMIN_STATS_READ);
-
-// suggestions
-export const checkAdminSuggestionsRead = makeCheck(PERMS.ADMIN_SUGGESTIONS_READ);
-export const requireAdminSuggestionsRead = makeRequire(PERMS.ADMIN_SUGGESTIONS_READ);
-
-export const checkAdminSuggestionsUpdate = makeCheck(PERMS.ADMIN_SUGGESTIONS_UPDATE);
-export const requireAdminSuggestionsUpdate = makeRequire(PERMS.ADMIN_SUGGESTIONS_UPDATE);
-
-// texts
-export const checkAdminTextsRead = makeCheck(PERMS.ADMIN_TEXTS_READ);
-export const requireAdminTextsRead = makeRequire(PERMS.ADMIN_TEXTS_READ);
-
-export const checkAdminTextsDelete = makeCheck(PERMS.ADMIN_TEXTS_DELETE);
-export const requireAdminTextsDelete = makeRequire(PERMS.ADMIN_TEXTS_DELETE);
-
-// users
-export const checkAdminUsersRead = makeCheck(PERMS.ADMIN_USERS_READ);
-export const requireAdminUsersRead = makeRequire(PERMS.ADMIN_USERS_READ);
-
-export const checkAdminUsersUpdate = makeCheck(PERMS.ADMIN_USERS_UPDATE);
-export const requireAdminUsersUpdate = makeRequire(PERMS.ADMIN_USERS_UPDATE);
-
-// roles
-export const checkAdminRolesRead = makeCheck(PERMS.ADMIN_ROLES_READ);
-export const requireAdminRolesRead = makeRequire(PERMS.ADMIN_ROLES_READ);
-
-export const checkAdminRolesUpdate = makeCheck(PERMS.ADMIN_ROLES_UPDATE);
-export const requireAdminRolesUpdate = makeRequire(PERMS.ADMIN_ROLES_UPDATE);
-
-// survey categories
-export const checkSurveyCategoriesReadAll = makeCheck(PERMS.SURVEY_CATEGORIES_READ_ALL);
-export const requireSurveyCategoriesReadAll = makeRequire(PERMS.SURVEY_CATEGORIES_READ_ALL);
-
-export const checkSurveyCategoriesWrite = makeCheck(PERMS.SURVEY_CATEGORIES_WRITE);
-export const requireSurveyCategoriesWrite = makeRequire(PERMS.SURVEY_CATEGORIES_WRITE);
-
-// email opt-outs
-export const checkEmailOptOutsRead = makeCheck(PERMS.EMAIL_OPT_OUTS_READ);
-export const requireEmailOptOutsRead = makeRequire(PERMS.EMAIL_OPT_OUTS_READ);
-
-// site settings
-export const checkSiteSettingsWrite = makeCheck(PERMS.SITE_SETTINGS_WRITE);
-export const requireSiteSettingsWrite = makeRequire(PERMS.SITE_SETTINGS_WRITE);
-
-// system logs
-export const checkSystemLogsCleanup = makeCheck(PERMS.SYSTEM_LOGS_CLEANUP);
-export const requireSystemLogsCleanup = makeRequire(PERMS.SYSTEM_LOGS_CLEANUP);
-
-export const checkSystemLogsRead = makeCheck(PERMS.SYSTEM_LOGS_READ);
-export const requireSystemLogsRead = makeRequire(PERMS.SYSTEM_LOGS_READ);
-
-// votes
-export const checkAdminVotesRead = makeCheck(PERMS.ADMIN_VOTES_READ);
-export const requireAdminVotesRead = makeRequire(PERMS.ADMIN_VOTES_READ);
-
-// reminders
-export const checkRemindersSend = makeCheck(PERMS.REMINDERS_SEND);
-export const requireRemindersSend = makeRequire(PERMS.REMINDERS_SEND);
-
-export const checkRemindersRead = makeCheck(PERMS.REMINDERS_READ);
-export const requireRemindersRead = makeRequire(PERMS.REMINDERS_READ);
 
 // -------------------- Role Checks --------------------
 
-export const requireAdmin = () => requirePermission("role.admin");
-export const requireSuperAdmin = () => requirePermission("role.super_admin");
-export const requireSystemAdmin = () => requirePermission("role.system_admin");
-export const requireOwner = () => requirePermission("role.owner");
+export const requireAdmin = () => requireRole("admin");
+export const requireSuperAdmin = () => requireRole("super_admin");
+export const requireSystemAdmin = () => requireRole("system_admin");
+export const requireOwner = () => requireRole("owner");
 
-export const checkAdmin = () => hasPermission("role.admin");
-export const checkSuperAdmin = () => hasPermission("role.super_admin");
-export const checkSystemAdmin = () => hasPermission("role.system_admin");
-export const checkOwner = () => hasPermission("role.owner");
+export const checkAdmin = () => hasRole("admin");
+export const checkSuperAdmin = () => hasRole("super_admin");
+export const checkSystemAdmin = () => hasRole("system_admin");
+export const checkOwner = () => hasRole("owner");
 
 // -------------------- Auth Getters --------------------
 

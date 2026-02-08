@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkSurveyCategoriesWrite } from "@/lib/auth/permissions"
 import { getCurrentUser } from "@/lib/auth/data"
 
 interface CategoryFormData {

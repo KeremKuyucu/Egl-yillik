@@ -2,12 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { checkSiteSettingsWrite } from "@/lib/auth/permissions"
 
 export async function updateSiteSetting(key: string, value: string) {
-    const auth = await checkSiteSettingsWrite()
-    if (!auth.ok) return { success: false, error: auth.error }
-
     const supabase = await createClient()
     const { error } = await supabase
         .from("site_settings")

@@ -32,7 +32,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Loader2, Shield, Trash2, Edit, Database, Filter, X, UserCog } from "lucide-react"
-import { AVAILABLE_ROLES, ROLE_LEVELS, type RealRoleKey } from "@/lib/constants"
 import { updateUserRole } from "@/app/actions/admin"
 import { deleteTextAction } from "@/app/actions/texts"
 import { EditUserForm } from "./edit-user-form"
@@ -134,26 +133,32 @@ export function UserFilterBar({ classes }: UserFilterBarProps) {
 // 1. ROLE SELECTOR (Kullanıcı Rolü Değiştirme)
 // --------------------------------------------------------
 
+interface RoleOption {
+    key: string
+    label: string
+    level: number
+    description: string
+    badge_color: string
+}
+
 interface RoleSelectorProps {
     userId: string
     currentRoleKey: string
     maxLevel: number // Mevcut kullanıcının max seviyesi (filtreleme için)
+    availableRoles: RoleOption[] // Dinamik roller
 }
 
-export function RoleSelector({ userId, currentRoleKey, maxLevel }: RoleSelectorProps) {
+export function RoleSelector({ userId, currentRoleKey, maxLevel, availableRoles }: RoleSelectorProps) {
     const [isPending, startTransition] = useTransition()
     const [selectedRoleKey, setSelectedRoleKey] = useState<string>(currentRoleKey)
     const router = useRouter()
 
     // Kullanıcının atayabileceği roller (kendi seviyesinden düşük olanlar)
-    const availableRoles = AVAILABLE_ROLES.map((role) => {
-        const roleLevel = ROLE_LEVELS[role.value as RealRoleKey] || 0
-        return {
-            value: role.value,
-            label: role.label,
-            disabled: roleLevel >= maxLevel
-        }
-    })
+    const selectableRoles = availableRoles.map((role) => ({
+        value: role.key,
+        label: role.label,
+        disabled: role.level >= maxLevel
+    }))
 
     const handleRoleChange = async () => {
         startTransition(async () => {
@@ -172,7 +177,7 @@ export function RoleSelector({ userId, currentRoleKey, maxLevel }: RoleSelectorP
     const hasChanged = selectedRoleKey !== currentRoleKey
 
     // Seçili rolün label'ını bul
-    const selectedRoleLabel = AVAILABLE_ROLES.find(r => r.value === selectedRoleKey)?.label || selectedRoleKey
+    const selectedRoleLabel = availableRoles.find(r => r.key === selectedRoleKey)?.label || selectedRoleKey
 
     return (
         <div className="flex items-center gap-2">
@@ -185,7 +190,7 @@ export function RoleSelector({ userId, currentRoleKey, maxLevel }: RoleSelectorP
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    {availableRoles.map((role) => (
+                    {selectableRoles.map((role) => (
                         <SelectItem
                             key={role.value}
                             value={role.value}
