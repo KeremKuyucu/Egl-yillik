@@ -10,6 +10,8 @@ import type {
   EmailResult,
   BulkStatsRPCResponse,
 } from "@/types/reminder"
+import jwt from "jsonwebtoken"
+
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -88,7 +90,12 @@ async function sendReminderEmail(
 
   const deadlineData = await getDeadline()
   const deadline = deadlineData.display
-  const unsubscribeUrl = `${appUrl}/settings/unsubscribe`
+  const token = jwt.sign(
+    { uid: stats.user_id, scope: "email_unsubscribe" },
+    process.env.UNSUB_SECRET!,
+    { expiresIn: "7d" }
+  )
+  const unsubscribeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe?token=${encodeURIComponent(token)}`
 
   const remainingClassmates = stats.remaining_classmates
 
@@ -137,43 +144,40 @@ ${stats.class} Sınıfı • 2025-2026
 
 Merhaba ${safeName}! 👋
 
-${
-  isFullyComplete
-    ? `
+${isFullyComplete
+              ? `
 🎉 Süpersin!
 Hem yazılarını hem de anketlerini tamamladın!
 Yıllık çalışmamıza katkın için teşekkürler 💜
 `
-    : `
+              : `
 Yıllık için yapman gereken bazı şeyler kalmış görünüyor.
 Aşağıda durumunu özetledik 📋
 `
-}
+            }
 
 ${isTextComplete ? "✅" : "✍️"} Yıllık Yazıları ${isTextComplete ? "- Tamamlandı!" : ""}
 • Yazılan: ${stats.messages_sent_to_classmates} yazı
 • Kalan: ${remainingClassmates > 0 ? `${remainingClassmates} kişi` : "Yok!"}
 • İlerleme: %${textPct}
 
-${
-  surveyStats
-    ? `
+${surveyStats
+              ? `
 ${isSurveyComplete ? "🏆" : "🗳️"} Sınıf Anketleri ${isSurveyComplete ? "- Tamamlandı!" : ""}
 • Tamamlanan: ${surveyStats.completed} anket
 • Kalan: ${surveyStats.remaining > 0 ? `${surveyStats.remaining} anket` : "Yok!"}
 • İlerleme: %${surveyPct}
 `
-    : ""
-}
+              : ""
+            }
 
-${
-  !isFullyComplete
-    ? `
+${!isFullyComplete
+              ? `
 ⏰ Son Teslim Tarihi
 ${deadline}
 `
-    : ""
-}
+              : ""
+            }
 
 Bağlantılar:
 ${!isTextComplete ? `• Yazı Yaz: ${appUrl}/texts\n` : ""}${!isSurveyComplete ? `• Anketlere Git: ${appUrl}/surveys\n` : ""}${isFullyComplete ? `• Yıllığı Görüntüle: ${appUrl}/home\n` : ""}
@@ -207,9 +211,8 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
             <td style="padding:32px;">
               <h2 style="color:#1e293b;margin:0 0 16px 0;font-size:24px;">Merhaba ${safeName}! 👋</h2>
 
-              ${
-                isFullyComplete
-                  ? `
+              ${isFullyComplete
+              ? `
               <div style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
                 <div style="font-size:48px;margin-bottom:12px;">🎉</div>
                 <h3 style="color:#ffffff;margin:0 0 8px 0;font-size:20px;">Süpersin!</h3>
@@ -219,13 +222,13 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                 </p>
               </div>
               `
-                  : `
+              : `
               <p style="color:#64748b;margin:0 0 24px 0;line-height:1.6;">
                 Yıllık için yapman gereken bazı şeyler kalmış görünüyor.<br>
                 Aşağıda durumunu özetledik 📋
               </p>
               `
-              }
+            }
 
               <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid ${textProgressColor};">
                 <div style="display:flex;align-items:center;margin-bottom:12px;">
@@ -256,9 +259,8 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                 <p style="color:#64748b;font-size:12px;text-align:right;margin:4px 0 0 0;">%${textPct}</p>
               </div>
 
-              ${
-                surveyStats
-                  ? `
+              ${surveyStats
+              ? `
               <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid ${surveyProgressColor};">
                 <div style="display:flex;align-items:center;margin-bottom:12px;">
                   <span style="font-size:24px;margin-right:12px;">${isSurveyComplete ? "🏆" : "🗳️"}</span>
@@ -288,26 +290,24 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                 <p style="color:#64748b;font-size:12px;text-align:right;margin:4px 0 0 0;">%${surveyPct}</p>
               </div>
               `
-                  : ""
-              }
+              : ""
+            }
 
-              ${
-                !isFullyComplete
-                  ? `
+              ${!isFullyComplete
+              ? `
               <div style="background:linear-gradient(135deg,#f59e0b 0%,#f97316 100%);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
                 <div style="font-size:32px;margin-bottom:8px;">⏰</div>
                 <div style="color:#ffffff;font-size:14px;font-weight:600;margin-bottom:4px;">Son Teslim Tarihi</div>
                 <div style="color:#ffffff;font-size:24px;font-weight:700;">${deadline}</div>
               </div>
               `
-                  : ""
-              }
+              : ""
+            }
 
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  ${
-                    !isTextComplete
-                      ? `
+                  ${!isTextComplete
+              ? `
                   <td style="padding:8px;">
                     <a href="${appUrl}/texts" style="display:block;background:#059669;color:#ffffff;text-align:center;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
                       ✍️ Yazı Yaz
@@ -315,11 +315,10 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                     <p style="margin:6px 0 0 0;font-size:11px;color:#64748b;word-break:break-all;text-align:center;">${appUrl}/texts</p>
                   </td>
                   `
-                      : ""
-                  }
-                  ${
-                    !isSurveyComplete
-                      ? `
+              : ""
+            }
+                  ${!isSurveyComplete
+              ? `
                   <td style="padding:8px;">
                     <a href="${appUrl}/surveys" style="display:block;background:#8b5cf6;color:#ffffff;text-align:center;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
                       🗳️ Anketlere Git
@@ -327,11 +326,10 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                     <p style="margin:6px 0 0 0;font-size:11px;color:#64748b;word-break:break-all;text-align:center;">${appUrl}/surveys</p>
                   </td>
                   `
-                      : ""
-                  }
-                  ${
-                    isFullyComplete
-                      ? `
+              : ""
+            }
+                  ${isFullyComplete
+              ? `
                   <td style="padding:8px;">
                     <a href="${appUrl}/home" style="display:block;background:#8b5cf6;color:#ffffff;text-align:center;padding:14px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
                       📚 Yıllığı Görüntüle
@@ -339,8 +337,8 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
                     <p style="margin:6px 0 0 0;font-size:11px;color:#64748b;word-break:break-all;text-align:center;">${appUrl}/home</p>
                   </td>
                   `
-                      : ""
-                  }
+              : ""
+            }
                 </tr>
               </table>
 

@@ -533,7 +533,7 @@ export function AppHeader({
 
                 <DropdownMenuItem asChild>
                   <Link
-                    href={mode === "admin" ? "/admin/settings" : "/settings"}
+                    href={"/settings"}
                     className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                   >
                     <Settings className="w-4 h-4" />
