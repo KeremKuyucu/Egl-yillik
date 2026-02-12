@@ -4,7 +4,6 @@ export { QuickActionsCard } from './quick-actions-card'
 export { RecentFeedbackCard } from './recent-feedback-card'
 export { RecentSuggestionsCard } from './recent-suggestions-card'
 export { DeadlineCard } from './deadline-card'
-export { SecurityNoteCard } from './security-note-card'
 export { SystemLogsCard } from './system-logs-card'
 export { ActivityStatsChart } from './activity-stats-chart'
-
+export { PlatformOverviewCard } from './platform-overview-card'

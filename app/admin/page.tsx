@@ -1,19 +1,9 @@
 import { getCurrentProfile } from "@/lib/auth/data"
 import { createClient } from "@/lib/supabase/server"
-import {
-    Users,
-    Vote,
-    MessageSquare,
-    Bell,
-    Settings,
-    FileText,
-    LayoutDashboard,
-    Star,
-    Zap,
-    User
-} from "lucide-react"
+import { MessageSquare, Vote, Zap, User } from "lucide-react"
 import { getRoleInfoFromRoles } from "@/lib/roles"
-import { getCurrentRoles, getCurrentPermissions, PAGE_PERMS } from "@/lib/auth/permissions"
+import { getCurrentRoles, getCurrentPermissions } from "@/lib/auth/permissions"
+import { getPermittedAdminNavItems } from "@/lib/admin-nav"
 import {
     AdminHeroBanner,
     SystemStatusBar,
@@ -21,9 +11,9 @@ import {
     RecentFeedbackCard,
     RecentSuggestionsCard,
     DeadlineCard,
-    SecurityNoteCard,
     SystemLogsCard,
-    ActivityStatsChart
+    ActivityStatsChart,
+    PlatformOverviewCard,
 } from "@/components/admin/dashboard"
 
 export default async function AdminPage() {
@@ -48,7 +38,7 @@ export default async function AdminPage() {
         supabase
             .from('site_settings')
             .select('*')
-            .in('key', ['deadline', 'maintenance_mode', 'messaging_enabled', 'voting_enabled', 'registration_enabled']),
+            .in('key', ['deadline', 'messaging_enabled', 'voting_enabled', 'registration_enabled']),
         supabase
             .from('feedback')
             .select('*, profiles:user_id(first_name, last_name, class)')
@@ -80,7 +70,6 @@ export default async function AdminPage() {
     }, {}) || {}
 
     const deadline = settingsMap.deadline ? new Date(settingsMap.deadline) : null
-    const isMaintenance = settingsMap.maintenance_mode === 'true'
     const isMessagingEnabled = settingsMap.messaging_enabled === 'true'
     const isVotingEnabled = settingsMap.voting_enabled === 'true'
     const isRegistrationEnabled = settingsMap.registration_enabled === 'true'
@@ -93,32 +82,17 @@ export default async function AdminPage() {
 
     // System status items
     const systemStatus = [
-        { label: "Site Durumu", status: !isMaintenance, activeText: "Çevrimiçi", inactiveText: "Bakımda", icon: Zap },
         { label: "Mesajlaşma", status: isMessagingEnabled, activeText: "Açık", inactiveText: "Kapalı", icon: MessageSquare },
         { label: "Oylama", status: isVotingEnabled, activeText: "Açık", inactiveText: "Kapalı", icon: Vote },
         { label: "Yeni Kayıtlar", status: isRegistrationEnabled, activeText: "Açık", inactiveText: "Kapalı", icon: User }
     ]
 
-    // Permission kontrolü için helper
-    const hasPerm = (perm: string) => permissions.includes(perm)
-
-    // Quick actions - permission tabanlı
-    // İsimlendirmeleri permissions.ts'den değiştirebilirsin
-    const quickActions = [
-        { label: "Öğrenciler", description: "Profilleri yönet", href: "/admin/users", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_USERS, gradient: "from-blue-500 to-cyan-500" },
-        { label: "Kategoriler", description: "Anket kategorileri", href: "/admin/categories", icon: LayoutDashboard, requiredPerm: PAGE_PERMS.PAGE_ADMIN_CATEGORIES, gradient: "from-indigo-500 to-purple-500" },
-        { label: "Geri Bildirimler", description: "Kullanıcı mesajları", href: "/admin/feedback", icon: MessageSquare, requiredPerm: PAGE_PERMS.PAGE_ADMIN_FEEDBACK, gradient: "from-pink-500 to-rose-500" },
-        { label: "Öneriler", description: "Kategori önerileri", href: "/admin/suggestions", icon: Star, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SUGGESTIONS, gradient: "from-amber-500 to-orange-500" },
-        { label: "Site Ayarları", description: "Sistem konfigürasyonu", href: "/admin/settings", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS, gradient: "from-slate-500 to-gray-600" },
-        { label: "Roller", description: "Rolleri yönet", href: "/admin/roles", icon: Users, requiredPerm: PAGE_PERMS.PAGE_ADMIN_ROLES, gradient: "from-indigo-500 to-purple-500" },
-        { label: "Duyurular", description: "Bildirim gönder", href: "/admin/reminders", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS, gradient: "from-green-500 to-emerald-500" },
-        { label: "Yıllık Yazıları", description: "Yıllık yazılarını görüntüle", href: "/admin/texts", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXTS, gradient: "from-violet-500 to-purple-500" },
-        { label: "Oylar", description: "Oyları görüntüle", href: "/admin/votes", icon: Vote, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTES, gradient: "from-amber-500 to-orange-500" },
-        { label: "Sistem Logları", description: "Sistem olaylarını görüntüle", href: "/admin/logs", icon: FileText, requiredPerm: PAGE_PERMS.PAGE_ADMIN_LOGS, gradient: "from-slate-500 to-gray-600" }
-    ].filter(link => hasPerm(link.requiredPerm))
+    // Quick actions — ortak admin navigasyonundan üret, "Genel Bakış" hariç
+    const quickActions = getPermittedAdminNavItems(permissions)
+        .filter(item => item.href !== "/admin")
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="space-y-6 max-w-7xl mx-auto">
             {/* Hero Welcome Banner */}
             <AdminHeroBanner
                 profile={profile}
@@ -129,11 +103,12 @@ export default async function AdminPage() {
             {/* System Status Bar */}
             <SystemStatusBar items={systemStatus} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Quick Actions & Activity */}
-                <div className="lg:col-span-2 space-y-6">
-                    <QuickActionsCard actions={quickActions} />
+            {/* Quick Actions — tam genişlik */}
+            <QuickActionsCard actions={quickActions} />
 
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Activity Chart & Feeds */}
+                <div className="lg:col-span-2 space-y-6">
                     {/* Activity Stats Chart */}
                     {activityStats && activityStats.length > 0 && (
                         <ActivityStatsChart data={activityStats} />
@@ -146,13 +121,13 @@ export default async function AdminPage() {
                     </div>
                 </div>
 
-                {/* Right Column - System Info & Logs */}
+                {/* Right Column - Deadline, Overview, Security & Logs */}
                 <div className="space-y-6">
                     <DeadlineCard
                         deadline={deadline}
                         daysUntilDeadline={daysUntilDeadline}
                     />
-                    <SecurityNoteCard isMaintenance={isMaintenance} />
+                    <PlatformOverviewCard stats={stats} />
                     <SystemLogsCard logs={systemLogs || []} />
                 </div>
             </div>

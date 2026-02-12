@@ -33,6 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import AnonymousInlineCta from "./anonymous-inline-cta"
 
 
 interface Profile {
@@ -272,7 +273,7 @@ export default function NewTextForm({ classmates, others, userClass, preSelected
             </PopoverContent>
           </Popover>
         </div>
-
+        <AnonymousInlineCta recipientId={recipientId} />
         {/* Mesaj Alanı */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">

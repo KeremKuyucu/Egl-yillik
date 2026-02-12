@@ -102,7 +102,7 @@ export default async function SchoolPage({
                                 <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                                Toplam Kullanıcı
+                                Toplam Öğrenci
                             </p>
                         </div>
                         <p className="text-4xl font-bold text-indigo-700 dark:text-indigo-300 tabular-nums">{siteCounts.users}</p>
@@ -119,7 +119,7 @@ export default async function SchoolPage({
                                 <PenLine className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                             </div>
                             <p className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                                Aktif Anı
+                                Toplam Yazı
                             </p>
                         </div>
                         <p className="text-4xl font-bold text-purple-700 dark:text-purple-300 tabular-nums">{siteCounts.active_texts}</p>

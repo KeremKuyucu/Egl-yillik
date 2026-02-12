@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles, EyeOff
 } from "lucide-react"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
 import { getBadge } from "@/lib/profile-utils"
@@ -95,6 +95,66 @@ function LockedMemoryCard({
     )
 }
 
+function LockedAnonCard({
+    preview,
+    daysUntilUnlock
+}: {
+    preview: any
+    daysUntilUnlock: number
+}) {
+    return (
+        <div className="group relative overflow-hidden rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-lg hover:shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5">
+            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-teal-500 via-cyan-500 to-sky-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            <div className="p-6">
+                <div className="flex items-center gap-4 mb-5">
+                    <div className="relative">
+                        <div className="h-14 w-14 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/50 dark:to-cyan-900/50 shadow-lg">
+                            <EyeOff className="h-6 w-6 text-teal-600 dark:text-teal-400" suppressHydrationWarning />
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">
+                            {preview.display_name || 'Anonim'}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Kimliği gizli
+                        </p>
+                    </div>
+                    <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-xl">
+                        <EyeOff className="h-5 w-5 text-teal-500" suppressHydrationWarning />
+                    </div>
+                </div>
+
+                <div className="relative pl-5 border-l-2 border-teal-300 dark:border-teal-700 ml-2">
+                    <div className="absolute -left-[11px] top-0">
+                        <Quote className="h-5 w-5 text-teal-400 dark:text-teal-600 bg-white dark:bg-slate-900 rounded" suppressHydrationWarning />
+                    </div>
+                    <div className="relative">
+                        <div className="absolute inset-0 backdrop-blur-[8px] bg-white/60 dark:bg-slate-900/60 z-10 flex items-center justify-center rounded-lg -mx-2 -my-1 px-2 py-1">
+                            <div className="text-center">
+                                <Lock className="h-6 w-6 text-amber-500 dark:text-amber-400 mx-auto mb-1" suppressHydrationWarning />
+                                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                    {daysUntilUnlock} gün sonra açılacak
+                                </p>
+                            </div>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-[15px] blur-sm select-none">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                        {new Date(preview.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default async function ProfilePage({ params }: ProfilePageProps) {
     const resolvedParams = await Promise.resolve(params)
     const { year, schoolNumber } = resolvedParams
@@ -129,6 +189,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const selfMemories = pageData.self_memories || []
     const memoriesPreview = pageData.memories_preview || []
     const allCategoriesWithVotes = pageData.categories || []
+    const anonymousReceived = pageData.anonymous_received || []
+    const anonymousReceivedPreview = pageData.anonymous_received_preview || []
 
     const userBadge = getBadge(writtenCount)
     const isOwnProfile = user.id === profile.id
@@ -205,55 +267,72 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="group relative overflow-hidden rounded-2xl border border-emerald-200/50 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50/90 to-teal-50/90 dark:from-emerald-950/60 dark:to-teal-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
-                        <div className="absolute -right-6 -bottom-6 text-emerald-200/40 dark:text-emerald-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
-                            <FileText size={100} strokeWidth={1} suppressHydrationWarning />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="group relative overflow-hidden rounded-2xl border border-emerald-200/50 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50/90 to-teal-50/90 dark:from-emerald-950/60 dark:to-teal-950/60 p-5 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                        <div className="absolute -right-4 -bottom-4 text-emerald-200/40 dark:text-emerald-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                            <FileText size={80} strokeWidth={1} suppressHydrationWarning />
                         </div>
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-emerald-500/10 rounded-lg">
                                     <FileText className="h-4 w-4 text-emerald-600 dark:text-emerald-400" suppressHydrationWarning />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                     Yazdığı Anı
                                 </p>
                             </div>
-                            <p className="text-4xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">{writtenCount}</p>
+                            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">{writtenCount}</p>
                         </div>
                     </div>
 
-                    <div className="group relative overflow-hidden rounded-2xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/90 to-pink-50/90 dark:from-purple-950/60 dark:to-pink-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
-                        <div className="absolute -right-6 -bottom-6 text-purple-200/40 dark:text-purple-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
-                            <Heart size={100} strokeWidth={1} suppressHydrationWarning />
+                    <div className="group relative overflow-hidden rounded-2xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/90 to-pink-50/90 dark:from-purple-950/60 dark:to-pink-950/60 p-5 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                        <div className="absolute -right-4 -bottom-4 text-purple-200/40 dark:text-purple-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                            <Heart size={80} strokeWidth={1} suppressHydrationWarning />
                         </div>
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-purple-500/10 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-purple-500/10 rounded-lg">
                                     <Heart className="h-4 w-4 text-purple-600 dark:text-purple-400" suppressHydrationWarning />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                                    Ona Yazılan Anı
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                                    Yazılan Anı
                                 </p>
                             </div>
-                            <p className="text-4xl font-bold text-purple-700 dark:text-purple-300 tabular-nums">{receivedCount}</p>
+                            <p className="text-3xl font-bold text-purple-700 dark:text-purple-300 tabular-nums">{receivedCount}</p>
                         </div>
                     </div>
 
-                    <div className="group relative overflow-hidden rounded-2xl border border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50/90 to-orange-50/90 dark:from-amber-950/60 dark:to-orange-950/60 p-6 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
-                        <div className="absolute -right-6 -bottom-6 text-amber-200/40 dark:text-amber-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
-                            <Trophy size={100} strokeWidth={1} suppressHydrationWarning />
+                    <div className="group relative overflow-hidden rounded-2xl border border-amber-200/50 dark:border-amber-800/30 bg-gradient-to-br from-amber-50/90 to-orange-50/90 dark:from-amber-950/60 dark:to-orange-950/60 p-5 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                        <div className="absolute -right-4 -bottom-4 text-amber-200/40 dark:text-amber-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                            <Trophy size={80} strokeWidth={1} suppressHydrationWarning />
                         </div>
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="p-2 bg-amber-500/10 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-amber-500/10 rounded-lg">
                                     <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" suppressHydrationWarning />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                                    Aldığı Anket Oyu
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                    Anket Oyu
                                 </p>
                             </div>
-                            <p className="text-4xl font-bold text-amber-700 dark:text-amber-300 tabular-nums">{totalVotes}</p>
+                            <p className="text-3xl font-bold text-amber-700 dark:text-amber-300 tabular-nums">{totalVotes}</p>
+                        </div>
+                    </div>
+
+                    <div className="group relative overflow-hidden rounded-2xl border border-teal-200/50 dark:border-teal-800/30 bg-gradient-to-br from-teal-50/90 to-cyan-50/90 dark:from-teal-950/60 dark:to-cyan-950/60 p-5 shadow-xl hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-300 hover:-translate-y-1 backdrop-blur-xl">
+                        <div className="absolute -right-4 -bottom-4 text-teal-200/40 dark:text-teal-900/40 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                            <EyeOff size={80} strokeWidth={1} suppressHydrationWarning />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 bg-teal-500/10 rounded-lg">
+                                    <EyeOff className="h-4 w-4 text-teal-600 dark:text-teal-400" suppressHydrationWarning />
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400">
+                                    Anonim Yazı
+                                </p>
+                            </div>
+                            <p className="text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">{anonymousReceivedPreview.length}</p>
                         </div>
                     </div>
                 </div>
@@ -262,7 +341,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 <div className="mt-8">
                     {!canViewMemories ? (
                         <div className="space-y-6">
-                            {/* PREVIEW LIST */}
+                            {/* PREVIEW LIST — Anılar */}
                             {memoriesPreview.length > 0 && (
                                 <div className="relative overflow-hidden rounded-[1.5rem] border border-white/60 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/70 shadow-xl backdrop-blur-xl p-6 sm:p-8">
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -294,6 +373,47 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                     <div className="grid grid-cols-1 gap-4">
                                         {memoriesPreview.map((preview: any) => (
                                             <LockedMemoryCard
+                                                key={preview.id}
+                                                preview={preview}
+                                                daysUntilUnlock={daysUntilUnlock}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* PREVIEW LIST — Anonim Yazılar */}
+                            {anonymousReceivedPreview.length > 0 && (
+                                <div className="relative overflow-hidden rounded-[1.5rem] border border-white/60 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/70 shadow-xl backdrop-blur-xl p-6 sm:p-8">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-32 -mt-32" />
+
+                                    <div className="flex items-center justify-between gap-4 mb-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl text-white shadow-lg shadow-teal-500/25 opacity-80">
+                                                <EyeOff className="h-6 w-6" suppressHydrationWarning />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                                    Anonim Yazılar
+                                                </h2>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <span className="font-semibold text-teal-600 dark:text-teal-400">{anonymousReceivedPreview.length} mesaj</span> kilitli • Mezuniyette açılacak
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40">
+                                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" suppressHydrationWarning />
+                                            <div className="leading-none">
+                                                <div className="text-[10px] uppercase tracking-wider text-amber-700/70 dark:text-amber-200/60">Açılmasına</div>
+                                                <div className="text-sm font-bold text-amber-700 dark:text-amber-200 tabular-nums">{daysUntilUnlock} gün</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {anonymousReceivedPreview.map((preview: any) => (
+                                            <LockedAnonCard
                                                 key={preview.id}
                                                 preview={preview}
                                                 daysUntilUnlock={daysUntilUnlock}
@@ -462,6 +582,70 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Unlocked — Anonim Yazılar */}
+                            {anonymousReceived.length > 0 && (
+                                <div className="space-y-5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl text-white shadow-lg shadow-teal-500/25">
+                                            <EyeOff className="h-6 w-6" suppressHydrationWarning />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                                Anonim Yazılar
+                                            </h2>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                <span className="font-semibold text-teal-600 dark:text-teal-400">{anonymousReceived.length} mesaj</span> gönderildi
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {anonymousReceived.map((anon: any) => (
+                                            <div
+                                                key={anon.id}
+                                                className="group relative overflow-hidden rounded-2xl border border-white/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-lg hover:shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5"
+                                            >
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-teal-500 via-cyan-500 to-sky-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                                                <div className="p-6">
+                                                    <div className="flex items-center gap-4 mb-5">
+                                                        <div className="h-14 w-14 rounded-xl flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/50 dark:to-cyan-900/50 shadow-lg">
+                                                            <EyeOff className="h-6 w-6 text-teal-600 dark:text-teal-400" suppressHydrationWarning />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className="font-bold text-lg text-slate-900 dark:text-white">
+                                                                {anon.display_name || 'Anonim'}
+                                                            </h3>
+                                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                                Kimliği gizli
+                                                            </p>
+                                                        </div>
+                                                        <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-xl">
+                                                            <EyeOff className="h-5 w-5 text-teal-500" suppressHydrationWarning />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="relative pl-5 border-l-2 border-teal-300 dark:border-teal-700 ml-2">
+                                                        <div className="absolute -left-[11px] top-0">
+                                                            <Quote className="h-5 w-5 text-teal-400 dark:text-teal-600 bg-white dark:bg-slate-900 rounded" suppressHydrationWarning />
+                                                        </div>
+                                                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-[15px]">
+                                                            {anon.content}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                            {new Date(anon.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

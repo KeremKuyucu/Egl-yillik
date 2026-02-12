@@ -4,7 +4,7 @@ import NewTextForm from "@/components/texts/new-text-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { PenLine, Sparkles, Heart, X, AlertTriangle } from "lucide-react"
+import { PenLine, Sparkles, Heart, X, AlertTriangle, Ghost } from "lucide-react"
 import { isMessagingEnabled } from "@/lib/settings"
 
 interface Profile {
@@ -119,7 +119,6 @@ export default async function NewTextPage({
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-
         {/* Hero Section */}
         <div className="text-center space-y-4 mb-8">
           <div className="inline-flex items-center justify-center mb-2">
