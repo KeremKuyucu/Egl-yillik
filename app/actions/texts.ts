@@ -50,39 +50,6 @@ export async function createTextAction(recipientId: string, content: string) {
         return { error: "Kendinize mesaj yazamazsınız" }
     }
 
-    // Kullanıcının daha önce bu kişiye mesaj yazıp yazmadığını kontrol et (Aktif veya Pasif)
-    const { data: existingText } = await supabase
-        .from("texts")
-        .select("id, is_active")
-        .eq("author_id", user.id)
-        .eq("recipient_id", recipientId)
-        .maybeSingle()
-
-    if (existingText) {
-        if (existingText.is_active) {
-            return { error: "Bu kişiye zaten bir mesaj yazdınız" }
-        } else {
-            // Pasif (silinmiş) mesaj varsa, onu güncelle ve tekrar aktif yap
-            const { error: updateError } = await supabase
-                .from("texts")
-                .update({
-                    content: content,
-                    is_active: true,
-                    updated_at: new Date().toISOString()
-                })
-                .eq("id", existingText.id)
-
-            if (updateError) {
-                console.error("Text restore error:", updateError)
-                return { error: "Mesaj güncellenirken bir hata oluştu" }
-            }
-
-            revalidatePath("/home")
-            return { success: true }
-        }
-    }
-
-    // Hiç kayıt yoksa yeni oluştur
     const { error } = await supabase.from("texts").insert({
         author_id: user.id,
         recipient_id: recipientId,
