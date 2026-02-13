@@ -10,6 +10,7 @@ import {
     Star,
     ShieldAlert,
     ChartNoAxesCombined,
+    Eye,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { PAGE_PERMS } from "@/lib/auth/permission-constants"
@@ -44,6 +45,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     { href: "/admin/reminders", label: "Hatırlatıcılar", description: "Bildirim gönder", icon: Bell, requiredPerm: PAGE_PERMS.PAGE_ADMIN_REMINDERS, group: "advanced", gradient: "from-green-500 to-emerald-500" },
     { href: "/admin/settings", label: "Site Ayarları", description: "Sistem konfigürasyonu", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS, group: "system", gradient: "from-slate-500 to-gray-600" },
     { href: "/admin/logs", label: "Aktivite Logları", description: "Sistem olaylarını görüntüle", icon: ShieldAlert, requiredPerm: PAGE_PERMS.PAGE_ADMIN_LOGS, group: "system", gradient: "from-slate-500 to-gray-600" },
+    { href: "/admin/text-access-log", label: "Metin Erişim Logları", description: "Mesaj okuma kayıtları", icon: Eye, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXT_ACCESS_LOG, group: "system", gradient: "from-cyan-500 to-blue-600" },
 ]
 
 /** İzni olan öğeleri filtrele */

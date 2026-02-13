@@ -26,6 +26,7 @@ export const PERMS = {
     ADMIN_TEXTS_DELETE: "admin.texts.delete", // Text sayfası mesaj silme
     ADMIN_TEXTS_READ: "admin.texts.read", // Text sayfası mesaj içeriğini okuma
     ADMIN_TEXTS_METADATA: "admin.texts.metadata", // Text sayfası erişim (meta veriler)
+    ADMIN_TEXTS_ACCESS_LOG: "system.texts.access_log", // Metin erişim loglarını görme
 
     ADMIN_VOTES_READ: "admin.votes.read", // Vote sayfası erişim
 
@@ -55,6 +56,7 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_REMINDERS: PERMS.REMINDERS_READ,
     PAGE_ADMIN_SETTINGS: PERMS.SITE_SETTINGS_WRITE,
     PAGE_ADMIN_LOGS: PERMS.SYSTEM_LOGS_READ,
+    PAGE_ADMIN_TEXT_ACCESS_LOG: PERMS.ADMIN_TEXTS_ACCESS_LOG,
 
     PAGE_ADMIN_ACCESS: "role.admin",
 } as const;
