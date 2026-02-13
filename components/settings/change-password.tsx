@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { KeyRound, Loader2, CheckCircle2, AlertCircle, ShieldCheck, Mail } from "lucide-react"
 import { toast } from "sonner"
-export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolean }) {
+export default function ChangePassword({ isGoogleUser, userEmail }: { isGoogleUser?: boolean; userEmail: string }) {
     const [currentPassword, setCurrentPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -23,10 +23,7 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
         setIsLoading(true)
         setError(null)
         try {
-            const { data: { user } } = await supabase.auth.getUser
-            if (!user?.email) throw new Error("Email adresi bulunamadı.")
-
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(user.email, {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
                 redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
             })
 
@@ -41,41 +38,34 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
     }
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+        e.preventDefault()
+        setIsLoading(true)
+        setError(null)
 
-    try {
-        // Client-side Supabase client üzerinden kullanıcıyı doğrula
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
-        if (userError || !user?.email) {
-            throw new Error("Kullanıcı oturumu doğrulanamadı. Lütfen tekrar giriş yapın.")
+        try {
+            // Mevcut şifre ile re-authentication (Güvenlik katmanı)
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: currentPassword,
+            })
+
+            if (signInError) throw new Error("Mevcut şifreniz yanlış.")
+
+            // Şifre güncelleme
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: newPassword
+            })
+
+            if (updateError) throw updateError
+
+            setIsSuccess(true)
+            toast.success("Şifreniz başarıyla güncellendi.")
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setIsLoading(false)
         }
-
-        // Mevcut şifre ile re-authentication (Güvenlik katmanı)
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: user.email,
-            password: currentPassword,
-        })
-
-        if (signInError) throw new Error("Mevcut şifreniz yanlış.")
-
-        // Şifre güncelleme
-        const { error: updateError } = await supabase.auth.updateUser({ 
-            password: newPassword 
-        })
-
-        if (updateError) throw updateError
-
-        setIsSuccess(true)
-        toast.success("Şifreniz başarıyla güncellendi.")
-    } catch (err: any) {
-        setError(err.message)
-    } finally {
-        setIsLoading(false)
     }
-}
 
     if (isGoogleUser) {
         return (
@@ -230,6 +220,20 @@ export default function ChangePassword({ isGoogleUser }: { isGoogleUser?: boolea
                             </>
                         )}
                     </Button>
+
+                    <Card className="border-2 border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                                <KeyRound className="h-3.5 w-3.5" />
+                                İpucu
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                Güvenliğin için şifrenin en az 8 karakterden oluşmasını öneririz.
+                            </p>
+                        </CardContent>
+                    </Card>
                 </form>
             </CardContent>
         </Card>
