@@ -78,6 +78,7 @@ export type FilterStatus =
     | 'any_incomplete'
 
 export type EmailStatus = 'pending' | 'success' | 'error'
+export type FilterClass = 'all' | (string & {})
 export interface ClassStatsSummary {
     total: number
     textsComplete: number

@@ -380,60 +380,55 @@ Abonelikten çıkmak için: ${unsubscribeUrl}
 
 async function processBulkReminders(
   targets: BulkStatsRPCResponse[],
-  opts?: { concurrency?: number; interChunkDelayMs?: number }
+  opts?: { perEmailDelayMs?: number }
 ) {
-  const concurrency = Math.max(1, Math.min(opts?.concurrency ?? 3, 10))
-  const interChunkDelayMs = Math.max(0, opts?.interChunkDelayMs ?? 700)
+  const perEmailDelayMs = opts?.perEmailDelayMs ?? 600 // Resend limit: 2/sec, 600ms = ~1.6/sec
 
   const results: Record<string, { success: boolean; error?: string; skipped?: boolean }> = {}
   let sent = 0
   let failed = 0
   let skipped = 0
 
-  // basit concurrency pool: chunk = concurrency
-  for (let i = 0; i < targets.length; i += concurrency) {
-    const chunk = targets.slice(i, i + concurrency)
+  for (let i = 0; i < targets.length; i++) {
+    const user = targets[i]
 
-    await Promise.all(
-      chunk.map(async (user) => {
-        // güvenlik/kalite: email yoksa skip
-        if (!user.email) {
-          results[user.user_id] = { success: false, error: "Email adresi yok" }
-          failed++
-          return
-        }
+    // email yoksa skip
+    if (!user.email) {
+      results[user.user_id] = { success: false, error: "Email adresi yok" }
+      failed++
+      continue
+    }
 
-        const stats: ClassStats = {
-          user_id: user.user_id,
-          class: user.class,
-          total_classmates: user.total_classmates,
-          messages_sent_to_classmates: user.messages_sent_to_classmates,
-          remaining_classmates: user.remaining_classmates,
-          completion_percentage: Number(user.text_completion_percentage),
-        }
+    const stats: ClassStats = {
+      user_id: user.user_id,
+      class: user.class,
+      total_classmates: user.total_classmates,
+      messages_sent_to_classmates: user.messages_sent_to_classmates,
+      remaining_classmates: user.remaining_classmates,
+      completion_percentage: Number(user.text_completion_percentage),
+    }
 
-        const surveyStats: SurveyStats = {
-          total: user.total_survey_categories,
-          completed: user.completed_surveys,
-          remaining: user.remaining_surveys,
-          percentage: Number(user.survey_completion_percentage),
-        }
+    const surveyStats: SurveyStats = {
+      total: user.total_survey_categories,
+      completed: user.completed_surveys,
+      remaining: user.remaining_surveys,
+      percentage: Number(user.survey_completion_percentage),
+    }
 
-        const userName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
-        const res = await sendReminderEmail(user.email, userName, stats, surveyStats)
+    const userName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+    const res = await sendReminderEmail(user.email, userName, stats, surveyStats)
 
-        if (res.success) {
-          results[user.user_id] = { success: true }
-          sent++
-        } else {
-          results[user.user_id] = { success: false, error: res.error ?? "Unknown error" }
-          failed++
-        }
-      })
-    )
+    if (res.success) {
+      results[user.user_id] = { success: true }
+      sent++
+    } else {
+      results[user.user_id] = { success: false, error: res.error ?? "Unknown error" }
+      failed++
+    }
 
-    if (i + concurrency < targets.length && interChunkDelayMs > 0) {
-      await sleep(interChunkDelayMs)
+    // Rate limit koruması: her mail arasında bekle
+    if (i < targets.length - 1) {
+      await sleep(perEmailDelayMs)
     }
   }
 
@@ -471,8 +466,7 @@ export async function sendBulkUsersReminders(userIds: string[]) {
 
   // 4) gönderim
   const { results, stats } = await processBulkReminders(targets, {
-    concurrency: 3,          // spam/reputation için 3 mantıklı başlangıç
-    interChunkDelayMs: 700,  // burst azaltır
+    perEmailDelayMs: 600,  // Resend free: max 2/sec → 600ms = güvenli
   })
 
   return {

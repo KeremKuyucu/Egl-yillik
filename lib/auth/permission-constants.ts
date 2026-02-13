@@ -24,7 +24,8 @@ export const PERMS = {
     ADMIN_SUGGESTIONS_UPDATE: "admin.suggestions.update", // Suggestion sayfası silme için update izni
 
     ADMIN_TEXTS_DELETE: "admin.texts.delete", // Text sayfası mesaj silme
-    ADMIN_TEXTS_READ: "admin.texts.read", // Text sayfası erişim
+    ADMIN_TEXTS_READ: "admin.texts.read", // Text sayfası mesaj içeriğini okuma
+    ADMIN_TEXTS_METADATA: "admin.texts.metadata", // Text sayfası erişim (meta veriler)
 
     ADMIN_VOTES_READ: "admin.votes.read", // Vote sayfası erişim
 
@@ -49,7 +50,7 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_USERS: PERMS.ADMIN_USERS_READ,
     PAGE_ADMIN_ROLES: PERMS.ADMIN_ROLES_READ,
     PAGE_ADMIN_FEEDBACK: PERMS.ADMIN_FEEDBACK_READ,
-    PAGE_ADMIN_TEXTS: PERMS.ADMIN_TEXTS_READ,
+    PAGE_ADMIN_TEXTS: PERMS.ADMIN_TEXTS_METADATA,
     PAGE_ADMIN_VOTES: PERMS.ADMIN_VOTES_READ,
     PAGE_ADMIN_REMINDERS: PERMS.REMINDERS_READ,
     PAGE_ADMIN_SETTINGS: PERMS.SITE_SETTINGS_WRITE,

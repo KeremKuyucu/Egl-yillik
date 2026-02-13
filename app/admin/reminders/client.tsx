@@ -23,7 +23,8 @@ import {
     X,
     Vote,
     PenLine,
-    BellOff
+    BellOff,
+    RefreshCw
 } from "lucide-react"
 import { getColorFromName } from "@/lib/survey-categories"
 
@@ -51,6 +52,7 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
     const [searchQuery, setSearchQuery] = useState("")
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
     const [filterClass, setFilterClass] = useState<FilterClass>('all')
+    const [failedUserIds, setFailedUserIds] = useState<string[]>([])
 
     // Hesaplanan istatistikler
     const stats = useMemo(() => {
@@ -166,38 +168,41 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
         toast.success(`${incompleteIds.length} eksik işi olan kullanıcı seçildi`)
     }
 
-    const handleSendEmails = async () => {
-        if (selectedUsers.length === 0) return
-
-        if (!confirm(`${selectedUsers.length} kullanıcıya mail gönderilecek. Onaylıyor musunuz?`)) return
+    const doSendEmails = async (userIds: string[]) => {
+        if (userIds.length === 0) return
 
         setIsSending(true)
+        setFailedUserIds([])
         const currentResults = { ...results }
 
         // Hepsini pending yap
-        selectedUsers.forEach(id => currentResults[id] = 'pending')
+        userIds.forEach(id => currentResults[id] = 'pending')
         setResults(currentResults)
 
         try {
-            // Bulk gönderim (Server-Side)
-            const response = await sendBulkUsersReminders(selectedUsers)
+            const response = await sendBulkUsersReminders(userIds)
 
             if (response.error) {
                 toast.error(response.error)
-                // Hepsini hata olarak işaretle
-                selectedUsers.forEach(id => currentResults[id] = 'error')
+                userIds.forEach(id => currentResults[id] = 'error')
                 setResults({ ...currentResults })
+                setFailedUserIds(userIds)
             } else if (response.results) {
                 let sent = 0
                 let errors = 0
+                const newFailedIds: string[] = []
 
                 Object.entries(response.results).forEach(([userId, res]) => {
                     currentResults[userId] = res.success ? 'success' : 'error'
                     if (res.success) sent++
-                    else errors++
+                    else {
+                        errors++
+                        newFailedIds.push(userId)
+                    }
                 })
 
                 setResults({ ...currentResults })
+                setFailedUserIds(newFailedIds)
 
                 if (errors === 0) {
                     toast.success(`🎉 ${sent} mail başarıyla gönderildi!`)
@@ -208,9 +213,28 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
         } catch (error) {
             console.error(error)
             toast.error("Beklenmeyen bir hata oluştu")
+            setFailedUserIds(userIds)
         } finally {
             setIsSending(false)
         }
+    }
+
+    const handleSendEmails = async () => {
+        if (selectedUsers.length === 0) return
+        if (!confirm(`${selectedUsers.length} kullanıcıya mail gönderilecek. Onaylıyor musunuz?`)) return
+        await doSendEmails(selectedUsers)
+    }
+
+    const handleRetryFailed = async () => {
+        if (failedUserIds.length === 0) return
+        const failedNames = failedUserIds
+            .map(id => users.find(u => u.id === id))
+            .filter(Boolean)
+            .map(u => `${u!.first_name} ${u!.last_name}`)
+            .join(', ')
+
+        if (!confirm(`${failedUserIds.length} başarısız kullanıcıya tekrar denenecek:\n${failedNames}\n\nOnaylıyor musunuz?`)) return
+        await doSendEmails(failedUserIds)
     }
 
     const getInitials = (firstName: string, lastName: string) => {
@@ -264,6 +288,43 @@ export default function ReminderClientPage({ users }: ReminderClientPageProps) {
                     </Button>
                 </div>
             </div>
+
+            {/* Başarısız Gönderim Tekrar Deneme Bannerı */}
+            {!isSending && failedUserIds.length > 0 && (
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg text-red-600 dark:text-red-400">
+                            <AlertCircle className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="font-semibold text-red-800 dark:text-red-300 text-sm">
+                                {failedUserIds.length} mail gönderilemedi
+                            </p>
+                            <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                                Başarısız kullanıcılara tekrar deneyebilirsiniz
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFailedUserIds([])}
+                            className="text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 h-9"
+                        >
+                            <X className="h-3.5 w-3.5 mr-1" />
+                            Kapat
+                        </Button>
+                        <Button
+                            onClick={handleRetryFailed}
+                            className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white gap-2 shadow-lg shadow-red-500/20 h-9"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                            Tekrar Dene ({failedUserIds.length})
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* İstatistik Kartları */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
