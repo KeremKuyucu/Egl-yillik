@@ -4,6 +4,7 @@ import { MessageSquare, Vote, Zap, User } from "lucide-react"
 import { getRoleInfoFromRoles } from "@/lib/roles"
 import { getCurrentRoles, getCurrentPermissions } from "@/lib/auth/permissions"
 import { getPermittedAdminNavItems } from "@/lib/admin-nav"
+import { redirect } from "next/navigation"
 import {
     AdminHeroBanner,
     SystemStatusBar,
@@ -99,6 +100,10 @@ export default async function AdminPage() {
     // Quick actions — ortak admin navigasyonundan üret, "Genel Bakış" hariç
     const quickActions = getPermittedAdminNavItems(permissions)
         .filter(item => item.href !== "/admin")
+
+    if (quickActions.length === 0) {
+        redirect("/")
+    }
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
