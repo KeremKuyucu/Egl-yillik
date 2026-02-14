@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Home, ArrowLeft, Search } from "lucide-react"
+import { BackButton } from "@/components/common/BackButton"
 
 export default function NotFound() {
     return (
@@ -43,13 +44,7 @@ export default function NotFound() {
                                 Ana Sayfa
                             </Link>
 
-                            <Link
-                                href="javascript:history.back()"
-                                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-white/60 dark:bg-white/5 backdrop-blur-sm px-6 py-3 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all duration-300"
-                            >
-                                <ArrowLeft size={18} />
-                                Geri Dön
-                            </Link>
+                            <BackButton />
 
                         </div>
 
