@@ -1,14 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import LogsClient from "./logs-client"
-import { Metadata } from "next"
-
-export const metadata: Metadata = {
-    title: "Sistem Logları | Admin",
-    robots: {
-        index: false,
-        follow: false,
-    },
-}
 
 export default async function AdminLogsPage() {
     const supabase = await createClient()

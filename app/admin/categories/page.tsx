@@ -14,15 +14,7 @@ import {
 } from "lucide-react"
 import CategoryForm from "./category-form"
 import CategoryActions from "./category-actions"
-import { Metadata } from "next"
 
-export const metadata: Metadata = {
-    title: "Kategori Yönetimi | Admin",
-    robots: {
-        index: false,
-        follow: false,
-    },
-}
 export default async function AdminCategoriesPage() {
     const supabase = await createClient()
 

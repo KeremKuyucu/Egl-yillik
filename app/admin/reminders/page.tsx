@@ -1,15 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import ReminderClientPage from "./client"
 import type { UserWithStats, BulkStatsRPCResponse } from "@/types/reminder"
-import { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Hatırlatıcılar | Admin",
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
 
 export default async function RemindersPage() {
   const supabase = await createClient()
