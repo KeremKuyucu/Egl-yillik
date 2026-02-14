@@ -1,18 +1,18 @@
+import VoteAccessLogClient from "./client"
 import { Metadata } from "next"
-import TextAccessLogClient from "./client"
 
 export const metadata: Metadata = {
-    title: "Metin Erişim Logları | Admin",
+    title: "Oy Erişim Logları | Admin",
     robots: {
         index: false,
         follow: false,
     },
-};
+}
 
-export default function TextAccessLogPage() {
+export default async function VoteAccessLogPage() {
     return (
         <div className="space-y-6">
-            <TextAccessLogClient />
+            <VoteAccessLogClient />
         </div>
     )
 }

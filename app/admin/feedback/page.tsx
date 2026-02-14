@@ -42,6 +42,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from '@/lib/utils'
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Geri Bildirimler | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 interface Feedback {
     id: string

@@ -2,6 +2,15 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RolesManagementClient } from "@/components/admin/roles-management-client"
 import { getCurrentPermissions } from "@/lib/auth/permissions"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Rol Yönetimi | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 interface Role {
     role_key: string

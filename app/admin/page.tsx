@@ -15,6 +15,15 @@ import {
     ActivityStatsChart,
     PlatformOverviewCard,
 } from "@/components/admin/dashboard"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Yönetim Paneli | EGL Yıllık",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 export default async function AdminPage() {
     // Paralel veri çekme

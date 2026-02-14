@@ -46,6 +46,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     { href: "/admin/settings", label: "Site Ayarları", description: "Sistem konfigürasyonu", icon: Settings, requiredPerm: PAGE_PERMS.PAGE_ADMIN_SETTINGS, group: "system", gradient: "from-slate-500 to-gray-600" },
     { href: "/admin/logs", label: "Aktivite Logları", description: "Sistem olaylarını görüntüle", icon: ShieldAlert, requiredPerm: PAGE_PERMS.PAGE_ADMIN_LOGS, group: "system", gradient: "from-slate-500 to-gray-600" },
     { href: "/admin/text-access-log", label: "Metin Erişim Logları", description: "Mesaj okuma kayıtları", icon: Eye, requiredPerm: PAGE_PERMS.PAGE_ADMIN_TEXT_ACCESS_LOG, group: "system", gradient: "from-cyan-500 to-blue-600" },
+    { href: "/admin/vote-access-log", label: "Oy Erişim Logları", description: "Oylama verisi görüntüleme kayıtları", icon: Eye, requiredPerm: PAGE_PERMS.PAGE_ADMIN_VOTE_ACCESS_LOG, group: "system", gradient: "from-orange-500 to-red-600" },
 ]
 
 /** İzni olan öğeleri filtrele */

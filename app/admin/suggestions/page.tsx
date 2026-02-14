@@ -1,9 +1,16 @@
 import { createClient } from "@/lib/supabase/server"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Sparkles, Clock, CheckCircle2, XCircle, User } from "lucide-react"
+import { Sparkles, Clock, CheckCircle2, XCircle, User } from "lucide-react"
 import SuggestionActions from "./suggestion-actions"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Kategori Önerileri | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 // Interface Update
 interface Suggestion {

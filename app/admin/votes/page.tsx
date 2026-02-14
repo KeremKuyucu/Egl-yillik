@@ -4,6 +4,15 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Vote, Trophy, Users, BarChart3, TrendingUp, Medal, Award, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Oyları görüntüle metadata | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 interface Profile {
     id: string

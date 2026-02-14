@@ -28,7 +28,9 @@ export const PERMS = {
     ADMIN_TEXTS_METADATA: "admin.texts.metadata", // Text sayfası erişim (meta veriler)
     ADMIN_TEXTS_ACCESS_LOG: "system.texts.access_log", // Metin erişim loglarını görme
 
-    ADMIN_VOTES_READ: "admin.votes.read", // Vote sayfası erişim
+    ADMIN_VOTES_READ: "admin.votes.read", // Vote verilerine detaylı erişim
+    ADMIN_VOTES_METADATA: "admin.votes.metadata", // Vote sayfası erişim
+    ADMIN_VOTES_ACCESS_LOG: "system.votes.access_log", // Oy erişim loglarını görme
 
     SURVEY_CATEGORIES_READ_ALL: "survey.categories.read_all", // Survey sayfası is_active false olan kategoleri görme
     SURVEY_CATEGORIES_WRITE: "survey.categories.write", // Survey sayfası kategori oluşturma
@@ -53,10 +55,12 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_FEEDBACK: PERMS.ADMIN_FEEDBACK_READ,
     PAGE_ADMIN_TEXTS: PERMS.ADMIN_TEXTS_METADATA,
     PAGE_ADMIN_VOTES: PERMS.ADMIN_VOTES_READ,
+    PAGE_ADMIN_VOTES_METADATA: PERMS.ADMIN_VOTES_METADATA,
     PAGE_ADMIN_REMINDERS: PERMS.REMINDERS_READ,
     PAGE_ADMIN_SETTINGS: PERMS.SITE_SETTINGS_WRITE,
     PAGE_ADMIN_LOGS: PERMS.SYSTEM_LOGS_READ,
     PAGE_ADMIN_TEXT_ACCESS_LOG: PERMS.ADMIN_TEXTS_ACCESS_LOG,
+    PAGE_ADMIN_VOTE_ACCESS_LOG: PERMS.ADMIN_VOTES_ACCESS_LOG,
 
     PAGE_ADMIN_ACCESS: "role.admin",
 } as const;

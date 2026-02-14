@@ -2,6 +2,15 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth/data"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Kullanıcı Yönetimi | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 interface Role {
     role_key: string

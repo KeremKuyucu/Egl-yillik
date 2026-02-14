@@ -9,6 +9,15 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar, Save, Loader2, AlertCircle, MessageSquare, Vote, UserPlus, GraduationCap, LockOpen, Construction, Megaphone } from "lucide-react"
 import { toast } from "sonner"
 import { updateDeadline, getSettingsAction, updateToggleSetting, updateGraduationDate, updateTextSetting } from "./actions"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Ayarlar | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true)

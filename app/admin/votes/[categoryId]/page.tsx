@@ -21,6 +21,15 @@ import {
     ArrowRight
 } from "lucide-react"
 import { notFound } from "next/navigation"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Oyları görüntüle detaylı | Admin",
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 interface Profile {
     id: string
