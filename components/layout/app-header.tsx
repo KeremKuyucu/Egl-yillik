@@ -29,6 +29,7 @@ interface PrettyAppHeaderProps {
   brandHref?: string
   brandLabel?: string
   showNewButton?: boolean
+  highestRoleLabel?: string
 }
 
 // ─── Ana Component ──────────────────────────────────────────
@@ -41,6 +42,7 @@ export function AppHeader({
   brandHref,
   brandLabel = "EGL",
   showNewButton,
+  highestRoleLabel,
 }: PrettyAppHeaderProps) {
   const pathname = usePathname()
 
@@ -58,9 +60,6 @@ export function AppHeader({
   const computedBrandHref = brandHref ?? (mode === "admin" ? "/admin" : "/home")
   const computedShowNewButton = showNewButton ?? mode === "user"
 
-  const hasRole = (role: string) => roles.includes(role)
-  const hasAdminAccess = hasRole("admin")
-
   // ── Navigasyon Öğeleri ──
   const userNavItems: NavItem[] = [
     { href: "/home", label: "Ana Sayfa", icon: Home },
@@ -71,6 +70,7 @@ export function AppHeader({
   ]
 
   const adminNavItems = getPermittedAdminNavItems(permissions)
+  const hasAdminAccess = adminNavItems.length > 0
 
   const navItems = mode === "admin" ? adminNavItems : userNavItems
 
@@ -98,7 +98,7 @@ export function AppHeader({
               </span>
               {mode === "admin" && (
                 <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gradient-to-r from-red-50 to-rose-50 text-red-700 dark:from-red-950/30 dark:to-rose-950/30 dark:text-red-300 border border-red-200 dark:border-red-800 shadow-sm">
-                  Admin
+                  {highestRoleLabel || "Admin"}
                 </span>
               )}
             </div>

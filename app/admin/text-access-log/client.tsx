@@ -147,7 +147,7 @@ export default function TextAccessLogClient() {
     }), [logs])
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-x-hidden">
             {/* Header */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-zinc-900 p-6 sm:p-8 text-white shadow-2xl shadow-slate-800/30">
                 {/* Dekoratif arka plan */}
@@ -180,24 +180,24 @@ export default function TextAccessLogClient() {
                 </div>
 
                 {/* Minik özet */}
-                <div className="relative mt-5 flex items-center gap-3 text-sm text-white/50 flex-wrap">
+                <div className="relative mt-5 grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 text-sm text-white/50">
                     <span className="flex items-center gap-1.5">
-                        <Activity className="h-3.5 w-3.5" />
+                        <Activity className="h-3.5 w-3.5 flex-shrink-0" />
                         <strong className="text-white/80">{stats.total}</strong> erişim
                     </span>
-                    <span className="w-px h-4 bg-white/15" />
+                    <span className="hidden sm:block w-px h-4 bg-white/15" />
                     <span className="flex items-center gap-1.5">
-                        <MessageSquare className="h-3.5 w-3.5" />
+                        <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
                         <strong className="text-white/80">{stats.text}</strong> normal
                     </span>
-                    <span className="w-px h-4 bg-white/15" />
+                    <span className="hidden sm:block w-px h-4 bg-white/15" />
                     <span className="flex items-center gap-1.5">
-                        <Ghost className="h-3.5 w-3.5" />
+                        <Ghost className="h-3.5 w-3.5 flex-shrink-0" />
                         <strong className="text-white/80">{stats.anonymous}</strong> anonim
                     </span>
-                    <span className="w-px h-4 bg-white/15" />
+                    <span className="hidden sm:block w-px h-4 bg-white/15" />
                     <span className="flex items-center gap-1.5">
-                        <User className="h-3.5 w-3.5" />
+                        <User className="h-3.5 w-3.5 flex-shrink-0" />
                         <strong className="text-white/80">{stats.uniqueAdmins}</strong> admin
                     </span>
                 </div>
@@ -258,7 +258,7 @@ export default function TextAccessLogClient() {
 
             {/* Arama + Filtreler */}
             <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1 max-w-md">
+                <div className="relative flex-1 sm:max-w-md">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
                         placeholder="Admin, yazar veya alıcı ismi ara..."
@@ -277,45 +277,49 @@ export default function TextAccessLogClient() {
                 </div>
 
                 {/* Admin Filtresi */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80">
-                            <User className="h-4 w-4" />
-                            {selectedAdmin
-                                ? uniqueAdmins.find(a => a.id === selectedAdmin)?.name || 'Seçili'
-                                : 'Tüm Adminler'}
-                            <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 rounded-xl max-h-64 overflow-y-auto">
-                        <DropdownMenuItem onClick={() => setSelectedAdmin(null)}>
-                            Tüm Adminler
-                        </DropdownMenuItem>
-                        {uniqueAdmins.map(admin => (
-                            <DropdownMenuItem key={admin.id} onClick={() => setSelectedAdmin(admin.id)}>
-                                <span className="flex-1">{admin.name}</span>
-                                <Badge variant="secondary" className="ml-2 text-[10px] rounded-md">
-                                    {admin.count}
-                                </Badge>
+                <div className="flex gap-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 max-w-[180px] sm:max-w-none">
+                                <User className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">
+                                    {selectedAdmin
+                                        ? uniqueAdmins.find(a => a.id === selectedAdmin)?.name || 'Seçili'
+                                        : 'Tüm Adminler'}
+                                </span>
+                                <ChevronDown className="h-3.5 w-3.5 opacity-50 flex-shrink-0" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 rounded-xl max-h-64 overflow-y-auto">
+                            <DropdownMenuItem onClick={() => setSelectedAdmin(null)}>
+                                Tüm Adminler
                             </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            {uniqueAdmins.map(admin => (
+                                <DropdownMenuItem key={admin.id} onClick={() => setSelectedAdmin(admin.id)}>
+                                    <span className="flex-1">{admin.name}</span>
+                                    <Badge variant="secondary" className="ml-2 text-[10px] rounded-md">
+                                        {admin.count}
+                                    </Badge>
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* Sıralama */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80">
-                            <Clock className="h-4 w-4" />
-                            {sort === 'newest' ? 'En Yeni' : 'En Eski'}
-                            <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-40 rounded-xl">
-                        <DropdownMenuItem onClick={() => setSort('newest')}>En Yeni</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setSort('oldest')}>En Eski</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    {/* Sıralama */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80">
+                                <Clock className="h-4 w-4 flex-shrink-0" />
+                                <span className="hidden sm:inline">{sort === 'newest' ? 'En Yeni' : 'En Eski'}</span>
+                                <ChevronDown className="h-3.5 w-3.5 opacity-50 flex-shrink-0" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-40 rounded-xl">
+                            <DropdownMenuItem onClick={() => setSort('newest')}>En Yeni</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSort('oldest')}>En Eski</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             {/* Aktif Filtreler */}
@@ -398,26 +402,31 @@ export default function TextAccessLogClient() {
                                         )} />
 
                                         <CardContent className="p-3 sm:p-4">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-start sm:items-center gap-3">
                                                 {/* Admin avatar */}
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-2 ring-white dark:ring-slate-800 flex-shrink-0">
+                                                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shadow-md ring-2 ring-white dark:ring-slate-800 flex-shrink-0 mt-0.5 sm:mt-0">
                                                     {adminInitials}
                                                 </div>
 
                                                 {/* İçerik */}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">
+                                                        <span className="font-semibold text-sm text-slate-800 dark:text-slate-200 truncate">
                                                             {log.admin.first_name} {log.admin.last_name}
                                                         </span>
-                                                        <span className="text-xs text-slate-400">
-                                                            bir mesaj içeriğini görüntüledi
-                                                        </span>
+                                                        <Badge className={cn(
+                                                            "text-[10px] rounded-md sm:hidden flex-shrink-0",
+                                                            isAnonymous
+                                                                ? "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 border-teal-200/50 dark:border-teal-700/50"
+                                                                : "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200/50 dark:border-indigo-700/50"
+                                                        )}>
+                                                            {isAnonymous ? 'Anonim' : 'Normal'}
+                                                        </Badge>
                                                     </div>
 
                                                     {/* Hedef bilgisi */}
                                                     {log.target_info && (
-                                                        <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500">
+                                                        <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 overflow-hidden">
                                                             {isAnonymous ? (
                                                                 <Ghost className="h-3 w-3 text-teal-400 flex-shrink-0" />
                                                             ) : (
@@ -435,10 +444,21 @@ export default function TextAccessLogClient() {
                                                             </span>
                                                         </div>
                                                     )}
+
+                                                    {/* Zaman - mobilde alt satırda */}
+                                                    <span className="flex sm:hidden items-center gap-1 mt-1.5 text-[11px] text-slate-400"
+                                                        title={format(new Date(log.accessed_at), 'd MMMM yyyy, HH:mm:ss', { locale: tr })}
+                                                    >
+                                                        <Clock className="h-3 w-3 flex-shrink-0" />
+                                                        {formatDistanceToNow(new Date(log.accessed_at), {
+                                                            addSuffix: true,
+                                                            locale: tr
+                                                        })}
+                                                    </span>
                                                 </div>
 
-                                                {/* Sağ taraf: Tip + Zaman */}
-                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                {/* Sağ taraf: Tip + Zaman (sadece desktop) */}
+                                                <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
                                                     <Badge className={cn(
                                                         "text-[10px] rounded-md",
                                                         isAnonymous
@@ -447,7 +467,7 @@ export default function TextAccessLogClient() {
                                                     )}>
                                                         {isAnonymous ? 'Anonim' : 'Normal'}
                                                     </Badge>
-                                                    <span className="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-md whitespace-nowrap"
+                                                    <span className="flex items-center gap-1 text-[11px] text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-md whitespace-nowrap"
                                                         title={format(new Date(log.accessed_at), 'd MMMM yyyy, HH:mm:ss', { locale: tr })}
                                                     >
                                                         <Clock className="h-3 w-3" />

@@ -3,15 +3,15 @@ import { AppHeader } from "@/components/layout/app-header"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { getCurrentProfile } from "@/lib/auth/data"
+import { getHighestRole } from "@/lib/roles"
 
 import { getCurrentRoles, getCurrentPermissions, requireAdmin } from "@/lib/auth/permissions"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin()
-
   const currentProfile = await getCurrentProfile()
   const roles = await getCurrentRoles()
   const permissions = await getCurrentPermissions()
+  const highestRole = await getHighestRole(roles)
 
   const handleSignOut = async () => {
     "use server"
@@ -29,6 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         roles={roles}
         permissions={permissions}
         signOut={handleSignOut}
+        highestRoleLabel={highestRole?.label}
       />
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-32">

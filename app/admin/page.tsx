@@ -104,7 +104,9 @@ export default async function AdminPage() {
             <SystemStatusBar items={systemStatus} />
 
             {/* Quick Actions — tam genişlik */}
-            <QuickActionsCard actions={quickActions} />
+            {quickActions.length > 0 && (
+                <QuickActionsCard actions={quickActions} />
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Activity Chart & Feeds */}
@@ -116,8 +118,12 @@ export default async function AdminPage() {
 
                     {/* Activity Feeds */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <RecentFeedbackCard feedback={recentFeedback || []} />
-                        <RecentSuggestionsCard suggestions={recentSuggestions || []} />
+                        {recentFeedback && recentFeedback.length > 0 && (
+                            <RecentFeedbackCard feedback={recentFeedback} />
+                        )}
+                        {recentSuggestions && recentSuggestions.length > 0 && (
+                            <RecentSuggestionsCard suggestions={recentSuggestions} />
+                        )}
                     </div>
                 </div>
 
@@ -127,8 +133,10 @@ export default async function AdminPage() {
                         deadline={deadline}
                         daysUntilDeadline={daysUntilDeadline}
                     />
-                    <PlatformOverviewCard stats={stats} />
-                    <SystemLogsCard logs={systemLogs || []} />
+                    {stats && <PlatformOverviewCard stats={stats} />}
+                    {systemLogs && systemLogs.length > 0 && (
+                        <SystemLogsCard logs={systemLogs} />
+                    )}
                 </div>
             </div>
         </div>
