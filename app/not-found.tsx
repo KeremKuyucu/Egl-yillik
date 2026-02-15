@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Home, ArrowLeft, Search } from "lucide-react"
 import { BackButton } from "@/components/common/BackButton"
+import FuzzyText from "@/components/ui/fuzzy-text"
 
 export default function NotFound() {
     return (
@@ -20,10 +21,19 @@ export default function NotFound() {
 
                     <div className="relative z-10 p-10 text-center">
 
-                        {/* 404 büyük sayı */}
-                        <h1 className="font-serif text-7xl md:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 drop-shadow-md">
-                            404
-                        </h1>
+                        <div className="flex justify-center -my-10 select-none">
+                            <FuzzyText
+                                fontSize="clamp(6rem, 20vw, 10rem)"
+                                fontWeight={900}
+                                fontFamily="serif"
+                                gradient={["#6366f1", "#9333ea"]}
+                                enableHover={true}
+                                clickEffect={true}
+                                hoverIntensity={0.3}
+                            >
+                                404
+                            </FuzzyText>
+                        </div>
 
                         <h2 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-white">
                             Bu sayfa burada değil
@@ -37,7 +47,7 @@ export default function NotFound() {
                         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
 
                             <Link
-                                href="/"
+                                href="/home"
                                 className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-3 text-white font-medium shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all duration-300"
                             >
                                 <Home size={18} />

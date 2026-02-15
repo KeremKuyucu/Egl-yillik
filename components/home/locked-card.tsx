@@ -1,6 +1,7 @@
 import { Lock, ShieldAlert, Unlock, PartyPopper, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import CountUp from "@/components/ui/count-up"
 
 interface LockedCardProps {
     receivedCount: number
@@ -40,7 +41,10 @@ export default function LockedCard({ receivedCount, deadline, schoolNumber, user
                     </div>
 
                     <div className="flex flex-col gap-1 mb-4">
-                        <span className="text-4xl font-bold font-serif text-white drop-shadow-2xl">{receivedCount}</span>
+                        <CountUp
+                            to={receivedCount}
+                            className="text-4xl font-bold font-serif text-white drop-shadow-2xl"
+                        />
                         <span className="text-base text-emerald-100 font-medium leading-tight">anı seni bekliyor!</span>
                     </div>
 
@@ -76,7 +80,10 @@ export default function LockedCard({ receivedCount, deadline, schoolNumber, user
                     </div>
                 </div>
                 <div className="flex items-end gap-3 mb-2">
-                    <span className="text-5xl font-bold font-serif text-white drop-shadow-2xl">{receivedCount}</span>
+                    <CountUp
+                        to={receivedCount}
+                        className="text-5xl font-bold font-serif text-white drop-shadow-2xl"
+                    />
                     <span className="text-base text-slate-200 font-medium mb-2">kişi senin için anı yazdı.</span>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/40 backdrop-blur-sm border border-amber-500/20 mt-4 shadow-lg">
