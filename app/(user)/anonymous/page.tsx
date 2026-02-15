@@ -62,28 +62,17 @@ export default async function AnonymousTextPage({
         .order("class", { ascending: true })
         .order("first_name", { ascending: true })
 
-    // Kullanıcının daha önce anonim yazdığı kişiler
-    const { data: existingAnon, error: anonErr } = await supabase
-        .from("anonymous_texts")
-        .select("recipient_id")
-        .eq("text_owner", user.id)
-        .eq("is_active", true)
-
-    if (anonErr) console.error(anonErr)
-
-    const writtenRecipientIds = existingAnon?.map((t) => t.recipient_id) ?? []
-
     // Sınıflandırma (daha önce yazılmışları filtrele)
     const classmates =
         allProfiles?.filter(
             (p: Profile) =>
-                p.class === userProfile.class && !writtenRecipientIds.includes(p.id)
+                p.class === userProfile.class
         ) ?? []
 
     const others =
         allProfiles?.filter(
             (p: Profile) =>
-                p.class !== userProfile.class && !writtenRecipientIds.includes(p.id)
+                p.class !== userProfile.class
         ) ?? []
 
     // Alıcı kontrolü
@@ -137,7 +126,7 @@ export default async function AnonymousTextPage({
                             </span>
                         </h1>
                         <p className="text-slate-600 dark:text-slate-400 text-lg">
-                            Kimliğin gizli kalır. Arkadaşına isimsiz bir not bırak. 👻
+                            Kimliğin gizli kalır. Arkadaşına isimsiz bir not bırak. 👻 Dikkat et bu mesajı sonradan düzenleyemez silemezsin.
                         </p>
                     </div>
                 </div>
