@@ -126,7 +126,7 @@ export default async function AnonymousTextPage({
                             </span>
                         </h1>
                         <p className="text-slate-600 dark:text-slate-400 text-lg">
-                            Kimliğin gizli kalır. Arkadaşına isimsiz bir not bırak. 👻 Dikkat et bu mesajı sonradan düzenleyemez silemezsin.
+                            Kimliğin gizli kalır. Arkadaşına isimsiz bir not bırak. 👻 Dikkat et bu mesajı sonradan düzenleyemez silemezsin. Eğer yeni bir mesaj yazarsan eskisi silinir.
                         </p>
                     </div>
                 </div>
