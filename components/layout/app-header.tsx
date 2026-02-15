@@ -75,99 +75,110 @@ export function AppHeader({
   const navItems = mode === "admin" ? adminNavItems : userNavItems
 
   return (
-    <header className="border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-lg ring-1 ring-slate-200/50 dark:ring-slate-800/50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Sol: Logo + Desktop Nav */}
-        <div className="flex items-center gap-6">
-          <Link
-            href={computedBrandHref}
-            className="flex items-center gap-3 group transition-all duration-300"
-          >
-            <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl rotate-6 opacity-20 group-hover:rotate-12 group-hover:opacity-30 transition-all duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl opacity-10 group-hover:opacity-20 transition-opacity duration-300" />
-              <img
-                src="/image.png"
-                className="w-10 h-10 relative z-10 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
-                alt="Logo"
-              />
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent font-serif tracking-tight">
-                {brandLabel}
-              </span>
-              {mode === "admin" && (
-                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gradient-to-r from-red-50 to-rose-50 text-red-700 dark:from-red-950/30 dark:to-rose-950/30 dark:text-red-300 border border-red-200 dark:border-red-800 shadow-sm">
-                  {highestRoleLabel || "Admin"}
+    <>
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:opacity-10" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:opacity-10" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:opacity-10" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-6000 dark:opacity-5" />
+      </div>
+
+      <header className="border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-lg ring-1 ring-slate-200/50 dark:ring-slate-800/50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Sol: Logo + Desktop Nav */}
+          <div className="flex items-center gap-6">
+            <Link
+              href={computedBrandHref}
+              className="flex items-center gap-3 group transition-all duration-300"
+            >
+              <div className="relative w-10 h-10">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl rotate-6 opacity-20 group-hover:rotate-12 group-hover:opacity-30 transition-all duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl opacity-10 group-hover:opacity-20 transition-opacity duration-300" />
+                <img
+                  src="/image.png"
+                  className="w-10 h-10 relative z-10 drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+                  alt="Logo"
+                />
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <span className="font-bold text-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent font-serif tracking-tight">
+                  {brandLabel}
                 </span>
-              )}
-            </div>
-          </Link>
 
-          <DesktopNav
-            mode={mode}
-            navItems={navItems}
-            isActive={isActive}
-            isAdminItemActive={isAdminItemActive}
-          />
-        </div>
-
-        {/* Sağ: Aksiyonlar + Menüler */}
-        <div className="flex items-center gap-3">
-          {/* Admin Kısayolu */}
-          {mode === "user" && hasAdminAccess && (
-            <Link href="/admin" className="hidden lg:flex">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 px-4 rounded-xl font-medium border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
-              >
-                <Shield className="w-4 h-4" />
-                <span className="hidden xl:inline">Yönetim</span>
-              </Button>
+                {mode === "admin" && (
+                  <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gradient-to-r from-red-50 to-rose-50 text-red-700 dark:from-red-950/30 dark:to-rose-950/30 dark:text-red-300 border border-red-200 dark:border-red-800 shadow-sm">
+                    {highestRoleLabel || "Admin"}
+                  </span>
+                )}
+              </div>
             </Link>
-          )}
 
-          {/* Yeni Yazı */}
-          {computedShowNewButton && (
-            <Link href="/new" className="hidden sm:flex">
-              <Button
-                size="sm"
-                className="gap-2 px-5 h-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden lg:inline">Yazı Yaz</span>
-              </Button>
-            </Link>
-          )}
-
-          <div className="hidden sm:block">
-            <ModeToggle />
+            <DesktopNav
+              mode={mode}
+              navItems={navItems}
+              isActive={isActive}
+              isAdminItemActive={isAdminItemActive}
+            />
           </div>
 
-          <MobileMenu
-            mode={mode}
-            userProfile={userProfile}
-            navItems={navItems}
-            adminNavItems={adminNavItems}
-            isActive={isActive}
-            isAdminItemActive={isAdminItemActive}
-            profileLink={profileLink}
-            hasAdminAccess={hasAdminAccess}
-            computedShowNewButton={computedShowNewButton}
-            signOut={signOut}
-          />
+          {/* Sağ: Aksiyonlar + Menüler */}
+          <div className="flex items-center gap-3">
+            {/* Admin Kısayolu */}
+            {mode === "user" && hasAdminAccess && (
+              <Link href="/admin" className="hidden lg:flex">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 px-4 rounded-xl font-medium border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span className="hidden xl:inline">Yönetim</span>
+                </Button>
+              </Link>
+            )}
 
-          <DesktopUserMenu
-            mode={mode}
-            userProfile={userProfile}
-            adminNavItems={adminNavItems}
-            isAdminItemActive={isAdminItemActive}
-            profileLink={profileLink}
-            signOut={signOut}
-          />
+            {/* Yeni Yazı */}
+            {computedShowNewButton && (
+              <Link href="/new" className="hidden sm:flex">
+                <Button
+                  size="sm"
+                  className="gap-2 px-5 h-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden lg:inline">Yazı Yaz</span>
+                </Button>
+              </Link>
+            )}
+
+            <div className="hidden sm:block">
+              <ModeToggle />
+            </div>
+
+            <MobileMenu
+              mode={mode}
+              userProfile={userProfile}
+              navItems={navItems}
+              adminNavItems={adminNavItems}
+              isActive={isActive}
+              isAdminItemActive={isAdminItemActive}
+              profileLink={profileLink}
+              hasAdminAccess={hasAdminAccess}
+              computedShowNewButton={computedShowNewButton}
+              signOut={signOut}
+            />
+
+            <DesktopUserMenu
+              mode={mode}
+              userProfile={userProfile}
+              adminNavItems={adminNavItems}
+              isAdminItemActive={isAdminItemActive}
+              profileLink={profileLink}
+              signOut={signOut}
+            />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }

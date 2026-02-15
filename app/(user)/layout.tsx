@@ -5,7 +5,6 @@ import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/layout/app-header"
 import Footer from "@/components/layout/footer"
 import AnnouncementBanner from "@/components/layout/announcement-banner"
-import BackgroundBlobs from "@/components/layout/background-blobs"
 
 export default async function UserLayout({
     children,
@@ -33,7 +32,6 @@ export default async function UserLayout({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground font-sans transition-colors duration-300">
-            <BackgroundBlobs />
             <AnnouncementBanner />
             <AppHeader
                 mode="user"
