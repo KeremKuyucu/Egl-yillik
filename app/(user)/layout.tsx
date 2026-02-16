@@ -44,8 +44,9 @@ export default async function UserLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground font-sans transition-colors duration-300">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 text-foreground font-sans transition-colors duration-300">
             <AnnouncementBanner />
+
             <AppHeader
                 mode="user"
                 userProfile={profile}
@@ -53,9 +54,11 @@ export default async function UserLayout({
                 permissions={permissions}
                 signOut={handleSignOut}
             />
-            <main className="animate-in fade-in zoom-in-95 duration-500">
+
+            <main className="flex-1 w-full">
                 {children}
             </main>
+
             <Footer />
         </div>
     )

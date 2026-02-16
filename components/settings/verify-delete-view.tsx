@@ -1,18 +1,53 @@
 "use client"
 
-import { useState } from "react"
-import { deleteAccount } from "@/app/actions/auth"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Trash2, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { deleteAccount, getDeleteAccountPreview } from "@/app/actions/auth"
+
+type Preview = {
+    id: string
+    email: string | null
+    profile: {
+        first_name: string
+        last_name: string
+        school_number: string
+        class: string
+        user_year: number
+    } | null
+}
 
 export default function VerifyDeleteView({ token }: { token: string }) {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
     const router = useRouter()
+    const [preview, setPreview] = useState<Preview | null>(null)
+    const [previewLoading, setPreviewLoading] = useState(true)
+
+    useEffect(() => {
+        let cancelled = false
+
+            ; (async () => {
+                setPreviewLoading(true)
+                const res = await getDeleteAccountPreview(token)
+                if (cancelled) return
+
+                if ("error" in res && res.error) {
+                    setError(res.error)
+                    setPreview(null)
+                } else {
+                    // @ts-ignore
+                    setPreview(res.account)
+                }
+                setPreviewLoading(false)
+            })()
+
+        return () => { cancelled = true }
+    }, [token])
 
     const handleConfirm = async () => {
         setIsLoading(true)
@@ -67,13 +102,37 @@ export default function VerifyDeleteView({ token }: { token: string }) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                {!error && <div className="rounded-md border border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20 p-3 text-sm">
+                    {previewLoading ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Hesap bilgileri yükleniyor...
+                        </div>
+                    ) : preview ? (
+                        <div className="space-y-1">
+                            <div className="font-medium text-red-700 dark:text-red-300">Silinecek hesap</div>
+                            <div><b>Email:</b> {preview.email ?? "—"}</div>
+                            <div><b>ID:</b> <span className="font-mono text-xs">{preview.id}</span></div>
+                            {preview.profile && (
+                                <>
+                                    <div><b>Ad Soyad:</b> {preview.profile.first_name} {preview.profile.last_name}</div>
+                                    <div><b>No:</b> {preview.profile.school_number}</div>
+                                    <div><b>Sınıf:</b> {preview.profile.class}</div>
+                                    <div><b>Yıl:</b> {preview.profile.user_year}</div>
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-red-600">Hesap bilgileri alınamadı.</div>
+                    )}
+                </div>}
                 {error && (
                     <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-md border border-red-100 dark:border-red-900/30">
                         {error}
                     </div>
                 )}
 
-                <Button
+                {!error && <Button
                     onClick={handleConfirm}
                     disabled={isLoading}
                     className="w-full bg-red-600 hover:bg-red-700 text-white"
@@ -90,7 +149,7 @@ export default function VerifyDeleteView({ token }: { token: string }) {
                             Evet, Hesabımı Sil
                         </>
                     )}
-                </Button>
+                </Button>}
 
                 <Link href="/settings" className="block">
                     <Button variant="ghost" className="w-full" disabled={isLoading}>

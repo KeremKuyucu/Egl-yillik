@@ -28,7 +28,7 @@ export async function requestDeleteAccount() {
         const token = jwt.sign(
             { sub: user.id, scope: "delete_account" },
             getSecret(),
-            { expiresIn: "1h" }
+            { expiresIn: "15m" }
         )
 
         const verificationUrl =
@@ -48,7 +48,7 @@ export async function requestDeleteAccount() {
             </a>
           </div>
           <p style="color: #666; font-size: 14px;">Bu işlemi siz talep etmediyseniz, bu e-postayı görmezden gelebilirsiniz.</p>
-          <p style="color: #999; font-size: 12px; margin-top: 20px;">Link 1 saat boyunca geçerlidir.</p>
+          <p style="color: #999; font-size: 12px; margin-top: 20px;">Bu bağlantı 15 dakika boyunca geçerlidir.</p>
         </div>
       `,
         })
@@ -77,6 +77,43 @@ export async function deleteAccount(token: string) {
 
         try { await supabase.auth.signOut() } catch { }
         return { success: true }
+    } catch {
+        return { error: "Bağlantı geçersiz veya süresi dolmuş." }
+    }
+}
+
+export async function getDeleteAccountPreview(token: string) {
+    const supabase = await createClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) return { error: "Lütfen güvenliğiniz için tekrar giriş yapın." }
+
+    try {
+        const decoded = jwt.verify(token, getSecret()) as any
+
+        if (decoded.scope !== "delete_account") return { error: "Geçersiz bağlantı." }
+        if (decoded.sub !== user.id) return { error: "Bu bağlantı bu hesap için değil." }
+
+        // İstersen auth user'dan da gösterebilirsin:
+        const email = user.email ?? null
+
+        // Profil bilgisi
+        const { data: profile, error: pErr } = await supabase
+            .from("profiles")
+            .select("first_name,last_name,school_number,class,user_year")
+            .eq("id", user.id)
+            .maybeSingle()
+
+        if (pErr) return { error: "Profil bilgisi alınamadı." }
+
+        return {
+            success: true as const,
+            account: {
+                id: user.id,
+                email,
+                profile: profile ?? null,
+            },
+        }
     } catch {
         return { error: "Bağlantı geçersiz veya süresi dolmuş." }
     }
