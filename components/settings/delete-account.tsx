@@ -1,10 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     AlertDialog,
@@ -16,53 +13,52 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Trash2, Loader2, AlertTriangle } from "lucide-react"
+import { Trash2, Loader2, AlertTriangle, MailCheck } from "lucide-react"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { requestDeleteAccount } from "@/app/actions/auth"
 
-export default function DeleteAccount({ isGoogleUser, userEmail }: { isGoogleUser?: boolean; userEmail: string }) {
-    const [password, setPassword] = useState("")
+export default function DeleteAccount() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [open, setOpen] = useState(false)
-    const router = useRouter()
+    const [emailSent, setEmailSent] = useState(false)
 
-    const supabase = createClient()
-
-    const handleDeleteAccount = async () => {
+    const handleDeleteRequest = async () => {
         setIsLoading(true)
         setError(null)
 
         try {
-            if (!isGoogleUser) {
-                // Şifre ile doğrulama yap
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email: userEmail,
-                    password: password,
-                })
+            const result = await requestDeleteAccount()
 
-                if (signInError) {
-                    throw new Error("Şifre yanlış. Hesabınızı silmek için doğru şifrenizi girin.")
-                }
-            }
+            if (result?.error) throw new Error(result.error)
 
-            // RPC ile profili sil (cascade ile diğer veriler de silinir)
-            const { error: rpcError } = await supabase.rpc("delete_own_account")
-
-            if (rpcError) {
-                throw new Error(rpcError.message || "Hesap silinirken bir hata oluştu.")
-            }
-
-            // Oturumu kapat
-            await supabase.auth.signOut()
-
-            toast.success("Hesabınız başarıyla silindi.")
-            router.push("/login")
+            setEmailSent(true)
+            toast.success("Doğrulama e-postası gönderildi.")
         } catch (err: any) {
-            setError(err.message || "Bir hata oluştu.")
+            setError(err?.message || "Bir hata oluştu.")
         } finally {
             setIsLoading(false)
         }
+    }
+
+    if (emailSent) {
+        return (
+            <Card className="border-2 border-green-200 dark:border-green-900/30 shadow-xl overflow-hidden backdrop-blur-sm bg-white/50 dark:bg-slate-900/50">
+                <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-100 dark:border-green-900/30">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600">
+                            <MailCheck className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg text-green-700 dark:text-green-400">E-posta Gönderildi</CardTitle>
+                            <CardDescription className="text-green-600/70 dark:text-green-400/70">
+                                Lütfen e-posta kutunuzu kontrol edin ve gelen bağlantıya tıklayarak işlemi tamamlayın.
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+            </Card>
+        )
     }
 
     return (
@@ -80,6 +76,7 @@ export default function DeleteAccount({ isGoogleUser, userEmail }: { isGoogleUse
                     </div>
                 </div>
             </CardHeader>
+
             <CardContent className="pt-6">
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-sm text-red-700 dark:text-red-300 mb-4 space-y-2">
                     <div className="flex items-start gap-2">
@@ -87,20 +84,20 @@ export default function DeleteAccount({ isGoogleUser, userEmail }: { isGoogleUse
                         <div>
                             <p className="font-semibold">Dikkat!</p>
                             <p className="text-xs mt-1 leading-relaxed">
-                                Hesabını sildiğinde profilin, yazdığın tüm mesajlar, anket oyların ve diğer
-                                tüm verilerin kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+                                Hesabını sildiğinde profilin, yazdığın tüm mesajlar, anket oyların ve diğer tüm verilerin kalıcı olarak
+                                silinecektir. Bu işlem güvenlik amacıyla e-posta onayı gerektirir.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <AlertDialog open={open} onOpenChange={(val) => {
-                    setOpen(val)
-                    if (!val) {
-                        setPassword("")
-                        setError(null)
-                    }
-                }}>
+                <AlertDialog
+                    open={open}
+                    onOpenChange={(val) => {
+                        setOpen(val)
+                        if (!val) setError(null)
+                    }}
+                >
                     <AlertDialogTrigger asChild>
                         <Button
                             variant="outline"
@@ -110,6 +107,7 @@ export default function DeleteAccount({ isGoogleUser, userEmail }: { isGoogleUse
                             Hesabımı Sil
                         </Button>
                     </AlertDialogTrigger>
+
                     <AlertDialogContent className="max-w-md">
                         <AlertDialogHeader>
                             <AlertDialogTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
@@ -117,57 +115,33 @@ export default function DeleteAccount({ isGoogleUser, userEmail }: { isGoogleUse
                                 Hesabı Silmeyi Onayla
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-left">
-                                Bu işlem geri alınamaz. Hesabınız ve tüm verileriniz kalıcı olarak silinecektir.
+                                Hesabınızı silmek istediğinizden emin misiniz? Devam ederseniz size bir onay e-postası göndereceğiz.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
 
-                        <div className="space-y-4 py-2">
-                            {!isGoogleUser && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="delete-password" className="text-sm font-medium">
-                                        Şifrenizi girin
-                                    </Label>
-                                    <Input
-                                        id="delete-password"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => {
-                                            setPassword(e.target.value)
-                                            setError(null)
-                                        }}
-                                        className="bg-white/50 dark:bg-slate-900/50"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs border border-red-100 dark:border-red-900/30 animate-in fade-in slide-in-from-top-1">
-                                    <AlertTriangle className="h-4 w-4 shrink-0" />
-                                    <span>{error}</span>
-                                </div>
-                            )}
-                        </div>
+                        {error && (
+                            <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs border border-red-100 dark:border-red-900/30 animate-in fade-in slide-in-from-top-1">
+                                <AlertTriangle className="h-4 w-4 shrink-0" />
+                                <span>{error}</span>
+                            </div>
+                        )}
 
                         <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isLoading}>
-                                Vazgeç
-                            </AlertDialogCancel>
+                            <AlertDialogCancel disabled={isLoading}>Vazgeç</AlertDialogCancel>
                             <Button
-                                onClick={handleDeleteAccount}
-                                disabled={isLoading || (!isGoogleUser && !password)}
+                                onClick={handleDeleteRequest}
+                                disabled={isLoading}
                                 className="bg-red-600 hover:bg-red-700 text-white border-0"
                             >
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Siliniyor...
+                                        Gönderiliyor...
                                     </>
                                 ) : (
                                     <>
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        Evet, Hesabımı Sil
+                                        Onay E-postası Gönder
                                     </>
                                 )}
                             </Button>

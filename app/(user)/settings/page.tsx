@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/data"
-import { ShieldCheck, Mail, KeyRound, AlertTriangle, User } from "lucide-react"
+import { ShieldCheck, Mail, KeyRound, AlertTriangle, User, Bell } from "lucide-react"
 import ChangePassword from "@/components/settings/change-password"
 import ChangeEmail from "@/components/settings/change-email"
 import DeleteAccount from "@/components/settings/delete-account"
@@ -8,90 +8,83 @@ import EmailPreferences from "@/components/settings/email-preferences"
 import { redirect } from "next/navigation"
 
 export default async function SettingsPage() {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser()
 
     if (!user) {
         redirect("/login")
     }
 
-    const isLinkedToGoogle = user.identities?.some((i: any) => i.provider === "google")
-    const hasPassword = user.identities?.some((i: any) => i.provider === "email")
+    const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
+    const hasPassword = providers.includes("email")
+    const isLinkedToGoogle = providers.includes("google")
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 py-8 max-w-2xl">
-            {/* Hero Header */}
-            <div className="relative mb-10 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-6 sm:p-8 shadow-xl">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyem0wLTRWMjhIMjR2Mmgxc m0tMTYgNnYySDR2LTJIMTB6bTAgNHYySDR2LTJoMTZ6bTAtOHYySDR2LTJoMTZ6TTQgMTh2Mkg0di0yaDZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-                <div className="relative flex items-start gap-4">
-                    <div className="p-3 bg-white/15 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
-                        <ShieldCheck className="h-7 w-7 text-white" />
+        <div className="container mx-auto px-4 max-w-4xl py-10 space-y-8">
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Ayarlar</h1>
+                <p className="text-muted-foreground mt-2">
+                    Hesap tercihlerinizi ve güvenlik ayarlarınızı yönetin.
+                </p>
+            </div>
+
+            {/* Profile Summary Card */}
+            <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6 text-white shadow-lg">
+                <div className="absolute inset-0 bg-black/10" />
+                <div className="relative flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-2xl font-bold">
+                        {user.email?.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                            Hesap Ayarları
-                        </h1>
-                        <p className="text-indigo-100 text-sm mt-1.5 leading-relaxed">
-                            Güvenlik tercihlerini ve hesap bilgilerini buradan yönetebilirsin.
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-4">
-                            <Badge className="bg-white/15 backdrop-blur-sm text-white border-white/20 gap-1.5 text-xs font-medium hover:bg-white/20">
-                                <User className="h-3 w-3" />
-                                {user.email}
-                            </Badge>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-semibold">{user.user_metadata?.full_name || "Kullanıcı"}</h2>
                             {isLinkedToGoogle && (
-                                <Badge className="bg-white/15 backdrop-blur-sm text-white border-white/20 gap-1.5 text-xs font-medium hover:bg-white/20">
-                                    <img src="https://www.google.com/favicon.ico" className="w-3 h-3" alt="Google" />
-                                    Google ile Bağlı
+                                <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-0 gap-1">
+                                    <span className="text-[10px]">Google</span>
                                 </Badge>
                             )}
+                        </div>
+                        <div className="flex items-center gap-2 text-indigo-100 text-sm">
+                            <Mail className="h-3.5 w-3.5" />
+                            <span>{user.email}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bildirimler Bölümü */}
-            <section className="mb-10">
-                <div className="flex items-center gap-2.5 mb-4">
-                    <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg text-indigo-600 dark:text-indigo-400">
-                        <Mail className="h-4 w-4" />
+            <div className="grid gap-8">
+                {/* Notifications Section */}
+                <section className="space-y-4">
+                    <div className="flex items-center gap-2 border-b pb-2">
+                        <Bell className="h-5 w-5 text-indigo-500" />
+                        <h2 className="text-lg font-semibold">Bildirimler</h2>
                     </div>
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                        Bildirimler
-                    </h2>
-                </div>
-                <EmailPreferences />
-            </section>
+                    <EmailPreferences />
+                </section>
 
-            {/* Güvenlik Bölümü */}
-            <section className="mb-10">
-                <div className="flex items-center gap-2.5 mb-4">
-                    <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg text-indigo-600 dark:text-indigo-400">
-                        <KeyRound className="h-4 w-4" />
+                {/* Security Section */}
+                <section className="space-y-4">
+                    <div className="flex items-center gap-2 border-b pb-2">
+                        <ShieldCheck className="h-5 w-5 text-indigo-500" />
+                        <h2 className="text-lg font-semibold">Güvenlik</h2>
                     </div>
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                        Güvenlik
-                    </h2>
-                </div>
-                <div className="space-y-6">
-                    {!isLinkedToGoogle && (
-                        <ChangeEmail currentEmail={user.email || ""} />
-                    )}
-                    <ChangePassword isGoogleUser={!hasPassword} userEmail={user.email || ""} />
-                </div>
-            </section>
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {!isLinkedToGoogle && (
+                            <ChangeEmail currentEmail={user.email || ""} />
+                        )}
+                        <ChangePassword isGoogleUser={!hasPassword} userEmail={user.email || ""} />
+                    </div>
+                </section>
 
-            {/* Tehlikeli Alan */}
-            <section>
-                <div className="flex items-center gap-2.5 mb-4">
-                    <div className="p-1.5 bg-red-100 dark:bg-red-900/40 rounded-lg text-red-600 dark:text-red-400">
-                        <AlertTriangle className="h-4 w-4" />
+                {/* Danger Zone */}
+                <section className="space-y-4 pt-4">
+                    <div className="flex items-center gap-2 border-b border-red-100 dark:border-red-900/30 pb-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">Tehlikeli Bölge</h2>
                     </div>
-                    <h2 className="text-lg font-bold text-red-700 dark:text-red-400">
-                        Tehlikeli Alan
-                    </h2>
-                </div>
-                <DeleteAccount isGoogleUser={!hasPassword} userEmail={user.email || ""} />
-            </section>
+                    <DeleteAccount />
+                </section>
+            </div>
         </div>
     )
 }

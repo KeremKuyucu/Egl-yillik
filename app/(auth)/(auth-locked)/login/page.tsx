@@ -107,9 +107,15 @@ export default function LoginPage() {
       if (error) throw error
 
       const searchParams = new URLSearchParams(window.location.search)
-      const callbackUrl = searchParams.get("callbackUrl") || "/home"
+      const raw =
+        searchParams.get("next") ||
+        searchParams.get("callbackUrl") ||
+        "/home"
 
-      router.push(callbackUrl)
+      const safe =
+        raw.startsWith("/") && !raw.startsWith("//") ? raw : "/home"
+
+      router.push(safe)
       router.refresh()
     } catch (error: any) {
       console.error("Giriş sırasında bir hata oluştu:", error)

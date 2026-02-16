@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { getCurrentRoles, getCurrentPermissions } from "@/lib/auth/permissions"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { AppHeader } from "@/components/layout/app-header"
 import Footer from "@/components/layout/footer"
@@ -17,7 +18,19 @@ export default async function UserLayout({
     const permissions = await getCurrentPermissions()
 
     if (!user) {
-        redirect("/login")
+        // middleware üzerinden x-url veya referer geliyorsa onu al, yoksa /home
+        const headersList = await headers()
+        const fullUrl = headersList.get("x-url") || headersList.get("referer") || ""
+        let next = "/home"
+
+        try {
+            if (fullUrl) {
+                const url = new URL(fullUrl)
+                next = url.pathname + url.search
+            }
+        } catch (e) { }
+
+        redirect(`/login?next=${encodeURIComponent(next)}`)
     }
     if (!profile) {
         redirect("/complete-profile")

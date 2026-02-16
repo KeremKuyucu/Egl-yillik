@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, BellOff, BellRing, Loader2 } from "lucide-react"
+import { Bell, BellOff, Loader2 } from "lucide-react"
 import { toggleEmailReminders, getEmailPreference } from "@/app/actions/email-preferences"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 export default function EmailPreferences() {
     const [isOptedOut, setIsOptedOut] = useState(false)
@@ -25,67 +25,58 @@ export default function EmailPreferences() {
     const handleToggle = async (checked: boolean) => {
         setIsUpdating(true)
         // Switch "checked" ise (true), opt-out KAPALI (yani mail İSTİYOR) 
-        // Logic'i tersine çeviriyoruz çünkü UI'da "Hatırlatma Maillerini Al" olarak göstermek daha doğal.
         const newOptOutValue = !checked
 
-        const res = await toggleEmailReminders(newOptOutValue)
+        // Optimistic update
+        const previousState = isOptedOut
+        setIsOptedOut(newOptOutValue)
 
-        if (res.error) {
-            toast.error(res.error)
-        } else {
-            setIsOptedOut(newOptOutValue)
-            toast.success(checked ? "Hatırlatma mailleri aktifleştirildi" : "Hatırlatma mailleri kapatıldı")
+        try {
+            const res = await toggleEmailReminders(newOptOutValue)
+            if (res.error) {
+                setIsOptedOut(previousState) // Revert on error
+                toast.error(res.error)
+            } else {
+                toast.success(checked ? "Bildirimler açıldı" : "Bildirimler kapatıldı")
+            }
+        } catch (error) {
+            setIsOptedOut(previousState)
+            toast.error("Bir hata oluştu")
+        } finally {
+            setIsUpdating(false)
         }
-        setIsUpdating(false)
-    }
-
-    if (isLoading) {
-        return (
-            <Card className="border-2 border-slate-100 dark:border-slate-800 animate-pulse">
-                <CardContent className="p-6 h-24 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
-                </CardContent>
-            </Card>
-        )
     }
 
     return (
-        <Card className="border-2 border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-1">
-                    <Mail className="h-4 w-4" />
-                    <CardTitle className="text-lg">E-posta Tercihleri</CardTitle>
+        <div className="flex items-center justify-between p-4 rounded-xl border bg-card text-card-foreground shadow-sm">
+            <div className="flex items-center gap-4">
+                <div className={cn(
+                    "p-2.5 rounded-full transition-colors",
+                    !isOptedOut
+                        ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                )}>
+                    {!isOptedOut ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
                 </div>
-                <CardDescription>
-                    Yıllık hazırlık sürecindeki durumun hakkında bilgilendirme mailleri almak isteyip istemediğini belirle.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${!isOptedOut ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
-                            {!isOptedOut ? <BellRing className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
-                        </div>
-                        <div>
-                            <Label htmlFor="email-reminders" className="font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-                                Hatırlatma Maillerini Al
-                            </Label>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                                {!isOptedOut ? 'Eksik yazıların ve anketlerin için hatırlatma alacaksın.' : 'Artık hatırlatma maili almayacaksın.'}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />}
-                        <Switch
-                            id="email-reminders"
-                            checked={!isOptedOut}
-                            onCheckedChange={handleToggle}
-                            disabled={isUpdating}
-                        />
-                    </div>
+                <div className="space-y-1">
+                    <Label htmlFor="email-notifications" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        E-posta Bildirimleri
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                        Hatırlatmalar ve güncellemeler hakkında e-posta al.
+                    </p>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+            {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : (
+                <Switch
+                    id="email-notifications"
+                    checked={!isOptedOut}
+                    onCheckedChange={handleToggle}
+                    disabled={isUpdating}
+                />
+            )}
+        </div>
     )
 }

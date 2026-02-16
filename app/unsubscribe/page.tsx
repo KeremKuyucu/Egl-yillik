@@ -1,4 +1,6 @@
 import { unsubscribeWithToken } from "@/lib/unsubscribe"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 
 export const runtime = "nodejs" // jsonwebtoken/crypto Edge'te sorun çıkarabilir :contentReference[oaicite:1]{index=1}
 
@@ -24,6 +26,16 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
     const res = await unsubscribeWithToken(token)
 
     if (!res.ok) {
+        // Eğer kullanıcı giriş yapmamışsa, login sayfasına yönlendir
+        // Böylece link geçersiz olsa bile kullanıcı sisteme girip ayarlarından bakabilir.
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            const callbackUrl = encodeURIComponent(`/unsubscribe?token=${token}`)
+            redirect(`/login?callbackUrl=${callbackUrl}`)
+        }
+
         const msg =
             res.reason === "INVALID_OR_EXPIRED"
                 ? "Bağlantı geçersiz veya süresi dolmuş."
