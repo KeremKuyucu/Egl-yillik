@@ -215,14 +215,24 @@ export default async function SchoolPage({
                                             <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/50 grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-800/50">
                                                 <div>
                                                     <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazdığı</p>
-                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                                        <PenLine className="h-3 w-3 text-indigo-500" /> {student.total_texts_written}
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <div className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                            <PenLine className="h-3 w-3 text-indigo-500" /> {student.total_texts_written}
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400 font-medium">
+                                                            ({student.total_words_written || 0} kelime)
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <p className="text-[9px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Yazılan</p>
-                                                    <div className="flex items-center justify-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
-                                                        <Users className="h-3 w-3 text-emerald-500" /> {student.total_texts_received}
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <div className="flex items-center gap-1 font-bold text-slate-700 dark:text-slate-300 text-xs">
+                                                            <Users className="h-3 w-3 text-emerald-500" /> {student.total_texts_received}
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400 font-medium">
+                                                            ({student.total_words_received || 0} kelime)
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div>
