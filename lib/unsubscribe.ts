@@ -1,14 +1,13 @@
 "use server"
 
 import jwt from "jsonwebtoken"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 
 const UNSUB_SECRET = process.env.UNSUB_SECRET!
 
 type UnsubTokenPayload = {
     uid: string
     scope: "email_unsubscribe"
-    // exp zaten jwt standardında var
 }
 
 export async function unsubscribeWithToken(token: string) {
@@ -24,9 +23,9 @@ export async function unsubscribeWithToken(token: string) {
         return { ok: false as const, reason: "INVALID_TOKEN" as const }
     }
 
-    const admin = createAdminClient()
+    const supabase = await createClient()
 
-    const { error } = await admin
+    const { error } = await supabase
         .from("email_opt_outs")
         .upsert({ user_id: payload.uid }, { onConflict: "user_id" })
 
