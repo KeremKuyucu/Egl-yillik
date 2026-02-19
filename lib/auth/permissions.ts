@@ -9,10 +9,6 @@ import { PERMS, type PermKey } from "./permission-constants";
 
 // -------------------- Auth Context --------------------
 
-/**
- * Yetki kontekstini getirir: user, roles, permissions
- * Permission/role kontrolü için kullanılır.
- */
 export const getAuthContext = cache(async (): Promise<AuthContext> => {
     const supabase = await createClient();
 
