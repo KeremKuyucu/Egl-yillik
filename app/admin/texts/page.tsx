@@ -6,21 +6,27 @@ import { PERMS } from "@/lib/auth/permission-constants"
 export default async function AdminTextsPage() {
     const supabase = await createClient()
 
-    const [textsRes, anonRes] = await Promise.all([
-        supabase.rpc('get_admin_texts'),
-        supabase.rpc('get_admin_anonymous_texts'),
+    const [res, canReadResult] = await Promise.all([
+        supabase.rpc('get_admin_texts_page', {
+            p_limit: 50,
+            p_offset: 0,
+            p_sort: 'newest',
+        }),
+        hasPermission(PERMS.ADMIN_TEXTS_METADATA),
     ])
+    if (res.error) {
+        console.error('Veriler yüklenemedi', res.error)
+    }
 
-    const texts = textsRes.data || []
-    const anonymousTexts = anonRes.data || []
-    const result = await hasPermission(PERMS.ADMIN_TEXTS_READ)
-    const canReadContent = result.ok
+    const data = res.data || { total: 0, stats: { all: 0, self: 0, others: 0, anonymous: 0 }, classes: [], items: [] }
 
     return (
         <AdminTextsClient
-            initialTexts={texts}
-            initialAnonymousTexts={anonymousTexts}
-            canReadContent={canReadContent}
+            initialItems={data.items || []}
+            initialTotal={data.total || 0}
+            initialStats={data.stats || { all: 0, self: 0, others: 0, anonymous: 0 }}
+            initialClasses={data.classes || []}
+            canReadContent={canReadResult.ok}
         />
     )
 }
