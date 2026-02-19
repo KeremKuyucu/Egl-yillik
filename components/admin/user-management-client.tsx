@@ -46,6 +46,8 @@ interface UserProfile {
     role_level: number
     highest_role_key: string
     last_active: string | null
+    is_deleted: boolean
+    deleted_at: string | null
 }
 
 interface Role {
@@ -79,16 +81,16 @@ const avatarColors = [
 ]
 
 function getAvatarColor(name: string): string {
-    const charCode = (name || '').charCodeAt(0) || 0
+    const charCode = (name || "").charCodeAt(0) || 0
     return avatarColors[charCode % avatarColors.length]
 }
 
 function formatLastActive(dateString: string | null): { text: string; isRecent: boolean } {
     if (!dateString) return { text: "Hiç", isRecent: false }
+
     const date = new Date(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
-    const displayDate = new Date(date.getTime() + (3 * 60 * 60 * 1000))
 
     const diffMins = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
@@ -99,17 +101,17 @@ function formatLastActive(dateString: string | null): { text: string; isRecent: 
     if (diffHours < 24) return { text: `${diffHours} saat önce`, isRecent: false }
     if (diffDays < 7) return { text: `${diffDays} gün önce`, isRecent: false }
 
-    const day = displayDate.getUTCDate().toString().padStart(2, '0')
-    const month = (displayDate.getUTCMonth() + 1).toString().padStart(2, '0')
-    const hours = displayDate.getUTCHours().toString().padStart(2, '0')
-    const mins = displayDate.getUTCMinutes().toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, "0")
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const hours = date.getHours().toString().padStart(2, "0")
+    const mins = date.getMinutes().toString().padStart(2, "0")
 
-    return { text: `${day}.${month}.${displayDate.getUTCFullYear()} ${hours}:${mins}`, isRecent: false }
+    return { text: `${day}.${month}.${date.getFullYear()} ${hours}:${mins}`, isRecent: false }
 }
 
 // Level'dan role key'i bul (artık doğrudan highest_role_key kullanılabilir)
 function getUserRoleKey(user: UserProfile): string {
-    return user.highest_role_key || 'user'
+    return user.highest_role_key || "user"
 }
 
 export function UserManagementClient({
@@ -134,7 +136,7 @@ export function UserManagementClient({
             setCopiedId(userId)
             setTimeout(() => setCopiedId(null), 2000)
         } catch (err) {
-            console.error('Failed to copy:', err)
+            console.error("Failed to copy:", err)
         }
     }
 
@@ -148,9 +150,9 @@ export function UserManagementClient({
     }, [availableRoles])
 
     // Kısa erişim için sabitler
-    const adminLevel = roleLevels['admin'] ?? 50
-    const superAdminLevel = roleLevels['super_admin'] ?? 100
-    const ownerLevel = roleLevels['owner'] ?? 1000
+    const adminLevel = roleLevels["admin"] ?? 50
+    const superAdminLevel = roleLevels["super_admin"] ?? 100
+    const ownerLevel = roleLevels["owner"] ?? 1000
 
     // Memoized Filtering
     const filteredUsers = useMemo(() => {
@@ -311,6 +313,7 @@ export function UserManagementClient({
                         </Badge>
                     </div>
                 </CardHeader>
+
                 <CardContent>
                     {/* Local Filter Bar */}
                     <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -399,16 +402,24 @@ export function UserManagementClient({
                                     <TableHead className="text-right">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody>
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => {
                                         const isCurrentUser = user.id === currentUser.id
+                                        const isDeleted = user.is_deleted || !!user.deleted_at
+
                                         const avatarColor = getAvatarColor(user.first_name)
                                         const initials = getInitials(user.first_name, user.last_name)
-                                        const { text: activeText, isRecent } = formatLastActive(user.last_active)
+
+                                        const showDate = isDeleted ? user.deleted_at : user.last_active
+                                        const { text: activeText, isRecent } = formatLastActive(showDate)
 
                                         return (
-                                            <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
+                                            <TableRow
+                                                key={user.id}
+                                                className={cn("hover:bg-muted/50 transition-colors", isDeleted && "opacity-60")}
+                                            >
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
                                                         <div className="relative">
@@ -419,11 +430,18 @@ export function UserManagementClient({
                                                                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm" />
                                                             )}
                                                         </div>
+
                                                         <div className="font-medium flex items-center gap-2 group/name">
                                                             {getFullName(user.first_name, user.last_name)}
+
                                                             {isCurrentUser && (
                                                                 <Badge variant="outline" className="text-xs">Siz</Badge>
                                                             )}
+
+                                                            {isDeleted && (
+                                                                <Badge variant="destructive" className="text-xs">Silindi</Badge>
+                                                            )}
+
                                                             <TooltipProvider>
                                                                 <Tooltip>
                                                                     <TooltipTrigger asChild>
@@ -439,23 +457,27 @@ export function UserManagementClient({
                                                                         </button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        <p>{copiedId === user.id ? 'Kopyalandı!' : 'UID Kopyala'}</p>
+                                                                        <p>{copiedId === user.id ? "Kopyalandı!" : "UID Kopyala"}</p>
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
                                                         </div>
                                                     </div>
                                                 </TableCell>
+
                                                 <TableCell>{user.school_number}</TableCell>
                                                 <TableCell>{user.class}</TableCell>
                                                 <TableCell>{getRoleBadge(user.highest_role_key, user.role_level ?? 0)}</TableCell>
+
                                                 <TableCell>
                                                     <div className="flex items-center gap-1.5">
-                                                        {isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
+                                                        {!isDeleted && isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
                                                         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                                                         <span className="text-sm">{activeText}</span>
+                                                        {isDeleted && <span className="text-xs text-muted-foreground">(silinme)</span>}
                                                     </div>
                                                 </TableCell>
+
                                                 <TableCell className="text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <UserRolesDialog
@@ -463,9 +485,7 @@ export function UserManagementClient({
                                                             userName={getFullName(user.first_name, user.last_name)}
                                                             availableRoles={availableRoles}
                                                         />
-                                                        <EditUserButton
-                                                            user={user}
-                                                        />
+                                                        <EditUserButton user={user} />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

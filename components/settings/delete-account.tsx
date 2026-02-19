@@ -13,52 +13,34 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Trash2, Loader2, AlertTriangle, MailCheck } from "lucide-react"
+import { Trash2, Loader2, AlertTriangle, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import { requestDeleteAccount } from "@/app/actions/auth"
+import { deleteAccountWithPassword } from "@/app/actions/auth"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function DeleteAccount() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [open, setOpen] = useState(false)
-    const [emailSent, setEmailSent] = useState(false)
+    const [password, setPassword] = useState("")
+    const [show, setShow] = useState(false)
 
-    const handleDeleteRequest = async () => {
+    const handleDelete = async () => {
         setIsLoading(true)
         setError(null)
 
         try {
-            const result = await requestDeleteAccount()
-
+            const result = await deleteAccountWithPassword(password)
             if (result?.error) throw new Error(result.error)
 
-            setEmailSent(true)
-            toast.success("Doğrulama e-postası gönderildi.")
+            toast.success("Hesabın silindi.")
+            // UI tarafında route push vs yapabilirsin
         } catch (err: any) {
             setError(err?.message || "Bir hata oluştu.")
         } finally {
             setIsLoading(false)
         }
-    }
-
-    if (emailSent) {
-        return (
-            <Card className="border-2 border-green-200 dark:border-green-900/30 shadow-xl overflow-hidden backdrop-blur-sm bg-white/50 dark:bg-slate-900/50">
-                <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-100 dark:border-green-900/30">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600">
-                            <MailCheck className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-lg text-green-700 dark:text-green-400">E-posta Gönderildi</CardTitle>
-                            <CardDescription className="text-green-600/70 dark:text-green-400/70">
-                                Lütfen e-posta kutunuzu kontrol edin ve gelen bağlantıya tıklayarak işlemi tamamlayın.
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-            </Card>
-        )
     }
 
     return (
@@ -71,7 +53,7 @@ export default function DeleteAccount() {
                     <div>
                         <CardTitle className="text-lg text-red-700 dark:text-red-400">Hesabı Sil</CardTitle>
                         <CardDescription className="text-red-600/70 dark:text-red-400/70">
-                            Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinir.
+                            Bu işlem hesabını devre dışı bırakır (soft delete). Verilerin sistemde kalabilir.
                         </CardDescription>
                     </div>
                 </div>
@@ -84,8 +66,7 @@ export default function DeleteAccount() {
                         <div>
                             <p className="font-semibold">Dikkat!</p>
                             <p className="text-xs mt-1 leading-relaxed">
-                                Hesabını sildiğinde profilin, yazdığın tüm mesajlar, anket oyların ve diğer tüm verilerin kalıcı olarak
-                                silinecektir. Bu işlem güvenlik amacıyla e-posta onayı gerektirir.
+                                Devam etmek için şifreni tekrar girmen gerekir. Onaydan sonra hesabın silinir.
                             </p>
                         </div>
                     </div>
@@ -95,7 +76,11 @@ export default function DeleteAccount() {
                     open={open}
                     onOpenChange={(val) => {
                         setOpen(val)
-                        if (!val) setError(null)
+                        if (!val) {
+                            setError(null)
+                            setPassword("")
+                            setShow(false)
+                        }
                     }}
                 >
                     <AlertDialogTrigger asChild>
@@ -112,12 +97,35 @@ export default function DeleteAccount() {
                         <AlertDialogHeader>
                             <AlertDialogTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
                                 <AlertTriangle className="h-5 w-5" />
-                                Hesabı Silmeyi Onayla
+                                Silmeyi Onayla
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-left">
-                                Hesabınızı silmek istediğinizden emin misiniz? Devam ederseniz size bir onay e-postası göndereceğiz.
+                                Devam etmek için hesabının şifresini gir.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="del-pass">Şifre</Label>
+                            <div className="relative">
+                                <Input
+                                    id="del-pass"
+                                    type={show ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Şifreni gir"
+                                    autoComplete="current-password"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShow((v) => !v)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-700"
+                                    aria-label="Şifreyi göster/gizle"
+                                >
+                                    {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
+                        </div>
 
                         {error && (
                             <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-xs border border-red-100 dark:border-red-900/30 animate-in fade-in slide-in-from-top-1">
@@ -129,19 +137,19 @@ export default function DeleteAccount() {
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isLoading}>Vazgeç</AlertDialogCancel>
                             <Button
-                                onClick={handleDeleteRequest}
-                                disabled={isLoading}
+                                onClick={handleDelete}
+                                disabled={isLoading || password.length < 6}
                                 className="bg-red-600 hover:bg-red-700 text-white border-0"
                             >
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Gönderiliyor...
+                                        Siliniyor...
                                     </>
                                 ) : (
                                     <>
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        Onay E-postası Gönder
+                                        Hesabımı Sil
                                     </>
                                 )}
                             </Button>
