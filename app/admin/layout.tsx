@@ -5,7 +5,7 @@ import { redirect } from "next/navigation"
 import { getCurrentProfile } from "@/lib/auth/data"
 import { getHighestRole } from "@/lib/roles"
 
-import { getCurrentRoles, getCurrentPermissions, requireAdmin } from "@/lib/auth/permissions"
+import { getCurrentRoles, getCurrentPermissions } from "@/lib/auth/permissions"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const currentProfile = await getCurrentProfile()

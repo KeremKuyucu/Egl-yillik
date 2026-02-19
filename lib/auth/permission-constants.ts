@@ -61,8 +61,6 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_LOGS: PERMS.SYSTEM_LOGS_READ,
     PAGE_ADMIN_TEXT_ACCESS_LOG: PERMS.ADMIN_TEXTS_ACCESS_LOG,
     PAGE_ADMIN_VOTE_ACCESS_LOG: PERMS.ADMIN_VOTES_ACCESS_LOG,
-
-    PAGE_ADMIN_ACCESS: "role.admin",
 } as const;
 
 export type PermKey = (typeof PERMS)[keyof typeof PERMS];
