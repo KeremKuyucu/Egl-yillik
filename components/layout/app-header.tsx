@@ -76,12 +76,7 @@ export function AppHeader({
 
   return (
     <>
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:opacity-10" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:opacity-10" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:opacity-10" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-6000 dark:opacity-5" />
-      </div>
+
 
       <header className="border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-lg ring-1 ring-slate-200/50 dark:ring-slate-800/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -89,6 +84,7 @@ export function AppHeader({
           <div className="flex items-center gap-6">
             <Link
               href={computedBrandHref}
+              prefetch={true}
               className="flex items-center gap-3 group transition-all duration-300"
             >
               <div className="relative w-10 h-10">
@@ -126,29 +122,31 @@ export function AppHeader({
           <div className="flex items-center gap-3">
             {/* Admin Kısayolu */}
             {mode === "user" && hasAdminAccess && (
-              <Link href="/admin" className="hidden lg:flex">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 px-4 rounded-xl font-medium border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
-                >
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="hidden lg:flex gap-2 px-4 rounded-xl font-medium border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
+              >
+                <Link href="/admin" prefetch={true}>
                   <Shield className="w-4 h-4" />
                   <span className="hidden xl:inline">Yönetim</span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
 
             {/* Yeni Yazı */}
             {computedShowNewButton && (
-              <Link href="/new" className="hidden sm:flex">
-                <Button
-                  size="sm"
-                  className="gap-2 px-5 h-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                >
+              <Button
+                asChild
+                size="sm"
+                className="hidden sm:flex gap-2 px-5 h-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 rounded-xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              >
+                <Link href="/new" prefetch={true}>
                   <Plus className="w-4 h-4" />
                   <span className="hidden lg:inline">Yazı Yaz</span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
 
             <div className="hidden sm:block">

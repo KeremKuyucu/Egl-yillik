@@ -73,6 +73,7 @@ export function DesktopUserMenu({
                 <DropdownMenuItem asChild>
                     <Link
                         href={profileLink}
+                        prefetch={true}
                         className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                     >
                         <User className="w-4 h-4" />
@@ -83,6 +84,7 @@ export function DesktopUserMenu({
                 <DropdownMenuItem asChild>
                     <Link
                         href="/settings"
+                        prefetch={true}
                         className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                     >
                         <Settings className="w-4 h-4" />
@@ -94,6 +96,7 @@ export function DesktopUserMenu({
                     <DropdownMenuItem asChild>
                         <Link
                             href="/home"
+                            prefetch={true}
                             className="cursor-pointer gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                         >
                             <Home className="w-4 h-4" />

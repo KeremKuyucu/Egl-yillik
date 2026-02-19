@@ -24,22 +24,24 @@ export function DesktopNav({ mode, navItems, isActive, isAdminItemActive }: Prop
                 const Icon = item.icon
                 const active = mode === "admin" ? isAdminItemActive(item.href) : isActive(item.href)
                 return (
-                    <Link key={item.href} href={item.href}>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
-                                "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
-                                "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
-                                active &&
-                                "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
-                            )}
-                        >
+                    <Button
+                        key={item.href}
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                            "gap-2 px-4 rounded-xl font-medium text-sm transition-all duration-300",
+                            "text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400",
+                            "hover:bg-white/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105",
+                            active &&
+                            "bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-700 dark:to-slate-700/50 text-blue-600 dark:text-blue-400 shadow-lg shadow-blue-500/10 dark:shadow-blue-500/5 scale-105 border border-blue-100 dark:border-blue-900/30"
+                        )}
+                    >
+                        <Link href={item.href} prefetch={true}>
                             <Icon className="w-4 h-4" />
                             <span>{item.label}</span>
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 )
             })}
 
@@ -72,6 +74,7 @@ export function DesktopNav({ mode, navItems, isActive, isAdminItemActive }: Prop
                                 <DropdownMenuItem key={item.href} asChild>
                                     <Link
                                         href={item.href}
+                                        prefetch={true}
                                         className={cn(
                                             "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all",
                                             isAdminItemActive(item.href)

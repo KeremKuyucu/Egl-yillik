@@ -5,9 +5,6 @@ import { cache } from "react";
 import type { AuthContext, AuthCheckResult } from "@/types/auth";
 
 // -------------------- Permission Constants --------------------
-// Re-export from shared constants file (client/server compatible)
-export { PERMS, PAGE_PERMS, type PermKey } from "./permission-constants";
-// Import for local use within this file
 import { PERMS, type PermKey } from "./permission-constants";
 
 // -------------------- Auth Context --------------------

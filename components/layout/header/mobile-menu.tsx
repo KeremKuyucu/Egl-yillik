@@ -52,14 +52,15 @@ export function MobileMenu({
     return (
         <div className="md:hidden flex items-center gap-2">
             {computedShowNewButton && (
-                <Link href="/new">
-                    <Button
-                        size="icon"
-                        className="h-10 w-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-105"
-                    >
+                <Button
+                    asChild
+                    size="icon"
+                    className="h-10 w-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-105"
+                >
+                    <Link href="/new" prefetch={true}>
                         <Plus className="w-5 h-5" />
-                    </Button>
-                </Link>
+                    </Link>
+                </Button>
             )}
 
             <DropdownMenu>
@@ -104,6 +105,7 @@ export function MobileMenu({
                                 <DropdownMenuItem key={item.href} asChild>
                                     <Link
                                         href={item.href}
+                                        prefetch={true}
                                         className={cn(
                                             "flex items-center gap-3 cursor-pointer p-3 rounded-xl transition-all duration-200",
                                             isActive(item.href)
@@ -125,6 +127,7 @@ export function MobileMenu({
                             <DropdownMenuItem asChild>
                                 <Link
                                     href="/home"
+                                    prefetch={true}
                                     className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                                 >
                                     <ChevronRight className="w-4 h-4" />
@@ -139,6 +142,7 @@ export function MobileMenu({
                     <DropdownMenuItem asChild>
                         <Link
                             href={profileLink}
+                            prefetch={true}
                             className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                         >
                             <User className="w-4 h-4" />
@@ -149,6 +153,7 @@ export function MobileMenu({
                     <DropdownMenuItem asChild>
                         <Link
                             href="/settings"
+                            prefetch={true}
                             className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all"
                         >
                             <Settings className="w-4 h-4" />
@@ -160,6 +165,7 @@ export function MobileMenu({
                         <DropdownMenuItem asChild>
                             <Link
                                 href="/admin"
+                                prefetch={true}
                                 className="flex items-center gap-3 cursor-pointer p-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
                             >
                                 <Shield className="w-4 h-4" />
