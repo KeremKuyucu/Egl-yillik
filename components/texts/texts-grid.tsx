@@ -21,7 +21,7 @@ interface Text {
         class: string
         school_number: string
         user_year: number
-    }
+    } | null
 }
 
 // Avatar Renkleri (Hem Aydınlık hem Karanlık mod uyumlu)
@@ -59,6 +59,7 @@ export default function TextsGrid({ texts }: { texts: Text[] }) {
 
     // Filtreleme
     const filteredTexts = texts.filter((text) => {
+        if (!text.recipient_profile) return searchQuery === ""
         const fullName = `${text.recipient_profile.first_name} ${text.recipient_profile.last_name}`.toLowerCase()
         return fullName.includes(searchQuery.toLowerCase())
     })
@@ -104,9 +105,17 @@ export default function TextsGrid({ texts }: { texts: Text[] }) {
             ) : (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredTexts.map((text, index) => {
-                        const initials = `${text.recipient_profile.first_name[0]}${text.recipient_profile.last_name[0]}`.toUpperCase()
-                        const fullName = `${text.recipient_profile.first_name} ${text.recipient_profile.last_name}`
+                        const profile = text.recipient_profile
+                        const initials = profile
+                            ? `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
+                            : "??"
+                        const fullName = profile
+                            ? `${profile.first_name} ${profile.last_name}`
+                            : "Silinmiş Kullanıcı"
                         const avatarColorClass = getAvatarColor(fullName)
+                        const profileLink = profile
+                            ? `/profile/${profile.user_year}/${profile.school_number}`
+                            : null
 
                         return (
                             <div
@@ -119,23 +128,37 @@ export default function TextsGrid({ texts }: { texts: Text[] }) {
                                 <div className="relative flex flex-col h-full bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm rounded-xl p-5">
                                     {/* Header */}
                                     <div className="flex items-center gap-3 mb-4">
-                                        <Link href={`/profile/${text.recipient_profile.user_year}/${text.recipient_profile.school_number}`} prefetch={false} className="shrink-0">
-                                            <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm group-hover:scale-105 transition-transform ${avatarColorClass}`}>
+                                        {profileLink ? (
+                                            <Link href={profileLink} prefetch={false} className="shrink-0">
+                                                <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm group-hover:scale-105 transition-transform ${avatarColorClass}`}>
+                                                    {initials}
+                                                </div>
+                                            </Link>
+                                        ) : (
+                                            <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm opacity-50 ${avatarColorClass}`}>
                                                 {initials}
                                             </div>
-                                        </Link>
+                                        )}
                                         <div className="flex-1 min-w-0">
-                                            <Link href={`/profile/${text.recipient_profile.user_year}/${text.recipient_profile.school_number}`} prefetch={false} className="block truncate">
-                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            {profileLink ? (
+                                                <Link href={profileLink} prefetch={false} className="block truncate">
+                                                    <h4 className="font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                        {fullName}
+                                                    </h4>
+                                                </Link>
+                                            ) : (
+                                                <h4 className="font-bold text-slate-400 dark:text-slate-500 truncate">
                                                     {fullName}
                                                 </h4>
-                                            </Link>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-0 font-medium">
-                                                    {text.recipient_profile.class}
-                                                </Badge>
-                                                <span className="text-[10px] text-slate-400 font-mono">#{text.recipient_profile.school_number}</span>
-                                            </div>
+                                            )}
+                                            {profile && (
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-0 font-medium">
+                                                        {profile.class}
+                                                    </Badge>
+                                                    <span className="text-[10px] text-slate-400 font-mono">#{profile.school_number}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

@@ -246,3 +246,48 @@ export async function adminRemoveUserRole(userId: string, roleKey: string) {
         return { success: false, error: "Sunucu hatası" }
     }
 }
+
+// -------------------- Account Deletion (Soft Delete) --------------------
+
+export async function adminDeleteAccount(targetUserId: string) {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase.rpc('admin_delete_account', {
+            target_user_id: targetUserId
+        })
+
+        if (error) {
+            console.error("Hesap silme hatası:", error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath("/admin/users")
+        return { success: true }
+    } catch (error) {
+        console.error("Server action hatası:", error)
+        return { success: false, error: "Sunucu hatası" }
+    }
+}
+
+export async function adminRestoreAccount(targetUserId: string) {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase.rpc('admin_restore_account', {
+            target_user_id: targetUserId
+        })
+
+        if (error) {
+            console.error("Hesap geri getirme hatası:", error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath("/admin/users")
+        return { success: true }
+    } catch (error) {
+        console.error("Server action hatası:", error)
+        return { success: false, error: "Sunucu hatası" }
+    }
+}
+

@@ -44,6 +44,7 @@ export const PERMS = {
     REMINDERS_READ: "admin.reminder.read", // hatırlatıcı gönderme sayfasına girme ve fonksiyonun kullanabilme
     REMINDERS_SEND: "admin.reminder.send", // hatırlatıcı gönderme fonksiyonu kullanabilme
 
+    ADMIN_ACCOUNT_DELETE: "admin.account.delete", // Admin panelinden kullanıcı hesabı silme (soft delete)
 } as const;
 
 export const PAGE_PERMS = {

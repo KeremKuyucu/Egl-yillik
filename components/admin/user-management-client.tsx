@@ -1,11 +1,23 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import {
     Shield,
     Users,
@@ -21,7 +33,10 @@ import {
     X,
     Copy,
     Check,
-    Calendar
+    Calendar,
+    Trash2,
+    Loader2,
+    RotateCcw
 } from "lucide-react"
 import { EditUserButton } from "@/components/admin/admin-actions"
 import { UserRolesDialog } from "@/components/admin/user-roles-dialog"
@@ -35,6 +50,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { adminDeleteAccount, adminRestoreAccount } from "@/app/actions/admin"
+import { PERMS } from "@/lib/auth/permission-constants"
+import { toast } from "sonner"
 
 interface UserProfile {
     id: string
@@ -64,6 +82,7 @@ interface UserManagementClientProps {
     classes: string[]
     availableRoles: Role[]
     availableYears: number[]
+    permissions: string[]
 }
 
 // Avatar renkleri - isim baş harfine göre
@@ -119,7 +138,8 @@ export function UserManagementClient({
     currentUser,
     classes,
     availableRoles,
-    availableYears
+    availableYears,
+    permissions
 }: UserManagementClientProps) {
 
     // Local State
@@ -128,6 +148,53 @@ export function UserManagementClient({
     const [roleFilter, setRoleFilter] = useState("all")
     const [yearFilter, setYearFilter] = useState("all")
     const [copiedId, setCopiedId] = useState<string | null>(null)
+    const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
+    const [restoringUserId, setRestoringUserId] = useState<string | null>(null)
+    const [isPending, startTransition] = useTransition()
+    const router = useRouter()
+
+    // Permission kontrolü
+    const canDeleteAccount = permissions.includes(PERMS.ADMIN_ACCOUNT_DELETE)
+
+    // Hesap silme handler
+    const handleDeleteAccount = (userId: string) => {
+        setDeletingUserId(userId)
+        startTransition(async () => {
+            try {
+                const result = await adminDeleteAccount(userId)
+                if (result.success) {
+                    toast.success("Hesap başarıyla silindi")
+                    router.refresh()
+                } else {
+                    toast.error(result.error || "Hesap silinemedi")
+                }
+            } catch {
+                toast.error("Beklenmeyen bir hata oluştu")
+            } finally {
+                setDeletingUserId(null)
+            }
+        })
+    }
+
+    // Hesap geri getirme handler
+    const handleRestoreAccount = (userId: string) => {
+        setRestoringUserId(userId)
+        startTransition(async () => {
+            try {
+                const result = await adminRestoreAccount(userId)
+                if (result.success) {
+                    toast.success("Hesap başarıyla geri getirildi")
+                    router.refresh()
+                } else {
+                    toast.error(result.error || "Hesap geri getirilemedi")
+                }
+            } catch {
+                toast.error("Beklenmeyen bir hata oluştu")
+            } finally {
+                setRestoringUserId(null)
+            }
+        })
+    }
 
     // Copy user ID to clipboard
     const copyUserId = async (userId: string) => {
@@ -486,6 +553,78 @@ export function UserManagementClient({
                                                             availableRoles={availableRoles}
                                                         />
                                                         <EditUserButton user={user} />
+                                                        {canDeleteAccount && !isCurrentUser && isDeleted && (
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                                                                        disabled={isPending && restoringUserId === user.id}
+                                                                    >
+                                                                        {isPending && restoringUserId === user.id ? (
+                                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                                        ) : (
+                                                                            <RotateCcw className="h-4 w-4" />
+                                                                        )}
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Hesabı Geri Getir</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            <strong>{getFullName(user.first_name, user.last_name)}</strong> kullanıcısının hesabını geri getirmek istediğinize emin misiniz?
+                                                                            Bu işlem hesabı tekrar aktif hale getirecek ve kullanıcının giriş yapabilmesini sağlayacaktır.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            onClick={() => handleRestoreAccount(user.id)}
+                                                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                                                        >
+                                                                            Geri Getir
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        )}
+                                                        {canDeleteAccount && !isCurrentUser && !isDeleted && (
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                                                                        disabled={isPending && deletingUserId === user.id}
+                                                                    >
+                                                                        {isPending && deletingUserId === user.id ? (
+                                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                                        ) : (
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        )}
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Hesabı Sil</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            <strong>{getFullName(user.first_name, user.last_name)}</strong> kullanıcısının hesabını silmek istediğinize emin misiniz?
+                                                                            Bu işlem hesabı devre dışı bırakacak ve kullanıcının oturumunu sonlandıracaktır.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            onClick={() => handleDeleteAccount(user.id)}
+                                                                            className="bg-red-600 hover:bg-red-700 text-white"
+                                                                        >
+                                                                            Hesabı Sil
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
