@@ -1,9 +1,9 @@
-// components/footer.tsx
+// components/layout/footer.tsx
 import React from 'react';
 import Link from 'next/link';
 import { Heart, Github, Mail } from 'lucide-react';
 
-const Footer = async () => {
+const Footer = () => {
     const contactEmail = "contact@keremkk.com.tr";
 
     return (
@@ -55,7 +55,7 @@ const Footer = async () => {
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                         {/* Telif */}
                         <p className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
-                            © 2026 EGL Yıllık. Tüm hakları saklıdır.
+                            © {new Date().getFullYear()} EGL Yıllık
                         </p>
 
                         {/* Linkler */}

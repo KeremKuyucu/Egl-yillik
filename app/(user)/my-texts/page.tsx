@@ -15,7 +15,7 @@ export default async function MyTextsPage() {
     const supabase = await createClient()
 
     // Tüm yazdığı anıları getir
-    const { data: texts, error: textsError } = await supabase
+    const { data: rawTexts, error: textsError } = await supabase
         .from("texts")
         .select(`
       *,
@@ -24,13 +24,17 @@ export default async function MyTextsPage() {
         last_name,
         class,
         school_number,
-        user_year
+        user_year,
+        deleted_at
       )
     `)
         .eq("author_id", user.id)
         .eq("is_active", true)
         .neq("recipient_id", user.id)
         .order("updated_at", { ascending: false })
+
+    // Silinmiş profillere yazılan anıları filtrele
+    const texts = rawTexts?.filter(t => t.recipient_profile && !t.recipient_profile.deleted_at) || []
 
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -56,7 +60,7 @@ export default async function MyTextsPage() {
             </div>
 
             {/* @ts-ignore */}
-            <TextsGrid texts={texts || []} />
+            <TextsGrid texts={texts} />
         </div>
     )
 }
