@@ -35,6 +35,7 @@ export default async function MyTextsPage() {
 
     // Silinmiş profillere yazılan anıları filtrele
     const texts = rawTexts?.filter(t => t.recipient_profile && !t.recipient_profile.deleted_at) || []
+    const deletedCount = (rawTexts?.length || 0) - texts.length
 
     return (
         <div className="container mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -46,7 +47,9 @@ export default async function MyTextsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Yazdığım Anılar</h1>
                         <p className="text-slate-500 dark:text-slate-400">
-                            Toplam {texts?.length || 0} arkadaşına anı bıraktın
+                            Toplam {texts.length} arkadaşına anı bıraktın{deletedCount > 0 && (
+                                <span className="text-slate-400 dark:text-slate-500 text-sm"> ({deletedCount} silinmiş hesap hariç)</span>
+                            )}
                         </p>
                     </div>
                 </div>
