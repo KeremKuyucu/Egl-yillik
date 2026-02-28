@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { UserPlus, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { isRegistrationEnabled } from "@/lib/settings"
 
 export default function SignUpPage() {
   const [firstName, setFirstName] = useState("")
@@ -36,51 +35,57 @@ export default function SignUpPage() {
   useEffect(() => {
     let cancelled = false
 
-    ;(async () => {
-      const enabled = await isRegistrationEnabled()
-      if (cancelled) return
+      ; (async () => {
+        setClassesLoading(true)
+        setError(null)
 
-      setRegistrationEnabled(enabled)
-      if (!enabled) {
-        router.push("/register-closed")
-        return
-      }
+        try {
+          const supabase = createClient()
 
-      // kayıt açıksa sınıfları da çek
-      setClassesLoading(true)
-      setError(null)
+          // Fetch registration_enabled and valid_classes in one query
+          const { data, error: fetchErr } = await supabase
+            .from("site_settings")
+            .select("key, value")
+            .in("key", ["registration_enabled", "valid_classes"])
 
-      try {
-        const supabase = createClient()
+          if (fetchErr) throw fetchErr
 
-        const { data, error: fetchErr } = await supabase
-          .from("site_settings")
-          .select("value")
-          .eq("key", "valid_classes")
-          .single()
+          const settingsMap = (data ?? []).reduce((acc, curr) => {
+            acc[curr.key] = curr.value
+            return acc
+          }, {} as Record<string, string>)
 
-        if (fetchErr) throw fetchErr
+          // Check registration
+          const enabled = settingsMap["registration_enabled"] === "true"
+          if (cancelled) return
 
-        const raw = (data?.value ?? "").trim()
-        const parsed = raw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
+          setRegistrationEnabled(enabled)
+          if (!enabled) {
+            router.push("/register-closed")
+            return
+          }
 
-        if (parsed.length === 0) {
-          throw new Error("Sınıf listesi boş. (site_settings: valid_classes)")
+          // Parse valid classes
+          const raw = (settingsMap["valid_classes"] ?? "").trim()
+          const parsed = raw
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+
+          if (parsed.length === 0) {
+            throw new Error("Sınıf listesi boş. (site_settings: valid_classes)")
+          }
+
+          if (!cancelled) setValidClasses(parsed)
+        } catch (e: unknown) {
+          if (!cancelled) {
+            setValidClasses([])
+            setError(e instanceof Error ? e.message : "Ayarlar yüklenemedi.")
+          }
+        } finally {
+          if (!cancelled) setClassesLoading(false)
         }
-
-        if (!cancelled) setValidClasses(parsed)
-      } catch (e: unknown) {
-        if (!cancelled) {
-          setValidClasses([])
-          setError(e instanceof Error ? e.message : "Sınıflar yüklenemedi.")
-        }
-      } finally {
-        if (!cancelled) setClassesLoading(false)
-      }
-    })()
+      })()
 
     return () => {
       cancelled = true
