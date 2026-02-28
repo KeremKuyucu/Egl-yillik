@@ -1,15 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import CompleteProfileForm from "@/components/profile/complete-profile-form"
-import { getCurrentProfile } from "@/lib/auth/data"
+import { getCurrentProfile, getCurrentUser } from "@/lib/auth/data"
 import { isRegistrationEnabled } from "@/lib/settings"
 
 export default async function CompleteProfilePage() {
     const supabase = await createClient()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
     if (!user) {
         redirect("/login")

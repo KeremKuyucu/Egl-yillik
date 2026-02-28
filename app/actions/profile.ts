@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
+import { getCurrentUser } from "@/lib/auth/data"
 
 const profileSchema = z.object({
     firstName: z.string().trim().min(1, "Ad gerekli"),
@@ -24,10 +25,8 @@ export async function completeProfile(formData: {
 
     const supabase = await createClient()
 
-    // getUser burada şart değil; RPC zaten auth.uid() kontrol ediyor.
-    // ama “oturum yok” mesajını erken vermek istiyorsan kalsın:
-    const { data: userData, error: userErr } = await supabase.auth.getUser()
-    if (userErr || !userData?.user) {
+    const user = await getCurrentUser()
+    if (!user) {
         return { error: "Oturum bulunamadı" }
     }
 

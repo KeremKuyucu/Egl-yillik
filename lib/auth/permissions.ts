@@ -1,5 +1,6 @@
 // lib/auth/permissions.ts (server-only)
 import { createClient } from "@/lib/supabase/server";
+import { getCachedUser } from "@/lib/auth/data";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { AuthContext, AuthCheckResult } from "@/types/auth";
@@ -17,13 +18,10 @@ import { type PermKey } from "./permission-constants";
  * Permission/role kontrolü için kullanılır.
  */
 export const getAuthContext = cache(async (): Promise<AuthContext> => {
-    const supabase = await createClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getCachedUser();
     if (!user) return { user: null, roles: [], permissions: [] };
+
+    const supabase = await createClient();
 
     const [rolesRes, permsRes] = await Promise.all([
         supabase.rpc("get_my_roles"),

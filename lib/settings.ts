@@ -1,6 +1,5 @@
-"use server"
-
 import { createClient } from '@/lib/supabase/server';
+import { cache } from 'react';
 
 export interface SiteSettings {
     id: string;
@@ -10,23 +9,31 @@ export interface SiteSettings {
     updated_at: string;
 }
 
-// Helper: Cache'siz anlık veri çekme (String değerler için)
-async function getInstantStringSetting(key: string): Promise<string> {
+/**
+ * Tüm site ayarlarını tek sorguda çeker — request başına 1 kere.
+ * isMessagingEnabled, isVotingEnabled vs. hepsi bunu kullanır.
+ */
+export const getCachedSettings = cache(async (): Promise<Record<string, string>> => {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('site_settings')
-        .select('value')
-        .eq('key', key)
-        .single();
+        .select('key, value');
 
-    if (error || !data) {
-        throw new Error(`Setting ${key} not found.`);
-    }
-    return data.value;
-}
+    if (!data) return {};
+
+    return data.reduce((acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+    }, {} as Record<string, string>);
+});
+
+// -------------------- Setting Getters --------------------
 
 export async function getDeadline(): Promise<{ date: Date; display: string }> {
-    const val = await getInstantStringSetting('deadline');
+    const settings = await getCachedSettings();
+    const val = settings['deadline'];
+
+    if (!val) throw new Error('Setting deadline not found.');
 
     const deadlineDate = new Date(val);
     const display = deadlineDate.toLocaleDateString('tr-TR', {
@@ -38,45 +45,23 @@ export async function getDeadline(): Promise<{ date: Date; display: string }> {
     return { date: deadlineDate, display };
 }
 
-// Helper: Cache'siz anlık veri çekme (Kritik ayarlar için)
-async function getInstantSetting(key: string): Promise<boolean> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', key)
-        .single();
-
-    if (error || !data) {
-        throw new Error(`Setting ${key} not found.`);
-    }
-    return data.value === 'true';
-}
-
 export async function isMessagingEnabled(): Promise<boolean> {
-    return getInstantSetting('messaging_enabled');
+    const settings = await getCachedSettings();
+    return settings['messaging_enabled'] === 'true';
 }
 
 export async function isVotingEnabled(): Promise<boolean> {
-    return getInstantSetting('voting_enabled');
+    const settings = await getCachedSettings();
+    return settings['voting_enabled'] === 'true';
 }
 
 export async function isRegistrationEnabled(): Promise<boolean> {
-    return getInstantSetting('registration_enabled');
+    const settings = await getCachedSettings();
+    return settings['registration_enabled'] === 'true';
 }
 
 export async function getAnnouncementSettings(): Promise<{ enabled: boolean; message: string }> {
-    const supabase = await createClient();
-    const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['announcement_enabled', 'announcement_message']);
-
-    const settings = data?.reduce((acc, curr) => {
-        acc[curr.key] = curr.value;
-        return acc;
-    }, {} as Record<string, string>) || {};
-
+    const settings = await getCachedSettings();
     return {
         enabled: settings['announcement_enabled'] === 'true',
         message: settings['announcement_message'] || ''

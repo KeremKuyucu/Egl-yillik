@@ -12,10 +12,12 @@ export default async function UserLayout({
 }: {
     children: React.ReactNode
 }) {
-    const user = await getCurrentUser()
-    const profile = await getCurrentProfile()
-    const roles = await getCurrentRoles()
-    const permissions = await getCurrentPermissions()
+    const [user, profile, roles, permissions] = await Promise.all([
+        getCurrentUser(),
+        getCurrentProfile(),
+        getCurrentRoles(),
+        getCurrentPermissions(),
+    ])
 
     if (!user) {
         // middleware üzerinden x-url veya referer geliyorsa onu al, yoksa /home

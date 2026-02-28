@@ -1,38 +1,42 @@
 // lib/auth/data.ts (server-only)
 import { createClient } from "@/lib/supabase/server";
 import { cache } from "react";
-import type { UserData } from "@/types/auth";
 
 /**
- * Kullanıcı verisini getirir: user, profile, level
- * UI'da gösterim amaçlı kullanılır, permission RPC'leri çağrılmaz.
+ * Supabase auth user — request cycle başına tek çağrı.
+ * Hem getUserWithProfile hem getAuthContext (permissions.ts) bu fonksiyonu kullanır.
  */
-export const getUserData = cache(async (): Promise<UserData> => {
+export const getCachedUser = cache(async () => {
     const supabase = await createClient();
-
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { user: null, profile: null };
+    return user;
+});
 
-    const [profRes] = await Promise.all([
-        supabase
-            .from("profiles")
-            .select("id, first_name, last_name, school_number, class, user_year")
-            .eq("id", user.id)
-            .maybeSingle(),
-    ]);
+/**
+ * Profil verisini cache'li getirir — request cycle başına tek sorgu.
+ * UI için kullanılır, permission RPC'leri çağrılmaz.
+ */
+export const getCachedProfile = cache(async () => {
+    const user = await getCachedUser();
+    if (!user) return null;
 
-    return {
-        user,
-        profile: profRes.data ?? null,
-    };
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, school_number, class, user_year")
+        .eq("id", user.id)
+        .is("deleted_at", null)
+        .maybeSingle()
+
+    return data ?? null;
 });
 
 // -------------------- Legacy Getters --------------------
 
 export async function getCurrentUser() {
-    return (await getUserData()).user;
+    return await getCachedUser();
 }
 
 export async function getCurrentProfile() {
-    return (await getUserData()).profile;
+    return await getCachedProfile();
 }
