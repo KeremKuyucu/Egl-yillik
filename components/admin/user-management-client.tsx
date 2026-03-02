@@ -99,33 +99,11 @@ const avatarColors = [
     "from-fuchsia-500 to-purple-600",
 ]
 
-function getAvatarColor(name: string): string {
-    const charCode = (name || "").charCodeAt(0) || 0
-    return avatarColors[charCode % avatarColors.length]
-}
-
-function formatLastActive(dateString: string | null): { text: string; isRecent: boolean } {
-    if (!dateString) return { text: "Hiç", isRecent: false }
-
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return { text: "Şimdi", isRecent: true }
-    if (diffMins < 60) return { text: `${diffMins} dk önce`, isRecent: diffMins < 5 }
-    if (diffHours < 24) return { text: `${diffHours} saat önce`, isRecent: false }
-    if (diffDays < 7) return { text: `${diffDays} gün önce`, isRecent: false }
-
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const hours = date.getHours().toString().padStart(2, "0")
-    const mins = date.getMinutes().toString().padStart(2, "0")
-
-    return { text: `${day}.${month}.${date.getFullYear()} ${hours}:${mins}`, isRecent: false }
+function getAvatarColor(name: string) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const index = Math.abs(hash) % avatarColors.length;
+    return avatarColors[index];
 }
 
 // Level'dan role key'i bul (artık doğrudan highest_role_key kullanılabilir)
@@ -465,7 +443,6 @@ export function UserManagementClient({
                                     <TableHead>Okul No</TableHead>
                                     <TableHead>Sınıf</TableHead>
                                     <TableHead>Seviye</TableHead>
-                                    <TableHead>Son Aktif</TableHead>
                                     <TableHead className="text-right">İşlemler</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -478,9 +455,6 @@ export function UserManagementClient({
 
                                         const avatarColor = getAvatarColor(user.first_name)
                                         const initials = getInitials(user.first_name, user.last_name)
-
-                                        const showDate = isDeleted ? user.deleted_at : user.last_active
-                                        const { text: activeText, isRecent } = formatLastActive(showDate)
 
                                         return (
                                             <TableRow
@@ -535,15 +509,6 @@ export function UserManagementClient({
                                                 <TableCell>{user.school_number}</TableCell>
                                                 <TableCell>{user.class}</TableCell>
                                                 <TableCell>{getRoleBadge(user.highest_role_key, user.role_level ?? 0)}</TableCell>
-
-                                                <TableCell>
-                                                    <div className="flex items-center gap-1.5">
-                                                        {!isDeleted && isRecent && <Sparkles className="h-3.5 w-3.5 text-green-500" />}
-                                                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                                        <span className="text-sm">{activeText}</span>
-                                                        {isDeleted && <span className="text-xs text-muted-foreground">(silinme)</span>}
-                                                    </div>
-                                                </TableCell>
 
                                                 <TableCell className="text-right">
                                                     <div className="flex items-center justify-end gap-2">
