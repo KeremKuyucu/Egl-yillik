@@ -40,46 +40,46 @@ export default function CompleteProfileForm({ initialData }: CompleteProfileForm
   useEffect(() => {
     let cancelled = false
 
-    ;(async () => {
-      setClassesLoading(true)
-      setError(null)
+      ; (async () => {
+        setClassesLoading(true)
+        setError(null)
 
-      try {
-        const { data, error: fetchErr } = await supabase
-          .from("site_settings")
-          .select("value")
-          .eq("key", "valid_classes")
-          .single()
+        try {
+          const { data, error: fetchErr } = await supabase
+            .from("site_settings")
+            .select("value")
+            .eq("key", "valid_classes")
+            .single()
 
-        if (fetchErr) throw fetchErr
+          if (fetchErr) throw fetchErr
 
-        const raw = (data?.value ?? "").trim()
-        const parsed = raw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
+          const raw = (String(data?.value ?? "")).trim()
+          const parsed = raw
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
 
-        if (parsed.length === 0) {
-          throw new Error("Sınıf listesi boş. (site_settings: valid_classes)")
-        }
-
-        if (!cancelled) {
-          setValidClasses(parsed)
-
-          // initial class geçersizse temizle (UI'da yanlış seçim kalmasın)
-          if (classRoom && !parsed.includes(classRoom)) {
-            setClassRoom("")
+          if (parsed.length === 0) {
+            throw new Error("Sınıf listesi boş. (site_settings: valid_classes)")
           }
+
+          if (!cancelled) {
+            setValidClasses(parsed)
+
+            // initial class geçersizse temizle (UI'da yanlış seçim kalmasın)
+            if (classRoom && !parsed.includes(classRoom)) {
+              setClassRoom("")
+            }
+          }
+        } catch (e: unknown) {
+          if (!cancelled) {
+            setValidClasses([])
+            setError(e instanceof Error ? e.message : "Sınıflar yüklenemedi.")
+          }
+        } finally {
+          if (!cancelled) setClassesLoading(false)
         }
-      } catch (e: unknown) {
-        if (!cancelled) {
-          setValidClasses([])
-          setError(e instanceof Error ? e.message : "Sınıflar yüklenemedi.")
-        }
-      } finally {
-        if (!cancelled) setClassesLoading(false)
-      }
-    })()
+      })()
 
     return () => {
       cancelled = true

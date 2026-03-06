@@ -12,6 +12,7 @@ import {
   Users,
   Plus,
   Sparkles,
+  Camera,
 } from "lucide-react"
 import { getPermittedAdminNavItems } from "@/lib/admin-nav"
 import type { NavItem } from "./header/types"
@@ -66,6 +67,7 @@ export function AppHeader({
     { href: "/my-texts", label: "Yazılarım", icon: FileText },
     { href: "/surveys", label: "Anketler", icon: Vote },
     { href: `/school?year=${userProfile.user_year}`, label: "Okul", icon: Users },
+    { href: "/gallery", label: "Galeri", icon: Camera },
     { href: "/future-me", label: "Geleceğe Not", icon: Sparkles },
   ]
 

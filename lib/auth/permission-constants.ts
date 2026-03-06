@@ -45,6 +45,9 @@ export const PERMS = {
     REMINDERS_SEND: "admin.reminder.send", // hatırlatıcı gönderme fonksiyonu kullanabilme
 
     ADMIN_ACCOUNT_DELETE: "admin.account.delete", // Admin panelinden kullanıcı hesabı silme (soft delete)
+
+    ADMIN_GALLERY_VIEW: "admin.gallery.view", // Galeri fotoğraflarını mezuniyet öncesi görme izni
+    ADMIN_GALLERY_DELETE: "admin.gallery.delete", // Galeri fotoğraflarını silme izni (admin)
 } as const;
 
 export const PAGE_PERMS = {
@@ -62,6 +65,7 @@ export const PAGE_PERMS = {
     PAGE_ADMIN_LOGS: PERMS.SYSTEM_LOGS_READ,
     PAGE_ADMIN_TEXT_ACCESS_LOG: PERMS.ADMIN_TEXTS_ACCESS_LOG,
     PAGE_ADMIN_VOTE_ACCESS_LOG: PERMS.ADMIN_VOTES_ACCESS_LOG,
+    PAGE_ADMIN_GALLERY: PERMS.ADMIN_GALLERY_VIEW,
 } as const;
 
 export type PermKey = (typeof PERMS)[keyof typeof PERMS];
