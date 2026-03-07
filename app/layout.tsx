@@ -23,10 +23,7 @@ export const metadata: Metadata = {
     template: "%s | EGL Yıllık",
     default: "EGL Yıllık",
   },
-  description: "Ertuğrulgazi Lisesi Dijital Yıllık ve Anı Platformu",
-  icons: {
-    icon: "/image.png",
-  },
+  description: "Ertuğrulgazi Lisesi Dijital Yıllık ve Anı Platformu"
 }
 
 export const viewport: Viewport = {
