@@ -1,6 +1,6 @@
 # 📚 EGL Yıllık 2026
 
-Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıcı dostu dijital yıllık platformu.
+**EGL Yıllık**, Ertuğrulgazi Lisesi 2026 mezunları için tasarlanmış, anıları dijital dünyada ölümsüzleştiren premium bir yıllık platformudur. Geleneksel yıllık kültürünü modern bir dokunuşla geleceğe taşıyan bu sistem; anıların, etkileşimli anketlerin ve geleceğe bırakılan mektupların güvenle saklandığı dijital bir zaman kapsülü niteliğindedir.
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?logo=react)
@@ -46,94 +46,6 @@ Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıc�
 - **Veritabanı & Auth**: Supabase
 - **E-posta Servisi**: Resend
 - **Dağıtım**: Vercel
-
-## 📁 Proje Yapısı
-
-```
-app/
-├── (auth)/             # Kimlik doğrulama
-│   ├── login/          # Giriş sayfası
-│   ├── signup/         # Kayıt sayfası
-│   ├── forgot-password/# Şifre sıfırlama talebi
-│   └── update-password/# Yeni şifre belirleme
-├── (user)/             # Kullanıcı Arayüzü
-│   ├── home/           # Ana kontrol paneli
-│   ├── profile/        # Profil ve gelen anılar
-│   │   └── [schoolNumber]/ # Kullanıcı detay sayfası
-│   ├── new/            # Yeni anı yazma sayfası
-│   ├── edit/           # Anı düzenleme sayfası
-│   ├── anonymous/      # Anonim mesaj gönderme
-│   ├── future-me/      # Kendine mektup özelliği
-│   ├── gallery/        # Fotoğraf galerisi
-│   ├── school/         # Okul/Sınıf listesi ve istatistikler
-│   ├── my-texts/       # Yazdığım anılar
-│   ├── surveys/        # Anket sistemi
-│   │   ├── [categoryId]/ # Kategori oy kullanma
-│   │   └── add-custom/   # Özel seçenek ekleme
-│   └── settings/       # Hesap ayarları
-├── admin/              # Yönetim Paneli
-│   ├── users/          # Kullanıcı yönetimi
-│   ├── roles/          # Dinamik rol yönetimi
-│   ├── texts/          # Tüm anılar ve içerik denetimi
-│   ├── text-access-log/# Anı erişim logları
-│   ├── suggestions/    # Kategori önerileri yönetimi
-│   ├── votes/          # Anket sonuçları
-│   ├── vote-access-log/# Oy erişim logları
-│   ├── categories/     # Kategori tanımları
-│   ├── gallery/        # Fotoğraf galerisi yönetimi
-│   ├── reminders/      # E-posta hatırlatma sistemi
-│   ├── feedback/       # Kullanıcı geri bildirimleri
-│   ├── logs/           # Sistem aktivite logları
-│   └── settings/       # Sistem ayarları (Dönem, mezuniyet tarihi)
-├── complete-profile/   # İlk giriş profil tamamlama
-├── register-closed/    # Kayıt kapalı bilgilendirme sayfası
-├── unsubscribe/        # E-posta abonelik iptali
-├── api/                # API route'ları
-├── auth/               # Auth callback handler
-├── health/             # Health check endpoint
-components/             # UI bileşenleri
-lib/                    # Yardımcı fonksiyonlar ve yapılandırmalar
-```
-
-## 🚀 Kurulum ve Geliştirme
-
-Projenin yerel ortamda çalıştırılması için:
-
-1. **Repoyu Klonlayın:**
-   ```bash
-   git clone https://github.com/KeremKuyucu/Egl-yillik.git
-   cd Egl-yillik
-   ```
-
-2. **Bağımlılıkları Yükleyin:**
-   ```bash
-   npm install
-   # veya
-   pnpm install
-   ```
-
-3. **Çevresel Değişkenleri Ayarlayın:**
-   `.env.local` dosyasını oluşturun ve gerekli anahtarları ekleyin:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   RESEND_API_KEY=your_resend_api_key
-   ...
-   ```
-
-4. **Sunucuyu Başlatın:**
-   ```bash
-   npm run dev
-   ```
-   Tarayıcıda `http://localhost:3000` adresine gidin.
-
-## 🤝 Katkıda Bulunma
-
-1. Bu repoyu fork'layın.
-2. Yeni bir feature branch oluşturun (`git checkout -b feature/yenilik`).
-3. Değişikliklerinizi commit'leyin (`git commit -m 'Yeni özellik eklendi'`).
-4. Branch'inizi push'layın (`git push origin feature/yenilik`).
-5. Bir Pull Request oluşturun.
 
 ##  Lisans
 
