@@ -24,15 +24,14 @@ Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıc�
 
 ### �️ Yönetim & Güvenlik
 - **Rol Tabanlı Erişim Kontrolü (RBAC)**:
-  - **User (0)**: Standart kullanıcı
-  - **Admin (50)**: Düzenleme yetkisi
-  - **Super Admin (100)**: İleri düzey yetkiler
-  - **Owner (1000)**: Tam sistem kontrolü
+- Rol oluşturulabilip istenen yetki atanabiliyor.
+- Alt yetkili üst yetkiyi düzenleyemez.
+- Yetkisi olmayan biri o yetkiyi başkasına veremez.
 - **Güvenlik**:
   - Supabase Auth entegrasyonu.
   - Row Level Security (RLS) ile veri güvenliği.
   - Şifreli veri iletişimi.
-- **Bakım Modu**: Sistem güncellemeleri için özel kilit ekranı.
+- **Güvenlik Kilitleri**: Kayıt olma veya mesaj yazma düzenleme gibi olaylar uzaktan kapatılabiliyor admin erişimi ile.
 
 ## 🛠️ Teknoloji Yığını
 
