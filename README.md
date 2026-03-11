@@ -14,19 +14,23 @@ Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıc�
 - **Kişiselleştirilmiş Dashboard**: Günlük selamlamalar, anlık istatistikler ve geri sayım sayaçları.
 - **Profil Sistemi**: Kullanıcıların unvanları (badge) ve aktivite durumları.
 - **Anı Kutusu**: 
-  - Arkadaşlarına anı yazma/düzenleme.
+  - Arkadaşlarına açık veya **anonim** olarak anı yazma ve düzenleme.
   - **Gizli Kasa**: Mezuniyet gününe kadar kilitli kalan, size yazılmış anılar.
+  - **Kendine Mektup**: Gelecekte açılmak üzere kendinize notlar bırakma özelliği.
+- **Fotoğraf Galerisi**: Yıllıkta yer alacak anı fotoğraflarının paylaşıldığı ve incelendiği alan.
 
 ### 🗳️ Anket & Etkileşim
 - **Sınıf İçi Oylama**: "En komik", "En çalışkan" gibi kategorilerde oylama.
 - **Öneri Sistemi**: Kullanıcıların yeni anket kategorileri önerebilmesi.
 - **Canlı İstatistikler**: Katılım oranları ve anket durumları.
+- **Geri Bildirim Sistemi**: Kullanıcıların soru, hata ve önerilerini doğrudan yönetime iletebilmesi.
 
-### �️ Yönetim & Güvenlik
+### 🛡️ Yönetim & Güvenlik
 - **Rol Tabanlı Erişim Kontrolü (RBAC)**:
-- Rol oluşturulabilip istenen yetki atanabiliyor.
-- Alt yetkili üst yetkiyi düzenleyemez.
-- Yetkisi olmayan biri o yetkiyi başkasına veremez.
+   - Rol oluşturulabilip istenen yetki atanabiliyor.
+   - Alt yetkili üst yetkiyi düzenleyemez.
+   - Yetkisi olmayan biri o yetkiyi başkasına veremez.
+- **Kapsamlı Gözetim ve Loglama**: Anı görüntülemeleri, oy erişimleri ve kritik sistem işlemlerinin detaylı log kayıtları (`text-access-log`, `vote-access-log`, `logs`).
 - **Güvenlik**:
   - Supabase Auth entegrasyonu.
   - Row Level Security (RLS) ile veri güvenliği.
@@ -43,7 +47,7 @@ Ertuğrulgazi Lisesi 2026 mezunları için geliştirilmiş, modern ve kullanıc�
 - **E-posta Servisi**: Resend
 - **Dağıtım**: Vercel
 
-## � Proje Yapısı
+## 📁 Proje Yapısı
 
 ```
 app/
@@ -53,11 +57,14 @@ app/
 │   ├── forgot-password/# Şifre sıfırlama talebi
 │   └── update-password/# Yeni şifre belirleme
 ├── (user)/             # Kullanıcı Arayüzü
-│   ├── dashboard/      # Ana kontrol paneli
+│   ├── home/           # Ana kontrol paneli
 │   ├── profile/        # Profil ve gelen anılar
 │   │   └── [schoolNumber]/ # Kullanıcı detay sayfası
 │   ├── new/            # Yeni anı yazma sayfası
 │   ├── edit/           # Anı düzenleme sayfası
+│   ├── anonymous/      # Anonim mesaj gönderme
+│   ├── future-me/      # Kendine mektup özelliği
+│   ├── gallery/        # Fotoğraf galerisi
 │   ├── school/         # Okul/Sınıf listesi ve istatistikler
 │   ├── my-texts/       # Yazdığım anılar
 │   ├── surveys/        # Anket sistemi
@@ -66,15 +73,24 @@ app/
 │   └── settings/       # Hesap ayarları
 ├── admin/              # Yönetim Paneli
 │   ├── users/          # Kullanıcı yönetimi
+│   ├── roles/          # Dinamik rol yönetimi
 │   ├── texts/          # Tüm anılar ve içerik denetimi
+│   ├── text-access-log/# Anı erişim logları
 │   ├── suggestions/    # Kategori önerileri yönetimi
-│   ├── surveys/        # Anket sonuçları ve yönetimi
+│   ├── votes/          # Anket sonuçları
+│   ├── vote-access-log/# Oy erişim logları
 │   ├── categories/     # Kategori tanımları
+│   ├── gallery/        # Fotoğraf galerisi yönetimi
 │   ├── reminders/      # E-posta hatırlatma sistemi
+│   ├── feedback/       # Kullanıcı geri bildirimleri
+│   ├── logs/           # Sistem aktivite logları
 │   └── settings/       # Sistem ayarları (Dönem, mezuniyet tarihi)
 ├── complete-profile/   # İlk giriş profil tamamlama
-├── maintenance/        # Bakım modu sayfası
+├── register-closed/    # Kayıt kapalı bilgilendirme sayfası
+├── unsubscribe/        # E-posta abonelik iptali
+├── api/                # API route'ları
 ├── auth/               # Auth callback handler
+├── health/             # Health check endpoint
 components/             # UI bileşenleri
 lib/                    # Yardımcı fonksiyonlar ve yapılandırmalar
 ```
