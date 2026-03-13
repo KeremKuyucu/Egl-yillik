@@ -30,6 +30,7 @@ export default function AdminSettingsPage() {
     const [savingToggle, setSavingToggle] = useState<string | null>(null)
     const [messagingEnabled, setMessagingEnabled] = useState(true)
     const [votingEnabled, setVotingEnabled] = useState(true)
+    const [galleryEnabled, setGalleryEnabled] = useState(true)
     const [registrationEnabled, setRegistrationEnabled] = useState(true)
     const [announcementEnabled, setAnnouncementEnabled] = useState(false)
 
@@ -84,6 +85,7 @@ export default function AdminSettingsPage() {
                 // Toggles
                 setMessagingEnabled(settings.messaging_enabled !== 'false')
                 setVotingEnabled(settings.voting_enabled !== 'false')
+                setGalleryEnabled(settings.gallery_enabled !== 'false')
                 setRegistrationEnabled(settings.registration_enabled !== 'false')
                 setAnnouncementEnabled(settings.announcement_enabled === 'true')
 
@@ -171,6 +173,7 @@ export default function AdminSettingsPage() {
                 const labels: Record<string, string> = {
                     messaging_enabled: 'Mesaj yazma',
                     voting_enabled: 'Oylama',
+                    gallery_enabled: 'Fotoğraf galerisi',
                     registration_enabled: 'Kayıt',
                     announcement_enabled: 'Duyuru bannerı'
                 }
@@ -575,6 +578,33 @@ export default function AdminSettingsPage() {
                             checked={votingEnabled}
                             onCheckedChange={(checked) => handleToggleChange('voting_enabled', checked, setVotingEnabled)}
                             disabled={savingToggle === 'voting_enabled'}
+                        />
+                    </div>
+
+                    {/* Gallery Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700" >
+                        <div className="flex items-center gap-4" >
+                            <div className={
+                                `w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${galleryEnabled
+                                    ? 'bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-pink-500/30'
+                                    : 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400'
+                                }`
+                            }>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            </div>
+                            < div >
+                                <div className="font-semibold text-slate-900 dark:text-white" >
+                                    Fotoğraf Galerisi
+                                </div>
+                                < div className="text-sm text-slate-500 dark:text-slate-400" >
+                                    {galleryEnabled ? 'Kullanıcılar galeriye fotoğraf yükleyebilir' : 'Galeri kapalı'}
+                                </div>
+                            </div>
+                        </div>
+                        < Switch
+                            checked={galleryEnabled}
+                            onCheckedChange={(checked) => handleToggleChange('gallery_enabled', checked, setGalleryEnabled)}
+                            disabled={savingToggle === 'gallery_enabled'}
                         />
                     </div>
 

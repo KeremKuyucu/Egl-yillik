@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import SurveyVoteClient from "./client"
 import { ArrowLeft, Vote, Users, AlertTriangle } from "lucide-react"
-import { isVotingEnabled } from "@/lib/settings"
+import { isVotingEnabled, getSystemClosedMessage } from "@/lib/settings"
 
 interface SurveyCategoryPageProps {
     params: Promise<{ categoryId: string }>
@@ -26,15 +26,16 @@ export default async function SurveyCategoryPage({ params }: SurveyCategoryPageP
     // Sistem kontrolü
     const votingEnabled = await isVotingEnabled()
     if (!votingEnabled) {
+        const closedMessage = await getSystemClosedMessage('voting')
         return (
             <div className="container mx-auto px-4 py-16 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="max-w-md w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl text-center shadow-xl">
                     <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                         <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-500" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Oylama Kapalı</h1>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Sistem Kilitli</h1>
                     <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-                        Anketlere katılım şu an için durdurulmuştur. Lütfen daha sonra tekrar deneyiniz.
+                        {closedMessage}
                     </p>
                     <Link href="/home">
                         <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">

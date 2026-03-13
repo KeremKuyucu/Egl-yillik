@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth/data"
-import { isMessagingEnabled } from "@/lib/settings"
+import { isMessagingEnabled, getSystemClosedMessage } from "@/lib/settings"
 
 export async function createAnonymousTextAction(
     recipientId: string,
@@ -13,7 +13,7 @@ export async function createAnonymousTextAction(
     // Messaging açık mı kontrol et
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Mesaj yazma şu anda kapalıdır. Lütfen daha sonra tekrar deneyin." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     const user = await getCurrentUser()

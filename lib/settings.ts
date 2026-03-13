@@ -47,17 +47,40 @@ export async function getDeadline(): Promise<{ date: Date; display: string }> {
 
 export async function isMessagingEnabled(): Promise<boolean> {
     const settings = await getCachedSettings();
-    return settings['messaging_enabled'] === 'true';
+    if (settings['messaging_enabled'] !== 'true') return false;
+
+    const val = settings['deadline'];
+    if (val) {
+        if (new Date() > new Date(val)) return false;
+    }
+    return true;
 }
 
 export async function isVotingEnabled(): Promise<boolean> {
     const settings = await getCachedSettings();
-    return settings['voting_enabled'] === 'true';
+    if (settings['voting_enabled'] !== 'true') return false;
+
+    const val = settings['deadline'];
+    if (val) {
+        if (new Date() > new Date(val)) return false;
+    }
+    return true;
 }
 
 export async function isRegistrationEnabled(): Promise<boolean> {
     const settings = await getCachedSettings();
     return settings['registration_enabled'] === 'true';
+}
+
+export async function isGalleryEnabled(): Promise<boolean> {
+    const settings = await getCachedSettings();
+    if (settings['gallery_enabled'] === 'false') return false; // Default true if not explicitly false
+
+    const val = settings['deadline'];
+    if (val) {
+        if (new Date() > new Date(val)) return false;
+    }
+    return true;
 }
 
 export async function getAnnouncementSettings(): Promise<{ enabled: boolean; message: string }> {
@@ -66,4 +89,31 @@ export async function getAnnouncementSettings(): Promise<{ enabled: boolean; mes
         enabled: settings['announcement_enabled'] === 'true',
         message: settings['announcement_message'] || ''
     };
+}
+
+export async function getSystemClosedMessage(type: 'messaging' | 'voting' | 'gallery' = 'messaging'): Promise<string> {
+    const settings = await getCachedSettings();
+    
+    let typeName = 'Mesajlaşma ve düzenleme';
+    if (type === 'voting') typeName = 'Oylama';
+    if (type === 'gallery') typeName = 'Fotoğraf ekleme ve silme';
+    
+    // Yıllık bitiş tarihi (deadline) en büyük önceliğe sahip
+    const val = settings['deadline'];
+    if (val) {
+        const deadlineDate = new Date(val);
+        if (new Date() > deadlineDate) {
+            const display = deadlineDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+            return `Süre doldu: Yıllık için belirlenen son katılım tarihi (${display}) geçmiştir.`;
+        }
+    }
+
+    const settingKey = `${type}_enabled`;
+    if (settings[settingKey] === 'false') {
+        return `Sistem kilitli: ${typeName} işlemleri yöneticisi tarafından durdurulmuştur.`;
+    } else if (settings[settingKey] !== 'true' && settings[settingKey] !== undefined) {
+        return `Sistem kilitli: ${typeName} işlemleri yöneticisi tarafından durdurulmuştur.`;
+    }
+
+    return `${typeName} kapalıdır.`;
 }

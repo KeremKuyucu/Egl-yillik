@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth/data"
-import { isMessagingEnabled } from "@/lib/settings"
+import { isMessagingEnabled, getSystemClosedMessage } from "@/lib/settings"
 
 export async function deleteTextAction(id: string) {
     const supabase = await createClient()
@@ -15,7 +15,7 @@ export async function deleteTextAction(id: string) {
     // Mesaj yazma kapalıysa silme işlemi yapılamaz
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Sistem kilitli: Yazı silme kapalıdır." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     // RPC fonksiyonu ile soft delete (RLS bypass, yetki kontrolü DB'de yapılır)
@@ -40,7 +40,7 @@ export async function createTextAction(recipientId: string, content: string) {
     // Mesaj yazma açık mı kontrol et
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Mesaj yazma şu anda kapalıdır. Lütfen daha sonra tekrar deneyin." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     const user = await getCurrentUser()
@@ -76,7 +76,7 @@ export async function updateTextAction(id: string, content: string) {
     // Sistem kontrolü
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Sistem kilitli: Yazı güncelleme kapalıdır." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     const user = await getCurrentUser()
@@ -112,7 +112,7 @@ export async function deleteMyTextAction(id: string) {
     // Sistem kontrolü
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Sistem kilitli: Yazı silme kapalıdır." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     const user = await getCurrentUser()
@@ -141,7 +141,7 @@ export async function saveFutureMeAction(content: string) {
     // Mesaj yazma açık mı kontrol et
     const messagingEnabled = await isMessagingEnabled()
     if (!messagingEnabled) {
-        return { error: "Mesaj yazma şu anda kapalıdır. Lütfen daha sonra tekrar deneyin." }
+        return { error: await getSystemClosedMessage('messaging') }
     }
 
     const user = await getCurrentUser()
