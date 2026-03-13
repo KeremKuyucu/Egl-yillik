@@ -140,8 +140,12 @@ export default function GalleryClient({
     const [caption, setCaption] = useState("")
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null)
-    const [userPhotoCount, setUserPhotoCount] = useState(initialCount)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const currentUserPhotos = photos.filter(p => p.user_id === currentUserId)
+    const currentUserPhotoCount = currentUserPhotos.length
+    const currentUserSize = currentUserPhotos.reduce((acc, p) => acc + (p.file_size || 0), 0)
+    const maxTotalSize = 10 * 1024 * 1024 // 10MB
 
     // Dosya seçimi + WebP dönüşümü
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,8 +186,12 @@ export default function GalleryClient({
     const handleUpload = useCallback(async () => {
         if (!convertedFile) return
 
-        if (userPhotoCount >= maxPhotos) {
+        if (currentUserPhotoCount >= maxPhotos) {
             toast.error(`En fazla ${maxPhotos} fotoğraf yükleyebilirsiniz`)
+            return
+        }
+        if (currentUserSize + (convertedFile?.size || 0) > maxTotalSize) {
+            toast.error(`Toplam fotoğraf boyutunuz 10MB'ı geçemez. Lütfen daha küçük bir fotoğraf seçin veya eski fotoğraflarınızı silin.`)
             return
         }
 
@@ -207,7 +215,6 @@ export default function GalleryClient({
                 setConvertedFile(null)
                 setCaption("")
                 setOriginalSize(0)
-                setUserPhotoCount((prev) => prev + 1)
                 // Sayfa yenilenecek (revalidatePath)
                 window.location.reload()
             }
@@ -216,7 +223,7 @@ export default function GalleryClient({
         } finally {
             setUploading(false)
         }
-    }, [convertedFile, caption, userPhotoCount, maxPhotos])
+    }, [convertedFile, caption, currentUserPhotoCount, currentUserSize, maxTotalSize, maxPhotos])
 
     // Önizlemeyi iptal et
     const handleCancel = useCallback(() => {
@@ -237,13 +244,12 @@ export default function GalleryClient({
         } else {
             toast.success("Fotoğraf silindi")
             setPhotos((prev) => prev.filter((p) => p.id !== deletingId))
-            setUserPhotoCount((prev) => prev - 1)
             if (lightboxPhoto?.id === deletingId) setLightboxPhoto(null)
         }
         setDeletingId(null)
     }, [deletingId, lightboxPhoto])
 
-    const canUpload = userPhotoCount < maxPhotos && messagingEnabled
+    const canUpload = currentUserPhotoCount < maxPhotos && currentUserSize < maxTotalSize && messagingEnabled
 
     return (
         <div className="space-y-8">
@@ -264,7 +270,7 @@ export default function GalleryClient({
                                 Fotoğraf Yükle
                             </h2>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {userPhotoCount}/{maxPhotos} fotoğraf yükledin
+                                {currentUserPhotoCount}/{maxPhotos} fotoğraf • {formatFileSize(currentUserSize)} / 10 MB kullanıldı
                             </p>
                         </div>
                     </div>
@@ -293,7 +299,7 @@ export default function GalleryClient({
                                         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                                             {canUpload
                                                 ? "Fotoğraf seçmek için tıkla"
-                                                : "Fotoğraf limitine ulaştın"}
+                                                : "Fotoğraf veya boyut limitine ulaştın"}
                                         </p>
                                         <p className="text-xs text-slate-400 dark:text-slate-500">
                                             JPG, PNG veya WebP • Otomatik WebP&apos;ye dönüştürülür
@@ -429,14 +435,18 @@ export default function GalleryClient({
                                                     {photo.caption}
                                                 </p>
                                             )}
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between mt-1">
                                                 <span className="text-white/70 text-[10px] flex items-center gap-1">
                                                     <User className="w-3 h-3" />
-                                                    {photo.profiles
-                                                        ? `${photo.profiles.first_name} ${photo.profiles.last_name}`
-                                                        : "Anonim"}
+                                                    <span className="truncate max-w-[90px]">
+                                                        {photo.profiles
+                                                            ? `${photo.profiles.first_name} ${photo.profiles.last_name}`
+                                                            : "Anonim"}
+                                                    </span>
+                                                    <span className="mx-1 opacity-50">•</span>
+                                                    <span>{formatFileSize(photo.file_size)}</span>
                                                 </span>
-                                                <ZoomIn className="w-4 h-4 text-white/70" />
+                                                <ZoomIn className="w-4 h-4 text-white/70 ml-1" />
                                             </div>
                                         </div>
                                     </div>
@@ -490,6 +500,8 @@ export default function GalleryClient({
                                         : "Bilinmeyen"}
                                     <span className="mx-1">•</span>
                                     {new Date(lightboxPhoto.created_at).toLocaleDateString("tr-TR")}
+                                    <span className="mx-1">•</span>
+                                    {formatFileSize(lightboxPhoto.file_size)}
                                 </p>
                             </div>
 
