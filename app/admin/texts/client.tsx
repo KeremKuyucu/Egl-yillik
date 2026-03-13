@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import {
     FileText, RefreshCw, Sparkles, Trash2, Loader2, Inbox, Clock,
     ChevronDown, Filter, Search, User, ArrowRight, Quote, ExternalLink,
-    MessageSquare, TrendingUp, Ghost, Eye, X, ShieldAlert,
+    MessageSquare, TrendingUp, Ghost, Eye, X, ShieldAlert, Download, FileJson, Table
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -23,6 +23,9 @@ import {
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select"
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -72,6 +75,7 @@ interface AdminTextsClientProps {
     initialTotal: number
     initialStats: Stats
     initialClasses: string[]
+    initialYears: number[]
     canReadContent: boolean
 }
 
@@ -81,6 +85,7 @@ export default function AdminTextsClient({
     initialTotal,
     initialStats,
     initialClasses,
+    initialYears,
     canReadContent,
 }: AdminTextsClientProps) {
     // Data state
@@ -88,13 +93,18 @@ export default function AdminTextsClient({
     const [total, setTotal] = useState(initialTotal)
     const [stats, setStats] = useState<Stats>(initialStats)
     const [allClasses, setAllClasses] = useState<string[]>(initialClasses)
+    const [allYears, setAllYears] = useState<number[]>(initialYears || [])
 
     // Filter state
     const [filter, setFilter] = useState<FilterType>('all')
-    const [searchQuery, setSearchQuery] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
+    const [authorSearchQuery, setAuthorSearchQuery] = useState('')
+    const [recipientSearchQuery, setRecipientSearchQuery] = useState('')
+    const [debouncedAuthorSearch, setDebouncedAuthorSearch] = useState('')
+    const [debouncedRecipientSearch, setDebouncedRecipientSearch] = useState('')
     const [sort, setSort] = useState<SortType>('newest')
-    const [selectedClass, setSelectedClass] = useState<string | null>(null)
+    const [authorClass, setAuthorClass] = useState<string | null>(null)
+    const [recipientClass, setRecipientClass] = useState<string | null>(null)
+    const [selectedYear, setSelectedYear] = useState<number | null>(null)
 
     // UI state
     const [loading, setLoading] = useState(false)
@@ -103,6 +113,7 @@ export default function AdminTextsClient({
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [loadingContentId, setLoadingContentId] = useState<string | null>(null)
     const [contentModal, setContentModal] = useState<ContentModal | null>(null)
+    const [exporting, setExporting] = useState(false)
 
     // Refs
     const isFirstRender = useRef(true)
@@ -110,9 +121,10 @@ export default function AdminTextsClient({
 
     // ─── Debounce search ───
     useEffect(() => {
-        const t = setTimeout(() => setDebouncedSearch(searchQuery), 400)
-        return () => clearTimeout(t)
-    }, [searchQuery])
+        const t1 = setTimeout(() => setDebouncedAuthorSearch(authorSearchQuery), 400)
+        const t2 = setTimeout(() => setDebouncedRecipientSearch(recipientSearchQuery), 400)
+        return () => { clearTimeout(t1); clearTimeout(t2) }
+    }, [authorSearchQuery, recipientSearchQuery])
 
     // ─── Fetch on filter/search/sort change ───
     useEffect(() => {
@@ -127,22 +139,26 @@ export default function AdminTextsClient({
         supabase.rpc('get_admin_texts_page', {
             p_limit: PAGE_SIZE,
             p_offset: 0,
-            p_search: debouncedSearch || null,
+            p_author_search: debouncedAuthorSearch || null,
+            p_recipient_search: debouncedRecipientSearch || null,
             p_filter: filter,
-            p_class: selectedClass,
+            p_author_class: authorClass,
+            p_recipient_class: recipientClass,
+            p_year: selectedYear,
             p_sort: sort,
         }).then(({ data, error }) => {
             if (id !== fetchIdRef.current) return
             if (error) { toast.error('Veriler yüklenemedi'); setLoading(false); return }
-            const d = data as { total: number; stats: Stats; classes: string[]; items: UnifiedItem[] }
+            const d = data as { total: number; stats: Stats; classes: string[]; years: number[]; items: UnifiedItem[] }
             setItems(d?.items || [])
             setTotal(d?.total || 0)
             setStats(d?.stats || stats)
             setAllClasses(d?.classes || allClasses)
+            setAllYears(d?.years || allYears)
             setLoading(false)
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter, debouncedSearch, selectedClass, sort])
+    }, [filter, debouncedAuthorSearch, debouncedRecipientSearch, authorClass, recipientClass, selectedYear, sort])
 
     // ─── Load More ───
     const handleLoadMore = async () => {
@@ -152,9 +168,12 @@ export default function AdminTextsClient({
             const { data, error } = await supabase.rpc('get_admin_texts_page', {
                 p_limit: PAGE_SIZE,
                 p_offset: items.length,
-                p_search: debouncedSearch || null,
+                p_author_search: debouncedAuthorSearch || null,
+                p_recipient_search: debouncedRecipientSearch || null,
                 p_filter: filter,
-                p_class: selectedClass,
+                p_author_class: authorClass,
+                p_recipient_class: recipientClass,
+                p_year: selectedYear,
                 p_sort: sort,
             })
             if (error) throw error
@@ -172,9 +191,13 @@ export default function AdminTextsClient({
     const handleRefresh = async () => {
         isFirstRender.current = true
         setFilter('all')
-        setSearchQuery('')
-        setDebouncedSearch('')
-        setSelectedClass(null)
+        setAuthorSearchQuery('')
+        setRecipientSearchQuery('')
+        setDebouncedAuthorSearch('')
+        setDebouncedRecipientSearch('')
+        setAuthorClass(null)
+        setRecipientClass(null)
+        setSelectedYear(null)
         setSort('newest')
         setRefreshing(true)
 
@@ -184,11 +207,12 @@ export default function AdminTextsClient({
                 p_limit: PAGE_SIZE, p_offset: 0, p_sort: 'newest',
             })
             if (error) throw error
-            const d = data as { total: number; stats: Stats; classes: string[]; items: UnifiedItem[] }
+            const d = data as { total: number; stats: Stats; classes: string[]; years: number[]; items: UnifiedItem[] }
             setItems(d?.items || [])
             setTotal(d?.total || 0)
             setStats(d?.stats || stats)
             setAllClasses(d?.classes || allClasses)
+            setAllYears(d?.years || allYears)
             toast.success('Veriler güncellendi')
         } catch {
             toast.error('Güncelleme başarısız')
@@ -248,6 +272,119 @@ export default function AdminTextsClient({
         }
     }
 
+    // ─── Export ───
+    const handleExport = async (exportFormat: 'md' | 'csv' | 'json') => {
+        setExporting(true)
+        try {
+            const supabase = createClient()
+            const { data, error } = await supabase.rpc('get_admin_texts_export')
+            if (error) throw error
+            
+            let exportData = (data as any[]) || []
+            
+            // Mevcut filtreleri dışa aktarılacak veriye uygula
+            if (filter !== 'all') {
+                exportData = exportData.filter(d => {
+                    if (filter === 'anonymous') return d.is_anonymous
+                    if (filter === 'self') return !d.is_anonymous && d.author_name === d.recipient_name
+                    if (filter === 'others') return !d.is_anonymous && d.author_name !== d.recipient_name
+                    return true
+                })
+            }
+            if (recipientClass) {
+                exportData = exportData.filter(d => d.recipient_class === recipientClass)
+            }
+            if (authorClass) {
+                exportData = exportData.filter(d => d.author_class === authorClass)
+            }
+            if (selectedYear) {
+                exportData = exportData.filter(d => 
+                    d.recipient_year === selectedYear || (!d.is_anonymous && d.author_year === selectedYear)
+                )
+            }
+            if (authorSearchQuery) {
+                const lowerq = authorSearchQuery.toLowerCase()
+                exportData = exportData.filter(d => 
+                    (d.author_name && d.author_name.toLowerCase().includes(lowerq)) ||
+                    (!d.is_anonymous && d.author_school_number && d.author_school_number.includes(authorSearchQuery))
+                )
+            }
+            if (recipientSearchQuery) {
+                const lowerq = recipientSearchQuery.toLowerCase()
+                exportData = exportData.filter(d => 
+                    (d.recipient_name && d.recipient_name.toLowerCase().includes(lowerq)) ||
+                    (d.recipient_school_number && d.recipient_school_number.includes(recipientSearchQuery))
+                )
+            }
+
+            if (!exportData.length) {
+                toast.error('Dışa aktarılacak veri bulunamadı')
+                setExporting(false)
+                return
+            }
+
+            const downloadBlob = (blob: Blob, filename: string) => {
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+            }
+
+            const timestamp = format(new Date(), 'yyyyMMdd_HHmm')
+
+            if (exportFormat === 'json') {
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+                downloadBlob(blob, `yillik_mesajlar_${timestamp}.json`)
+            } else if (exportFormat === 'csv') {
+                const headers = ['Alıcı Sınıf', 'Alıcı No', 'Alıcı Adı', 'Yazan Sınıf', 'Gönderen Adı', 'Mesaj', 'Anonim mi', 'Tarih']
+                const rows = exportData.map(d => [
+                    d.recipient_class,
+                    d.recipient_school_number,
+                    `"${(d.recipient_name || '').replace(/"/g, '""')}"`,
+                    d.author_class || 'Bilinmiyor',
+                    `"${(d.author_name || '').replace(/"/g, '""')}"`,
+                    `"${(d.content || '').replace(/"/g, '""')}"`,
+                    d.is_anonymous ? 'Evet' : 'Hayır',
+                    format(new Date(d.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })
+                ])
+                const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+                downloadBlob(blob, `yillik_mesajlar_${timestamp}.csv`)
+            } else if (exportFormat === 'md') {
+                let mdContent = `# Yıllık Mesajları (${timestamp})\n\n`
+                
+                const grouped = exportData.reduce((acc, curr) => {
+                    const key = `${curr.recipient_class} - ${curr.recipient_school_number} - ${curr.recipient_name}`
+                    if (!acc[key]) acc[key] = []
+                    acc[key].push(curr)
+                    return acc
+                }, {} as Record<string, any[]>)
+
+                Object.keys(grouped).sort().forEach(recipient => {
+                    mdContent += `## ${recipient}\n\n`
+                    grouped[recipient].forEach((msg: any) => {
+                        mdContent += `**Gönderen:** ${msg.author_name} ${msg.is_anonymous ? '*(Anonim)*' : ''}\n`
+                        mdContent += `**Tarih:** ${format(new Date(msg.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })}\n\n`
+                        mdContent += `> ${msg.content.split('\n').join('\n> ')}\n\n`
+                    })
+                    mdContent += `---\n\n`
+                })
+                const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' })
+                downloadBlob(blob, `yillik_mesajlar_${timestamp}.md`)
+            }
+            toast.success('Dışa aktarma tamamlandı')
+        } catch(err) {
+            console.error('Export error:', err)
+            toast.error('Dışa aktarma başarısız!')
+        } finally {
+            setExporting(false)
+        }
+    }
+
     // ─── Derived ───
     const normalCount = stats.all - stats.anonymous
     const hasMore = items.length < total
@@ -271,15 +408,42 @@ export default function AdminTextsClient({
                             <p className="text-white/70 text-sm mt-1">Kullanıcıların birbirlerine yazdığı mesajlar</p>
                         </div>
                     </div>
-                    <Button
-                        variant="secondary"
-                        onClick={handleRefresh}
-                        disabled={refreshing}
-                        className="gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm border-0 text-white rounded-xl"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                        <span className="hidden sm:inline">Yenile</span>
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        {canReadContent && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        disabled={exporting}
+                                        className="gap-2 bg-indigo-500/20 hover:bg-indigo-500/30 backdrop-blur-sm border border-indigo-200/20 text-white rounded-xl"
+                                    >
+                                        {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                        <span className="hidden sm:inline">Dışa Aktar</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                                    <DropdownMenuItem onClick={() => handleExport('md')} className="gap-2 cursor-pointer">
+                                        <FileText className="h-4 w-4" /> Markdown (.md)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport('csv')} className="gap-2 cursor-pointer">
+                                        <Table className="h-4 w-4" /> Excel / CSV (.csv)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExport('json')} className="gap-2 cursor-pointer">
+                                        <FileJson className="h-4 w-4" /> JSON (.json)
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                        <Button
+                            variant="secondary"
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                            className="gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm border-white/10 text-white rounded-xl"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                            <span className="hidden sm:inline">Yenile</span>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="relative mt-5 flex items-center gap-3 text-sm text-white/60 flex-wrap">
@@ -330,55 +494,97 @@ export default function AdminTextsClient({
                 </div>
 
                 {/* ─── Search + Filters ─── */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+                    <div className="relative flex-1 min-w-[200px] max-w-sm">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                            placeholder="İsim veya numara ara..."
+                            placeholder="Yazana göre ara..."
                             className="pl-10 h-11 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={authorSearchQuery}
+                            onChange={(e) => setAuthorSearchQuery(e.target.value)}
                         />
-                        {searchQuery && (
-                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                        {authorSearchQuery && (
+                            <button onClick={() => setAuthorSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <span className="text-xs">✕</span>
+                            </button>
+                        )}
+                    </div>
+                    <div className="relative flex-1 min-w-[200px] max-w-sm">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder="Alıcıya göre ara..."
+                            className="pl-10 h-11 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50"
+                            value={recipientSearchQuery}
+                            onChange={(e) => setRecipientSearchQuery(e.target.value)}
+                        />
+                        {recipientSearchQuery && (
+                            <button onClick={() => setRecipientSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                 <span className="text-xs">✕</span>
                             </button>
                         )}
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80">
-                                <Filter className="h-4 w-4" />
-                                {selectedClass || 'Tüm Sınıflar'}
-                                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-48 rounded-xl max-h-64 overflow-y-auto">
-                            <DropdownMenuItem onClick={() => setSelectedClass(null)}>Tüm Sınıflar</DropdownMenuItem>
-                            {allClasses.map(cls => (
-                                <DropdownMenuItem key={cls} onClick={() => setSelectedClass(cls)}>{cls}</DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Select value={filter} onValueChange={(v: FilterType) => setFilter(v)}>
+                        <SelectTrigger className="w-full sm:w-[160px] rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+                            <SelectValue placeholder="Tümü" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                            <SelectItem value="all">Tüm Yazılar</SelectItem>
+                            <SelectItem value="self">Kendine Yazılan</SelectItem>
+                            <SelectItem value="others">Başkasına Yazılan</SelectItem>
+                            <SelectItem value="anonymous">Anonim Yazılar</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="gap-2 rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80">
-                                <TrendingUp className="h-4 w-4" />
-                                {sort === 'newest' ? 'En Yeni' : 'En Eski'}
-                                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-40 rounded-xl">
-                            <DropdownMenuItem onClick={() => setSort('newest')}>En Yeni</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSort('oldest')}>En Eski</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Select value={authorClass || 'all'} onValueChange={(v) => setAuthorClass(v === 'all' ? null : v)}>
+                        <SelectTrigger className="w-full sm:w-[140px] rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+                            <SelectValue placeholder="Yazan Sınıf" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl max-h-64">
+                            <SelectItem value="all">Sınıfı (Yazan): Tümü</SelectItem>
+                            {allClasses.map(cls => (
+                                <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={recipientClass || 'all'} onValueChange={(v) => setRecipientClass(v === 'all' ? null : v)}>
+                        <SelectTrigger className="w-full sm:w-[140px] rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+                            <SelectValue placeholder="Alıcı Sınıf" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl max-h-64">
+                            <SelectItem value="all">Sınıfı (Alıcı): Tümü</SelectItem>
+                            {allClasses.map(cls => (
+                                <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={selectedYear ? selectedYear.toString() : 'all'} onValueChange={(v) => setSelectedYear(v === 'all' ? null : parseInt(v))}>
+                        <SelectTrigger className="w-full sm:w-[130px] rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+                            <SelectValue placeholder="Yıl" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl max-h-64">
+                            <SelectItem value="all">Tüm Yıllar</SelectItem>
+                            {allYears.map(yr => (
+                                <SelectItem key={yr.toString()} value={yr.toString()}>{yr}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={sort} onValueChange={(v: SortType) => setSort(v)}>
+                        <SelectTrigger className="w-full sm:w-[130px] rounded-xl h-11 bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-700/80 whitespace-nowrap">
+                            <SelectValue placeholder="Sıralama" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                            <SelectItem value="newest">En Yeni</SelectItem>
+                            <SelectItem value="oldest">En Eski</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* ─── Active Filters ─── */}
-                {(filter !== 'all' || searchQuery || selectedClass) && (
+                {(filter !== 'all' || authorSearchQuery || recipientSearchQuery || authorClass || recipientClass || selectedYear) && (
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs text-slate-500">Aktif filtreler:</span>
                         {filter !== 'all' && (
@@ -387,20 +593,38 @@ export default function AdminTextsClient({
                                 <span className="text-xs">✕</span>
                             </Badge>
                         )}
-                        {selectedClass && (
-                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setSelectedClass(null)}>
-                                Sınıf: {selectedClass}
+                        {authorClass && (
+                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setAuthorClass(null)}>
+                                Yazan Sınıf: {authorClass}
                                 <span className="text-xs">✕</span>
                             </Badge>
                         )}
-                        {searchQuery && (
-                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setSearchQuery('')}>
-                                Arama: &quot;{searchQuery}&quot;
+                        {recipientClass && (
+                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setRecipientClass(null)}>
+                                Alınan Sınıf: {recipientClass}
+                                <span className="text-xs">✕</span>
+                            </Badge>
+                        )}
+                        {selectedYear && (
+                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setSelectedYear(null)}>
+                                Yıl: {selectedYear}
+                                <span className="text-xs">✕</span>
+                            </Badge>
+                        )}
+                        {authorSearchQuery && (
+                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setAuthorSearchQuery('')}>
+                                Yazan Arama: &quot;{authorSearchQuery}&quot;
+                                <span className="text-xs">✕</span>
+                            </Badge>
+                        )}
+                        {recipientSearchQuery && (
+                            <Badge variant="secondary" className="gap-1 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700" onClick={() => setRecipientSearchQuery('')}>
+                                Alıcı Arama: &quot;{recipientSearchQuery}&quot;
                                 <span className="text-xs">✕</span>
                             </Badge>
                         )}
                         <button
-                            onClick={() => { setFilter('all'); setSearchQuery(''); setSelectedClass(null) }}
+                            onClick={() => { setFilter('all'); setAuthorSearchQuery(''); setRecipientSearchQuery(''); setAuthorClass(null); setRecipientClass(null); setSelectedYear(null); }}
                             className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline ml-1"
                         >
                             Tümünü temizle
@@ -409,33 +633,42 @@ export default function AdminTextsClient({
                 )}
 
                 {/* ─── Content ─── */}
-                {loading ? (
-                    <div className="grid gap-4">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="h-32 rounded-2xl animate-pulse bg-slate-100/80 dark:bg-slate-800/50" />
-                        ))}
-                    </div>
-                ) : items.length === 0 ? (
+                {!loading && items.length === 0 ? (
                     <Card className="border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl rounded-2xl">
                         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                             <div className="h-20 w-20 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center mb-6">
                                 <Inbox className="h-10 w-10 text-slate-400" />
                             </div>
                             <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
-                                {searchQuery ? 'Arama sonucu bulunamadı' : 'Gösterilecek yazı yok'}
+                                {(authorSearchQuery || recipientSearchQuery) ? 'Arama sonucu bulunamadı' : 'Gösterilecek yazı yok'}
                             </h3>
                             <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                                {searchQuery ? 'Farklı bir arama terimi deneyin' : 'Filtreleri değiştirmeyi deneyin'}
+                                {(authorSearchQuery || recipientSearchQuery) ? 'Farklı bir arama terimi deneyin' : 'Filtreleri değiştirmeyi deneyin'}
                             </p>
-                            <Button variant="outline" className="mt-4 rounded-xl" onClick={() => { setFilter('all'); setSearchQuery(''); setSelectedClass(null) }}>
+                            <Button variant="outline" className="mt-4 rounded-xl" onClick={() => { setFilter('all'); setAuthorSearchQuery(''); setRecipientSearchQuery(''); setAuthorClass(null); setRecipientClass(null); setSelectedYear(null); setSort('newest') }}>
                                 Tümünü Göster
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
                     <div className="space-y-4">
-                        <div className="grid gap-3">
-                            <AnimatePresence mode="popLayout" initial={false}>
+                        {loading && items.length === 0 && (
+                            <div className="grid gap-4">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="h-32 rounded-2xl animate-pulse bg-slate-100/80 dark:bg-slate-800/50" />
+                                ))}
+                            </div>
+                        )}
+                        <div className="grid gap-3 relative">
+                            {loading && items.length > 0 && (
+                                <div className="absolute inset-0 z-10 flex items-center justify-center">
+                                    <div className="bg-white/90 dark:bg-slate-800/90 shadow-xl rounded-full p-3 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+                                        <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                                    </div>
+                                </div>
+                            )}
+                            <div className={cn("grid gap-3 transition-opacity duration-300", loading && items.length > 0 ? "opacity-50 pointer-events-none" : "opacity-100")}>
+                                <AnimatePresence mode="popLayout" initial={false}>
                                 {items.map((item, index) => {
                                     if (item.isAnonymous) {
                                         // ─── Anonymous Card ───
@@ -604,6 +837,7 @@ export default function AdminTextsClient({
                                     )
                                 })}
                             </AnimatePresence>
+                            </div>
                         </div>
 
                         {/* ─── Load More ─── */}
@@ -626,7 +860,7 @@ export default function AdminTextsClient({
                 {/* ─── Result Count ─── */}
                 {!loading && items.length > 0 && (
                     <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-sm text-slate-400 dark:text-slate-500 py-4">
-                        {filter === 'all' && !searchQuery && !selectedClass
+                        {filter === 'all' && !authorSearchQuery && !recipientSearchQuery && !authorClass && !recipientClass && !selectedYear
                             ? `Toplam ${stats.all} yazı (${normalCount} normal, ${stats.anonymous} anonim)`
                             : `${items.length} / ${total} yazı gösteriliyor`
                         }

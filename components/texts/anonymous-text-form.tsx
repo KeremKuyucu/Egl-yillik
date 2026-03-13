@@ -159,6 +159,8 @@ export default function AnonymousTextForm({
                         Mesajını alan kişi gerçek adını göremez. Aşağıda istersen bir takma
                         ad girebilirsin; boş bırakırsan{" "}
                         <span className="font-bold">&quot;Anonim&quot;</span> olarak görünür.
+                        Eğer daha önceden aynı kişiye başka bir metin bıraktıysan, bu mesajı
+                        gönderdiğinde eski mesaj silinir.
                     </p>
                 </div>
             </div>

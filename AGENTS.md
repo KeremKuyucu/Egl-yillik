@@ -144,9 +144,9 @@ Egl-yillik/
 
 | Komut | Açıklama |
 |---|---|
-| `npm run dev` | Geliştirme sunucusu (`next dev`) — `http://localhost:3000` |
-| `npm run build` | Production build (`next build`) |
-| `npm run start` | Production sunucusu (`next start`) |
+| `vercel dev` | Geliştirme sunucusu (`next dev`) — `http://localhost:3000` |
+| `vercel build` | Production build (`next build`) |
+| `vercel start` | Production sunucusu (`next start`) |
 | `npm run lint` | ESLint taraması (`eslint .`) |
 | `npm run format` | ❌ Tanımlı değil — Prettier yapılandırması bulunamadı |
 | `npm test` | ❌ Tanımlı değil — Test framework'ü kurulmamış |

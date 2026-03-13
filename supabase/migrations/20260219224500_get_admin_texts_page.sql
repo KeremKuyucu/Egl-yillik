@@ -1,9 +1,12 @@
 CREATE OR REPLACE FUNCTION public.get_admin_texts_page(
   p_limit   int  DEFAULT 50,
   p_offset  int  DEFAULT 0,
-  p_search  text DEFAULT NULL,
+  p_author_search text DEFAULT NULL,
+  p_recipient_search text DEFAULT NULL,
   p_filter  text DEFAULT 'all',      -- all | self | others | anonymous
-  p_class   text DEFAULT NULL,       -- örn '12A'
+  p_author_class text DEFAULT NULL,
+  p_recipient_class text DEFAULT NULL,
+  p_year    int  DEFAULT NULL,
   p_sort    text DEFAULT 'newest',   -- newest | oldest
   p_user_id uuid DEFAULT NULL        -- uid filtresi
 )
@@ -19,6 +22,7 @@ DECLARE
   v_others  bigint;
   v_anon    bigint;
   v_classes json;
+  v_years   json;
   v_items   json;
 BEGIN
   PERFORM public.require_permission('admin.texts.metadata');
@@ -46,7 +50,11 @@ BEGIN
   SELECT COALESCE(json_agg(c), '[]'::json) INTO v_classes
   FROM (SELECT DISTINCT class AS c FROM public.profiles WHERE class IS NOT NULL ORDER BY class) sub;
 
-  -- ─── 3. Filtrelenmiş total + sayfalanmış items (TEK WITH BLOĞU) ───
+  -- ─── 3. Distinct yıllar ───
+  SELECT COALESCE(json_agg(y), '[]'::json) INTO v_years
+  FROM (SELECT DISTINCT user_year AS y FROM public.profiles WHERE user_year IS NOT NULL ORDER BY user_year DESC) sub;
+
+  -- ─── 4. Filtrelenmiş total + sayfalanmış items (TEK WITH BLOĞU) ───
   WITH unified AS (
     SELECT
       t.id::text           AS id,
@@ -101,29 +109,39 @@ BEGIN
         OR (p_filter = 'others'    AND u.is_anonymous = false AND u.author_id <> u.recipient_id)
       )
       AND (
-        p_class IS NULL
-        OR (u.is_anonymous = true  AND (u.recipient->>'class') = p_class)
-        OR (u.is_anonymous = false AND ((u.author->>'class') = p_class OR (u.recipient->>'class') = p_class))
+        p_author_class IS NULL
+        OR (u.is_anonymous = false AND (u.author->>'class') = p_author_class)
       )
       AND (
-        p_search IS NULL OR p_search = ''
+        p_recipient_class IS NULL
+        OR ((u.recipient->>'class') = p_recipient_class)
+      )
+      AND (
+        p_year IS NULL
+        OR (u.recipient->>'user_year')::int = p_year
+        OR (u.is_anonymous = false AND (u.author->>'user_year')::int = p_year)
+      )
+      AND (
+        p_author_search IS NULL OR p_author_search = ''
         OR (
           u.is_anonymous = true AND (
-            lower(coalesce(u.display_name,'')) LIKE '%' || lower(p_search) || '%'
-            OR lower(coalesce(u.recipient->>'first_name','') || ' ' || coalesce(u.recipient->>'last_name',''))
-              LIKE '%' || lower(p_search) || '%'
-            OR coalesce(u.recipient->>'school_number','') LIKE '%' || p_search || '%'
+            lower(coalesce(u.display_name,'')) LIKE '%' || lower(p_author_search) || '%'
           )
         )
         OR (
           u.is_anonymous = false AND (
             lower(coalesce(u.author->>'first_name','') || ' ' || coalesce(u.author->>'last_name',''))
-              LIKE '%' || lower(p_search) || '%'
-            OR lower(coalesce(u.recipient->>'first_name','') || ' ' || coalesce(u.recipient->>'last_name',''))
-              LIKE '%' || lower(p_search) || '%'
-            OR coalesce(u.author->>'school_number','') LIKE '%' || p_search || '%'
-            OR coalesce(u.recipient->>'school_number','') LIKE '%' || p_search || '%'
+              LIKE '%' || lower(p_author_search) || '%'
+            OR coalesce(u.author->>'school_number','') LIKE '%' || p_author_search || '%'
           )
+        )
+      )
+      AND (
+        p_recipient_search IS NULL OR p_recipient_search = ''
+        OR (
+          lower(coalesce(u.recipient->>'first_name','') || ' ' || coalesce(u.recipient->>'last_name',''))
+            LIKE '%' || lower(p_recipient_search) || '%'
+          OR coalesce(u.recipient->>'school_number','') LIKE '%' || p_recipient_search || '%'
         )
       )
   ),
@@ -147,7 +165,18 @@ BEGIN
   )
   SELECT
     (SELECT count(*) FROM filtered),
-    COALESCE((SELECT json_agg(p.x ORDER BY p.created_at_sort) FROM paged p), '[]'::json)
+    COALESCE(
+      (
+        SELECT json_agg(
+          p.x
+          ORDER BY
+            CASE WHEN p_sort = 'oldest' THEN p.created_at_sort END ASC,
+            CASE WHEN p_sort <> 'oldest' THEN p.created_at_sort END DESC
+        )
+        FROM paged p
+      ),
+      '[]'::json
+    )
   INTO v_total, v_items;
 
   RETURN json_build_object(
@@ -159,6 +188,7 @@ BEGIN
       'anonymous', v_anon
     ),
     'classes', v_classes,
+    'years',   v_years,
     'items', v_items
   );
 END;

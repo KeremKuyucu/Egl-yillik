@@ -12,13 +12,13 @@ export default async function AdminTextsPage() {
             p_offset: 0,
             p_sort: 'newest',
         }),
-        hasPermission(PERMS.ADMIN_TEXTS_METADATA),
+        hasPermission(PERMS.ADMIN_TEXTS_READ_CONTENT),
     ])
     if (res.error) {
         console.error('Veriler yüklenemedi', res.error)
     }
 
-    const data = res.data || { total: 0, stats: { all: 0, self: 0, others: 0, anonymous: 0 }, classes: [], items: [] }
+    const data = res.data || { total: 0, stats: { all: 0, self: 0, others: 0, anonymous: 0 }, classes: [], years: [], items: [] }
 
     return (
         <AdminTextsClient
@@ -26,6 +26,7 @@ export default async function AdminTextsPage() {
             initialTotal={data.total || 0}
             initialStats={data.stats || { all: 0, self: 0, others: 0, anonymous: 0 }}
             initialClasses={data.classes || []}
+            initialYears={data.years || []}
             canReadContent={canReadResult.ok}
         />
     )

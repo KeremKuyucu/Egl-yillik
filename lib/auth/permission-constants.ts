@@ -24,7 +24,7 @@ export const PERMS = {
     ADMIN_SUGGESTIONS_UPDATE: "admin.suggestions.update", // Suggestion sayfası silme için update izni
 
     ADMIN_TEXTS_DELETE: "admin.texts.delete", // Text sayfası mesaj silme
-    ADMIN_TEXTS_READ: "admin.texts.read", // Text sayfası mesaj içeriğini okuma
+    ADMIN_TEXTS_READ_CONTENT: "admin.texts.read", // Text sayfası mesaj içeriğini okuma
     ADMIN_TEXTS_METADATA: "admin.texts.metadata", // Text sayfası erişim (meta veriler)
     ADMIN_TEXTS_ACCESS_LOG: "system.texts.access_log", // Metin erişim loglarını görme
 
