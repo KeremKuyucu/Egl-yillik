@@ -52,6 +52,7 @@ interface GalleryClientProps {
     storageBaseUrl: string
     maxPhotos: number
     userPhotoCount: number
+    messagingEnabled: boolean
 }
 
 // ─── WebP Dönüşüm Fonksiyonu ──────────────────────────────
@@ -128,6 +129,7 @@ export default function GalleryClient({
     storageBaseUrl,
     maxPhotos,
     userPhotoCount: initialCount,
+    messagingEnabled,
 }: GalleryClientProps) {
     const [photos, setPhotos] = useState<GalleryPhoto[]>(initialPhotos)
     const [uploading, setUploading] = useState(false)
@@ -241,11 +243,12 @@ export default function GalleryClient({
         setDeletingId(null)
     }, [deletingId, lightboxPhoto])
 
-    const canUpload = userPhotoCount < maxPhotos
+    const canUpload = userPhotoCount < maxPhotos && messagingEnabled
 
     return (
         <div className="space-y-8">
             {/* ── Yükleme Alanı ─────────────────────────────── */}
+            {messagingEnabled && (
             <div className="relative overflow-hidden rounded-3xl border-2 border-indigo-100 dark:border-indigo-500/30 shadow-2xl bg-white dark:bg-transparent">
                 {/* Dekoratif arka plan */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-[#0f172a] dark:via-[#1e1b4b] dark:to-[#312e81] transition-colors duration-500" />
@@ -364,6 +367,7 @@ export default function GalleryClient({
                     />
                 </div>
             </div>
+            )}
 
             {/* ── Fotoğraf Galerisi ──────────────────────────── */}
             {photos.length === 0 ? (
@@ -383,7 +387,7 @@ export default function GalleryClient({
                     {photos.map((photo) => {
                         const isLocked = !photo.is_unlocked
                         const canView = !isLocked || photo.user_id === currentUserId
-                        const canDelete = photo.user_id === currentUserId
+                        const canDelete = photo.user_id === currentUserId && messagingEnabled
 
                         return (
                             <div
@@ -489,7 +493,7 @@ export default function GalleryClient({
                                 </p>
                             </div>
 
-                            {lightboxPhoto.user_id === currentUserId && (
+                            {lightboxPhoto.user_id === currentUserId && messagingEnabled && (
                                 <Button
                                     variant="destructive"
                                     size="sm"

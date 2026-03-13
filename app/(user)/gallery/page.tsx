@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth/data"
 import GalleryClient from "@/components/gallery/gallery-client"
 import { Camera } from "lucide-react"
+import { isMessagingEnabled } from "@/lib/settings"
 
 export const dynamic = "force-dynamic"
 
@@ -10,9 +11,10 @@ const MAX_PHOTOS_PER_USER = 20
 const BUCKET_NAME = "gallery"
 
 export default async function GalleryPage() {
-    const [supabase, user] = await Promise.all([
+    const [supabase, user, messagingEnabled] = await Promise.all([
         createClient(),
         getCurrentUser(),
+        isMessagingEnabled(),
     ])
 
     if (!user) redirect("/login")
@@ -49,12 +51,21 @@ export default async function GalleryPage() {
                 </div>
             </div>
 
+            {!messagingEnabled && (
+                <div className="mb-8 p-4 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-200">
+                    <p className="font-medium text-center">
+                        Sistem kilitli: Yeni fotoğraf ekleme ve silme işlemleri şu anda kapalıdır.
+                    </p>
+                </div>
+            )}
+
             <GalleryClient
                 photos={(photos as any) || []}
                 currentUserId={user.id}
                 storageBaseUrl={storageBaseUrl}
                 maxPhotos={MAX_PHOTOS_PER_USER}
                 userPhotoCount={userPhotoCount}
+                messagingEnabled={messagingEnabled}
             />
         </div>
     )

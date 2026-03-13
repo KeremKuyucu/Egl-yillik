@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { getCurrentUser } from "@/lib/auth/data"
 import { hasPermission } from "@/lib/auth/permissions"
+import { isMessagingEnabled } from "@/lib/settings"
 
 const BUCKET_NAME = "gallery"
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -11,6 +12,11 @@ const ALLOWED_TYPES = ["image/webp", "image/jpeg", "image/png"]
 const MAX_PHOTOS_PER_USER = 20
 
 export async function uploadPhotoAction(formData: FormData) {
+    const messagingEnabled = await isMessagingEnabled()
+    if (!messagingEnabled) {
+        return { error: "Sistem kilitli: Yeni fotoğraf yükleme kapalıdır." }
+    }
+
     const user = await getCurrentUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
@@ -76,6 +82,11 @@ export async function uploadPhotoAction(formData: FormData) {
 }
 
 export async function deletePhotoAction(photoId: string) {
+    const messagingEnabled = await isMessagingEnabled()
+    if (!messagingEnabled) {
+        return { error: "Sistem kilitli: Fotoğraf silme kapalıdır." }
+    }
+
     const user = await getCurrentUser()
     if (!user) return { error: "Oturum açmanız gerekiyor" }
 
