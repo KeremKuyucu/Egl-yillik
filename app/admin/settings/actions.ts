@@ -67,7 +67,7 @@ export async function updateToggleSetting(key: string, value: boolean) {
     const supabase = await createClient();
 
     // Validate key
-    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'announcement_enabled'];
+    const allowedKeys = ['messaging_enabled', 'voting_enabled', 'registration_enabled', 'announcement_enabled', 'gallery_enabled'];
     if (!allowedKeys.includes(key)) {
         return { error: 'Geçersiz ayar anahtarı' };
     }
@@ -76,7 +76,8 @@ export async function updateToggleSetting(key: string, value: boolean) {
         messaging_enabled: 'Mesaj yazma özelliği açık/kapalı',
         voting_enabled: 'Oylama/anket özelliği açık/kapalı',
         registration_enabled: 'Yeni kayıt özelliği açık/kapalı',
-        announcement_enabled: 'Duyuru bannerı açık/kapalı'
+        announcement_enabled: 'Duyuru bannerı açık/kapalı',
+        gallery_enabled: 'Fotoğraf galerisi açık/kapalı'
     };
 
     // Upsert the setting
