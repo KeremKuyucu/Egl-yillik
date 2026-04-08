@@ -165,7 +165,6 @@ C:\USERS\KEREM\PROJECTS\EGL-YILLIK\APP
 |               layout.tsx
 |               page.tsx
 |               
-+---api
 +---auth
 |   \---callback
 |           route.ts

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import {
     FileText, RefreshCw, Sparkles, Trash2, Loader2, Inbox, Clock,
     ChevronDown, Filter, Search, User, ArrowRight, Quote, ExternalLink,
-    MessageSquare, TrendingUp, Ghost, Eye, X, ShieldAlert, Download, FileJson, Table
+    MessageSquare, TrendingUp, Ghost, Eye, X, ShieldAlert, Download, FileJson, Table, Printer
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -21,7 +21,7 @@ import {
     AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -385,6 +385,267 @@ export default function AdminTextsClient({
         }
     }
 
+    // ─── Print Preview (PDF) ───
+    const handlePrintPreview = async () => {
+        setExporting(true)
+        try {
+            const supabase = createClient()
+            const { data, error } = await supabase.rpc('get_admin_texts_export')
+            if (error) throw error
+
+            let exportData = (data as any[]) || []
+
+            // Aynı filtreleri uygula
+            if (filter !== 'all') {
+                exportData = exportData.filter(d => {
+                    if (filter === 'anonymous') return d.is_anonymous
+                    if (filter === 'self') return !d.is_anonymous && d.author_name === d.recipient_name
+                    if (filter === 'others') return !d.is_anonymous && d.author_name !== d.recipient_name
+                    return true
+                })
+            }
+            if (recipientClass) {
+                exportData = exportData.filter(d => d.recipient_class === recipientClass)
+            }
+            if (authorClass) {
+                exportData = exportData.filter(d => d.author_class === authorClass)
+            }
+            if (selectedYear) {
+                exportData = exportData.filter(d =>
+                    d.recipient_year === selectedYear || (!d.is_anonymous && d.author_year === selectedYear)
+                )
+            }
+            if (authorSearchQuery) {
+                const lowerq = authorSearchQuery.toLowerCase()
+                exportData = exportData.filter(d =>
+                    (d.author_name && d.author_name.toLowerCase().includes(lowerq)) ||
+                    (!d.is_anonymous && d.author_school_number && d.author_school_number.includes(authorSearchQuery))
+                )
+            }
+            if (recipientSearchQuery) {
+                const lowerq = recipientSearchQuery.toLowerCase()
+                exportData = exportData.filter(d =>
+                    (d.recipient_name && d.recipient_name.toLowerCase().includes(lowerq)) ||
+                    (d.recipient_school_number && d.recipient_school_number.includes(recipientSearchQuery))
+                )
+            }
+
+            if (!exportData.length) {
+                toast.error('Dışa aktarılacak veri bulunamadı')
+                setExporting(false)
+                return
+            }
+
+            const timestamp = format(new Date(), 'dd.MM.yyyy HH:mm')
+
+            const escapeHtml = (str: string) =>
+                (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+            const rows = exportData.map((d, i) => `
+                <tr class="${i % 2 === 0 ? 'even' : 'odd'}">
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(d.recipient_class)}</td>
+                    <td>${escapeHtml(d.recipient_school_number)}</td>
+                    <td>${escapeHtml(d.recipient_name)}</td>
+                    <td>${escapeHtml(d.author_class || 'Bilinmiyor')}</td>
+                    <td>${escapeHtml(d.author_name)}</td>
+                    <td class="content-cell">${escapeHtml(d.content)}</td>
+                    <td>${d.is_anonymous ? 'Evet' : 'Hayır'}</td>
+                    <td>${format(new Date(d.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })}</td>
+                </tr>
+            `).join('')
+
+            // Aktif filtre etiketlerini oluştur
+            const activeFilters: string[] = []
+            if (filter !== 'all') {
+                const filterLabels: Record<string, string> = { self: 'Kendine Yazılan', others: 'Başkasına Yazılan', anonymous: 'Anonim Yazılar' }
+                activeFilters.push(`Tür: ${filterLabels[filter]}`)
+            }
+            if (authorClass) activeFilters.push(`Yazan Sınıf: ${authorClass}`)
+            if (recipientClass) activeFilters.push(`Alıcı Sınıf: ${recipientClass}`)
+            if (selectedYear) activeFilters.push(`Yıl: ${selectedYear}`)
+            if (authorSearchQuery) activeFilters.push(`Yazan Arama: "${authorSearchQuery}"`)
+            if (recipientSearchQuery) activeFilters.push(`Alıcı Arama: "${recipientSearchQuery}"`)
+
+            const filterHtml = activeFilters.length > 0
+                ? `<p class="filters">Filtreler: ${activeFilters.map(f => `<span class="filter-badge">${escapeHtml(f)}</span>`).join(' ')}</p>`
+                : ''
+
+            const htmlContent = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yıllık Mesajları — Yazdır</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #1e293b;
+            padding: 24px;
+            background: #fff;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #6366f1;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #312e81;
+        }
+        .header .meta {
+            text-align: right;
+            color: #64748b;
+            font-size: 10px;
+        }
+        .filters {
+            margin-bottom: 12px;
+            font-size: 10px;
+            color: #475569;
+        }
+        .filter-badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin: 0 3px;
+            font-size: 9px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        th {
+            background: #4338ca;
+            color: #fff;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            word-break: break-word;
+        }
+        tr.even { background: #f8fafc; }
+        tr.odd { background: #fff; }
+        tr:hover { background: #eef2ff !important; }
+        .content-cell {
+            max-width: 320px;
+            white-space: pre-wrap;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+        .footer {
+            margin-top: 16px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 9px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+        .print-hint {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 12px;
+        }
+        .print-hint kbd {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        @media print {
+            .print-hint { display: none !important; }
+            body { padding: 8px; font-size: 9px; }
+            th { background: #4338ca !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr.even { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            table { font-size: 8px; }
+            td { padding: 3px 5px; }
+            .content-cell { max-width: 240px; font-size: 8px; }
+            .footer { font-size: 8px; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-hint">
+        📄 PDF olarak kaydetmek için <kbd>Ctrl</kbd> + <kbd>P</kbd> tuşlarına basın ve hedefi <strong>"PDF olarak kaydet"</strong> seçin.
+    </div>
+    <div class="header">
+        <div>
+            <h1>📋 Yıllık Mesajları</h1>
+        </div>
+        <div class="meta">
+            <div>${timestamp}</div>
+            <div><strong>${exportData.length}</strong> mesaj</div>
+        </div>
+    </div>
+    ${filterHtml}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Alıcı Sınıf</th>
+                <th>Alıcı No</th>
+                <th>Alıcı Adı</th>
+                <th>Yazan Sınıf</th>
+                <th>Gönderen</th>
+                <th>Mesaj</th>
+                <th>Anonim</th>
+                <th>Tarih</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+    </table>
+    <div class="footer">
+        <span>EGL Yıllık — Mesaj Raporu</span>
+        <span>Toplam: ${exportData.length} mesaj</span>
+    </div>
+</body>
+</html>`
+
+            const printWindow = window.open('', '_blank')
+            if (printWindow) {
+                printWindow.document.write(htmlContent)
+                printWindow.document.close()
+                toast.success('Yazdırma önizlemesi yeni sekmede açıldı')
+            } else {
+                toast.error('Yeni sekme açılamadı. Pop-up engelleyiciyi kontrol edin.')
+            }
+        } catch (err) {
+            console.error('Print preview error:', err)
+            toast.error('Önizleme oluşturulamadı!')
+        } finally {
+            setExporting(false)
+        }
+    }
+
     // ─── Derived ───
     const normalCount = stats.all - stats.anonymous
     const hasMore = items.length < total
@@ -421,7 +682,11 @@ export default function AdminTextsClient({
                                         <span className="hidden sm:inline">Dışa Aktar</span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                                <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                                    <DropdownMenuItem onClick={handlePrintPreview} className="gap-2 cursor-pointer">
+                                        <Printer className="h-4 w-4" /> PDF / Yazdır
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => handleExport('md')} className="gap-2 cursor-pointer">
                                         <FileText className="h-4 w-4" /> Markdown (.md)
                                     </DropdownMenuItem>
