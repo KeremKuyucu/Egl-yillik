@@ -7,8 +7,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles, EyeOff
+    FileText, Users, Heart, PenLine, Trophy, Gift, Lock, Clock, Quote, Sparkles, EyeOff, Camera
 } from "lucide-react"
+import ProfilePhotoGallery from "@/components/profile/profile-photo-gallery"
 import CollapsibleCategories from "@/components/profile/collapsible-categories"
 import { getBadge } from "@/lib/profile-utils"
 
@@ -188,9 +189,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const memories = pageData.memories || []
     const selfMemories = pageData.self_memories || []
     const memoriesPreview = pageData.memories_preview || []
+    const photos = pageData.photos || []
+    const photosPreview = pageData.photos_preview || []
     const allCategoriesWithVotes = pageData.categories || []
     const anonymousReceived = pageData.anonymous_received || []
     const anonymousReceivedPreview = pageData.anonymous_received_preview || []
+
+    const BUCKET_NAME = "gallery"
+    const storageBaseUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}`
 
     const userBadge = getBadge(writtenCount)
     const isOwnProfile = user.id === profile.id
@@ -334,6 +340,93 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             </div>
                             <p className="text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">{anonymousReceivedPreview.length}</p>
                         </div>
+                    </div>
+                </div>
+
+                {/* Fotoğraf Galerisi — Stats altında, kilitli/açık fark etmeksizin */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                    <div className="col-span-2 sm:col-span-5">
+                        {!canViewMemories ? (
+                            /* Kilitli — Fotoğraf Preview */
+                            photosPreview.length > 0 && (
+                                <div className="relative overflow-hidden rounded-[1.5rem] border border-white/60 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/70 shadow-xl backdrop-blur-xl p-6 sm:p-8">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32" />
+
+                                    <div className="flex items-center justify-between gap-4 mb-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl text-white shadow-lg shadow-rose-500/25 opacity-80">
+                                                <Camera className="h-6 w-6" suppressHydrationWarning />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                                    Fotoğraflar
+                                                </h2>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                    <span className="font-semibold text-rose-600 dark:text-rose-400">{photosPreview.length} fotoğraf</span> kilitli • Mezuniyette açılacak
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-700/40">
+                                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" suppressHydrationWarning />
+                                            <div className="leading-none">
+                                                <div className="text-[10px] uppercase tracking-wider text-amber-700/70 dark:text-amber-200/60">Açılmasına</div>
+                                                <div className="text-sm font-bold text-amber-700 dark:text-amber-200 tabular-nums">{daysUntilUnlock} gün</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Kilitli fotoğraf grid placeholder */}
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                        {photosPreview.slice(0, 8).map((preview: any, index: number) => (
+                                            <div
+                                                key={preview.id}
+                                                className="group/photo relative aspect-square rounded-2xl overflow-hidden border border-amber-200/50 dark:border-amber-500/20 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900"
+                                            >
+                                                {/* Kilitli overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-amber-900/30 to-amber-800/20 backdrop-blur-sm flex flex-col items-center justify-center">
+                                                    <div className="p-2.5 rounded-full bg-amber-500/20 mb-1.5">
+                                                        <Lock className="w-5 h-5 text-amber-300" suppressHydrationWarning />
+                                                    </div>
+                                                    <p className="text-amber-200/80 text-[10px] font-medium">{daysUntilUnlock} gün</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {photosPreview.length > 8 && (
+                                            <div className="aspect-square rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/30 bg-slate-100/80 dark:bg-slate-800/50 flex items-center justify-center">
+                                                <div className="text-center">
+                                                    <p className="text-2xl font-bold text-slate-500 dark:text-slate-400">+{photosPreview.length - 8}</p>
+                                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">daha fazla</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        ) : (
+                            /* Açık — Gerçek Fotoğraflar */
+                            photos.length > 0 && (
+                                <div className="relative overflow-hidden rounded-[1.5rem] border border-white/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 shadow-xl backdrop-blur-xl p-6 sm:p-8">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32" />
+
+                                    <div className="flex items-center gap-4 mb-6 relative">
+                                        <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl text-white shadow-lg shadow-rose-500/25">
+                                            <Camera className="h-6 w-6" suppressHydrationWarning />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                                Fotoğraflar
+                                            </h2>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                <span className="font-semibold text-rose-600 dark:text-rose-400">{photos.length} fotoğraf</span> paylaşıldı
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <ProfilePhotoGallery photos={photos} storageBaseUrl={storageBaseUrl} />
+                                </div>
+                            )
+                        )}
                     </div>
                 </div>
 

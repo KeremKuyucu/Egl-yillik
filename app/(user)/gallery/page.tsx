@@ -7,7 +7,6 @@ import { isGalleryEnabled, getSystemClosedMessage } from "@/lib/settings"
 
 export const dynamic = "force-dynamic"
 
-const MAX_PHOTOS_PER_USER = 20
 const BUCKET_NAME = "gallery"
 
 export default async function GalleryPage() {
@@ -64,7 +63,6 @@ export default async function GalleryPage() {
                 photos={(photos as any) || []}
                 currentUserId={user.id}
                 storageBaseUrl={storageBaseUrl}
-                maxPhotos={MAX_PHOTOS_PER_USER}
                 userPhotoCount={userPhotoCount}
                 messagingEnabled={galleryEnabled}
             />

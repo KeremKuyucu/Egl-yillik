@@ -50,7 +50,6 @@ interface GalleryClientProps {
     photos: GalleryPhoto[]
     currentUserId: string
     storageBaseUrl: string
-    maxPhotos: number
     userPhotoCount: number
     messagingEnabled: boolean
 }
@@ -127,7 +126,6 @@ export default function GalleryClient({
     photos: initialPhotos,
     currentUserId,
     storageBaseUrl,
-    maxPhotos,
     userPhotoCount: initialCount,
     messagingEnabled,
 }: GalleryClientProps) {
@@ -145,7 +143,6 @@ export default function GalleryClient({
     const currentUserPhotos = photos.filter(p => p.user_id === currentUserId)
     const currentUserPhotoCount = currentUserPhotos.length
     const currentUserSize = currentUserPhotos.reduce((acc, p) => acc + (p.file_size || 0), 0)
-    const maxTotalSize = 10 * 1024 * 1024 // 10MB
 
     // Dosya seçimi + WebP dönüşümü
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,15 +183,6 @@ export default function GalleryClient({
     const handleUpload = useCallback(async () => {
         if (!convertedFile) return
 
-        if (currentUserPhotoCount >= maxPhotos) {
-            toast.error(`En fazla ${maxPhotos} fotoğraf yükleyebilirsiniz`)
-            return
-        }
-        if (currentUserSize + (convertedFile?.size || 0) > maxTotalSize) {
-            toast.error(`Toplam fotoğraf boyutunuz 10MB'ı geçemez. Lütfen daha küçük bir fotoğraf seçin veya eski fotoğraflarınızı silin.`)
-            return
-        }
-
         setUploading(true)
 
         try {
@@ -223,7 +211,7 @@ export default function GalleryClient({
         } finally {
             setUploading(false)
         }
-    }, [convertedFile, caption, currentUserPhotoCount, currentUserSize, maxTotalSize, maxPhotos])
+    }, [convertedFile, caption, currentUserSize])
 
     // Önizlemeyi iptal et
     const handleCancel = useCallback(() => {
@@ -249,130 +237,130 @@ export default function GalleryClient({
         setDeletingId(null)
     }, [deletingId, lightboxPhoto])
 
-    const canUpload = currentUserPhotoCount < maxPhotos && currentUserSize < maxTotalSize && messagingEnabled
+    const canUpload = messagingEnabled
 
     return (
         <div className="space-y-8">
             {/* ── Yükleme Alanı ─────────────────────────────── */}
             {messagingEnabled && (
-            <div className="relative overflow-hidden rounded-3xl border-2 border-indigo-100 dark:border-indigo-500/30 shadow-2xl bg-white dark:bg-transparent">
-                {/* Dekoratif arka plan */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-[#0f172a] dark:via-[#1e1b4b] dark:to-[#312e81] transition-colors duration-500" />
-                <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-600/20 rounded-full blur-[100px] -mr-16 -mt-16 pointer-events-none opacity-0 dark:opacity-100 transition-opacity" />
+                <div className="relative overflow-hidden rounded-3xl border-2 border-indigo-100 dark:border-indigo-500/30 shadow-2xl bg-white dark:bg-transparent">
+                    {/* Dekoratif arka plan */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-[#0f172a] dark:via-[#1e1b4b] dark:to-[#312e81] transition-colors duration-500" />
+                    <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-600/20 rounded-full blur-[100px] -mr-16 -mt-16 pointer-events-none opacity-0 dark:opacity-100 transition-opacity" />
 
-                <div className="relative z-10 p-6 sm:p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
-                            <Camera className="w-5 h-5" />
+                    <div className="relative z-10 p-6 sm:p-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
+                                <Camera className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white font-serif">
+                                    Fotoğraf Yükle
+                                </h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    {currentUserPhotoCount} fotoğraf • {formatFileSize(currentUserSize)} / 10 MB kullanıldı
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white font-serif">
-                                Fotoğraf Yükle
-                            </h2>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {currentUserPhotoCount}/{maxPhotos} fotoğraf • {formatFileSize(currentUserSize)} / 10 MB kullanıldı
-                            </p>
-                        </div>
-                    </div>
 
-                    {!preview ? (
-                        /* Dosya seçim alanı */
-                        <button
-                            type="button"
-                            onClick={() => canUpload && fileInputRef.current?.click()}
-                            disabled={!canUpload || converting}
-                            className="w-full group border-2 border-dashed border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-10 text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-400/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {converting ? (
-                                <div className="flex flex-col items-center gap-3">
-                                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
-                                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                                        WebP&apos;ye dönüştürülüyor...
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
-                                        <ImagePlus className="w-8 h-8 text-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                                            {canUpload
-                                                ? "Fotoğraf seçmek için tıkla"
-                                                : "Fotoğraf veya boyut limitine ulaştın"}
-                                        </p>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500">
-                                            JPG, PNG veya WebP • Otomatik WebP&apos;ye dönüştürülür
+                        {!preview ? (
+                            /* Dosya seçim alanı */
+                            <button
+                                type="button"
+                                onClick={() => canUpload && fileInputRef.current?.click()}
+                                disabled={!canUpload || converting}
+                                className="w-full group border-2 border-dashed border-indigo-200 dark:border-indigo-500/30 rounded-2xl p-10 text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-400/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {converting ? (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+                                        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                                            WebP&apos;ye dönüştürülüyor...
                                         </p>
                                     </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
+                                            <ImagePlus className="w-8 h-8 text-indigo-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                                                {canUpload
+                                                    ? "Fotoğraf seçmek için tıkla"
+                                                    : "Fotoğraf veya boyut limitine ulaştın"}
+                                            </p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                                                JPG, PNG veya WebP • Otomatik WebP&apos;ye dönüştürülür
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </button>
+                        ) : (
+                            /* Önizleme + Yükleme */
+                            <div className="space-y-4">
+                                <div className="relative rounded-2xl overflow-hidden border border-indigo-100 dark:border-indigo-500/20 shadow-lg">
+                                    <img
+                                        src={preview}
+                                        alt="Önizleme"
+                                        className="w-full max-h-80 object-contain bg-slate-50 dark:bg-slate-900/50"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleCancel}
+                                        className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
-                            )}
-                        </button>
-                    ) : (
-                        /* Önizleme + Yükleme */
-                        <div className="space-y-4">
-                            <div className="relative rounded-2xl overflow-hidden border border-indigo-100 dark:border-indigo-500/20 shadow-lg">
-                                <img
-                                    src={preview}
-                                    alt="Önizleme"
-                                    className="w-full max-h-80 object-contain bg-slate-50 dark:bg-slate-900/50"
+
+                                <Input
+                                    placeholder="Açıklama ekle (isteğe bağlı)"
+                                    value={caption}
+                                    onChange={(e) => setCaption(e.target.value)}
+                                    maxLength={200}
+                                    className="rounded-xl border-indigo-100 dark:border-indigo-500/20 focus:ring-indigo-500"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={handleCancel}
-                                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+
+                                <div className="flex gap-3">
+                                    <Button
+                                        onClick={handleCancel}
+                                        variant="outline"
+                                        className="flex-1 rounded-xl"
+                                        disabled={uploading}
+                                    >
+                                        İptal
+                                    </Button>
+                                    <Button
+                                        onClick={handleUpload}
+                                        disabled={uploading}
+                                        className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30"
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                Yükleniyor...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-4 h-4 mr-2" />
+                                                Yükle
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
+                        )}
 
-                            <Input
-                                placeholder="Açıklama ekle (isteğe bağlı)"
-                                value={caption}
-                                onChange={(e) => setCaption(e.target.value)}
-                                maxLength={200}
-                                className="rounded-xl border-indigo-100 dark:border-indigo-500/20 focus:ring-indigo-500"
-                            />
-
-                            <div className="flex gap-3">
-                                <Button
-                                    onClick={handleCancel}
-                                    variant="outline"
-                                    className="flex-1 rounded-xl"
-                                    disabled={uploading}
-                                >
-                                    İptal
-                                </Button>
-                                <Button
-                                    onClick={handleUpload}
-                                    disabled={uploading}
-                                    className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30"
-                                >
-                                    {uploading ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                            Yükleniyor...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            Yükle
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                    />
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                    </div>
                 </div>
-            </div>
             )}
 
             {/* ── Fotoğraf Galerisi ──────────────────────────── */}

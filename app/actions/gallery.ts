@@ -7,10 +7,7 @@ import { hasPermission } from "@/lib/auth/permissions"
 import { isGalleryEnabled, getSystemClosedMessage } from "@/lib/settings"
 
 const BUCKET_NAME = "gallery"
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-const MAX_TOTAL_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ["image/webp", "image/jpeg", "image/png"]
-const MAX_PHOTOS_PER_USER = 20
 
 export async function uploadPhotoAction(formData: FormData) {
     const galleryEnabled = await isGalleryEnabled()
@@ -28,9 +25,6 @@ export async function uploadPhotoAction(formData: FormData) {
     if (!ALLOWED_TYPES.includes(file.type)) {
         return { error: "Sadece WebP, JPEG ve PNG formatları desteklenir" }
     }
-    if (file.size > MAX_FILE_SIZE) {
-        return { error: "Dosya boyutu 5MB'ı geçemez" }
-    }
 
     const supabase = createAdminClient()
 
@@ -43,16 +37,6 @@ export async function uploadPhotoAction(formData: FormData) {
     if (fetchError) {
         console.error("Fetch sizes error:", fetchError)
         return { error: "Fotoğraf limitleri kontrol edilirken bir hata oluştu" }
-    }
-
-    const currentCount = userPhotos ? userPhotos.length : 0;
-    if (currentCount >= MAX_PHOTOS_PER_USER) {
-        return { error: `En fazla ${MAX_PHOTOS_PER_USER} fotoğraf yükleyebilirsiniz` }
-    }
-
-    const currentTotalSize = userPhotos ? userPhotos.reduce((acc, curr) => acc + (curr.file_size || 0), 0) : 0;
-    if (currentTotalSize + file.size > MAX_TOTAL_SIZE) {
-        return { error: "Toplam fotoğraf boyutunuz 10MB'ı geçemez. Lütfen eski fotoğraflarınızdan bazılarını silin veya daha küçük boyutlu bir fotoğraf yükleyin." }
     }
 
     // Benzersiz dosya adı oluştur
