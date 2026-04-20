@@ -26,6 +26,7 @@ import {
     ZoomIn,
     User,
     Lock,
+    Images,
 } from "lucide-react"
 
 // ─── Tip Tanımlamaları ─────────────────────────────────────
@@ -52,6 +53,13 @@ interface GalleryClientProps {
     storageBaseUrl: string
     userPhotoCount: number
     messagingEnabled: boolean
+}
+
+interface PendingFile {
+    id: string
+    file: File
+    previewUrl: string
+    originalName: string
 }
 
 // ─── WebP Dönüşüm Fonksiyonu ──────────────────────────────
@@ -132,45 +140,65 @@ export default function GalleryClient({
     const [photos, setPhotos] = useState<GalleryPhoto[]>(initialPhotos)
     const [uploading, setUploading] = useState(false)
     const [converting, setConverting] = useState(false)
-    const [preview, setPreview] = useState<string | null>(null)
-    const [convertedFile, setConvertedFile] = useState<File | null>(null)
-    const [originalSize, setOriginalSize] = useState<number>(0)
+    const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([])
     const [caption, setCaption] = useState("")
+    const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const currentUserPhotos = photos.filter(p => p.user_id === currentUserId)
     const currentUserPhotoCount = currentUserPhotos.length
-    const currentUserSize = currentUserPhotos.reduce((acc, p) => acc + (p.file_size || 0), 0)
 
-    // Dosya seçimi + WebP dönüşümü
+    // Dosya seçimi + WebP dönüşümü (çoklu)
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+        const files = e.target.files
+        if (!files || files.length === 0) return
 
-        if (!file.type.startsWith("image/")) {
-            toast.error("Lütfen bir resim dosyası seçin")
-            return
+        const fileArray = Array.from(files)
+
+        // Dosya tipi kontrolü
+        const invalidFiles = fileArray.filter(f => !f.type.startsWith("image/"))
+        if (invalidFiles.length > 0) {
+            toast.error(`${invalidFiles.length} dosya resim değil, atlandı`)
         }
 
-        if (file.size > 20 * 1024 * 1024) {
-            toast.error("Dosya boyutu 20MB'ı geçemez")
-            return
+        const validFiles = fileArray.filter(f => f.type.startsWith("image/"))
+        if (validFiles.length === 0) return
+
+        // Boyut kontrolü
+        const oversizedFiles = validFiles.filter(f => f.size > 20 * 1024 * 1024)
+        if (oversizedFiles.length > 0) {
+            toast.error(`${oversizedFiles.length} dosya 20MB sınırını aşıyor, atlandı`)
         }
 
-        setOriginalSize(file.size)
+        const sizedFiles = validFiles.filter(f => f.size <= 20 * 1024 * 1024)
+        if (sizedFiles.length === 0) return
+
         setConverting(true)
 
         try {
-            const webpFile = await convertToWebP(file)
-            setConvertedFile(webpFile)
+            const newPending: PendingFile[] = []
 
-            // Önizleme oluştur
-            const previewUrl = URL.createObjectURL(webpFile)
-            setPreview(previewUrl)
-        } catch {
-            toast.error("Resim işlenirken bir hata oluştu")
+            for (const file of sizedFiles) {
+                try {
+                    const webpFile = await convertToWebP(file)
+                    const previewUrl = URL.createObjectURL(webpFile)
+                    newPending.push({
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        file: webpFile,
+                        previewUrl,
+                        originalName: file.name,
+                    })
+                } catch {
+                    toast.error(`"${file.name}" işlenirken hata oluştu`)
+                }
+            }
+
+            if (newPending.length > 0) {
+                setPendingFiles(prev => [...prev, ...newPending])
+                toast.success(`${newPending.length} fotoğraf eklendi`)
+            }
         } finally {
             setConverting(false)
         }
@@ -179,48 +207,73 @@ export default function GalleryClient({
         e.target.value = ""
     }, [])
 
-    // Yükleme
+    // Toplu yükleme
     const handleUpload = useCallback(async () => {
-        if (!convertedFile) return
+        if (pendingFiles.length === 0) return
 
         setUploading(true)
+        setUploadProgress({ current: 0, total: pendingFiles.length })
 
-        try {
-            const formData = new FormData()
-            formData.append("file", convertedFile)
-            if (caption.trim()) {
-                formData.append("caption", caption.trim())
+        let successCount = 0
+        let errorCount = 0
+
+        for (let i = 0; i < pendingFiles.length; i++) {
+            const pending = pendingFiles[i]
+            setUploadProgress({ current: i + 1, total: pendingFiles.length })
+
+            try {
+                const formData = new FormData()
+                formData.append("file", pending.file)
+                if (caption.trim()) {
+                    formData.append("caption", caption.trim())
+                }
+
+                const result = await uploadPhotoAction(formData)
+
+                if (result.error) {
+                    errorCount++
+                    toast.error(`"${pending.originalName}": ${result.error}`)
+                } else {
+                    successCount++
+                }
+            } catch {
+                errorCount++
+                toast.error(`"${pending.originalName}": Beklenmeyen bir hata oluştu`)
             }
-
-            const result = await uploadPhotoAction(formData)
-
-            if (result.error) {
-                toast.error(result.error)
-            } else {
-                toast.success("Fotoğraf başarıyla yüklendi!")
-                // Temizle
-                setPreview(null)
-                setConvertedFile(null)
-                setCaption("")
-                setOriginalSize(0)
-                // Sayfa yenilenecek (revalidatePath)
-                window.location.reload()
-            }
-        } catch {
-            toast.error("Beklenmeyen bir hata oluştu")
-        } finally {
-            setUploading(false)
         }
-    }, [convertedFile, caption, currentUserSize])
 
-    // Önizlemeyi iptal et
-    const handleCancel = useCallback(() => {
-        if (preview) URL.revokeObjectURL(preview)
-        setPreview(null)
-        setConvertedFile(null)
+        // Temizle
+        pendingFiles.forEach(p => URL.revokeObjectURL(p.previewUrl))
+        setPendingFiles([])
         setCaption("")
-        setOriginalSize(0)
-    }, [preview])
+        setUploadProgress(null)
+        setUploading(false)
+
+        if (successCount > 0) {
+            toast.success(
+                errorCount > 0
+                    ? `${successCount} fotoğraf yüklendi, ${errorCount} başarısız`
+                    : `${successCount} fotoğraf başarıyla yüklendi!`
+            )
+            window.location.reload()
+        }
+    }, [pendingFiles, caption])
+
+    // Tek bir bekleyen dosyayı kaldır
+    const removePendingFile = useCallback((id: string) => {
+        setPendingFiles(prev => {
+            const file = prev.find(p => p.id === id)
+            if (file) URL.revokeObjectURL(file.previewUrl)
+            return prev.filter(p => p.id !== id)
+        })
+    }, [])
+
+    // Tümünü iptal et
+    const handleCancelAll = useCallback(() => {
+        pendingFiles.forEach(p => URL.revokeObjectURL(p.previewUrl))
+        setPendingFiles([])
+        setCaption("")
+    }, [pendingFiles])
 
     // Fotoğraf silme
     const handleDelete = useCallback(async () => {
@@ -258,12 +311,12 @@ export default function GalleryClient({
                                     Fotoğraf Yükle
                                 </h2>
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    {currentUserPhotoCount} fotoğraf • {formatFileSize(currentUserSize)} / 10 MB kullanıldı
+                                    {currentUserPhotoCount} fotoğraf yüklendi
                                 </p>
                             </div>
                         </div>
 
-                        {!preview ? (
+                        {pendingFiles.length === 0 ? (
                             /* Dosya seçim alanı */
                             <button
                                 type="button"
@@ -287,10 +340,10 @@ export default function GalleryClient({
                                             <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                                                 {canUpload
                                                     ? "Fotoğraf seçmek için tıkla"
-                                                    : "Fotoğraf veya boyut limitine ulaştın"}
+                                                    : "Yükleme şu an kapalı"}
                                             </p>
                                             <p className="text-xs text-slate-400 dark:text-slate-500">
-                                                JPG, PNG veya WebP • Otomatik WebP&apos;ye dönüştürülür
+                                                JPG, PNG veya WebP • Birden fazla seçebilirsin • Otomatik WebP&apos;ye dönüştürülür
                                             </p>
                                         </div>
                                     </div>
@@ -299,32 +352,96 @@ export default function GalleryClient({
                         ) : (
                             /* Önizleme + Yükleme */
                             <div className="space-y-4">
-                                <div className="relative rounded-2xl overflow-hidden border border-indigo-100 dark:border-indigo-500/20 shadow-lg">
-                                    <img
-                                        src={preview}
-                                        alt="Önizleme"
-                                        className="w-full max-h-80 object-contain bg-slate-50 dark:bg-slate-900/50"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleCancel}
-                                        className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                                {/* Önizleme grid */}
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                                    {pendingFiles.map((pending) => (
+                                        <div
+                                            key={pending.id}
+                                            className="relative group/preview rounded-xl overflow-hidden border border-indigo-100 dark:border-indigo-500/20 shadow-sm aspect-square"
+                                        >
+                                            <img
+                                                src={pending.previewUrl}
+                                                alt={pending.originalName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            {!uploading && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removePendingFile(pending.id)}
+                                                    className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover/preview:opacity-100 hover:bg-red-600 transition-all duration-200"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                            {/* Dosya adı overlay */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 py-1">
+                                                <p className="text-[9px] text-white/80 truncate">
+                                                    {pending.originalName}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Daha fazla ekle butonu */}
+                                    {!uploading && (
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={converting}
+                                            className="flex flex-col items-center justify-center gap-1.5 aspect-square rounded-xl border-2 border-dashed border-indigo-200 dark:border-indigo-500/30 hover:border-indigo-400 dark:hover:border-indigo-400/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition-all duration-300 cursor-pointer"
+                                        >
+                                            {converting ? (
+                                                <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <ImagePlus className="w-5 h-5 text-indigo-400" />
+                                                    <span className="text-[10px] text-indigo-400 font-medium">Ekle</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
 
+                                {/* Seçim özeti */}
+                                <div className="flex items-center gap-2 px-1">
+                                    <Images className="w-4 h-4 text-indigo-500" />
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {pendingFiles.length} fotoğraf seçildi •{" "}
+                                        {formatFileSize(pendingFiles.reduce((acc, p) => acc + p.file.size, 0))}
+                                    </p>
+                                </div>
+
+                                {/* Yükleme ilerleme çubuğu */}
+                                {uploadProgress && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                                            <span className="flex items-center gap-1.5">
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+                                                Yükleniyor...
+                                            </span>
+                                            <span>{uploadProgress.current} / {uploadProgress.total}</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
+                                                style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
                                 <Input
-                                    placeholder="Açıklama ekle (isteğe bağlı)"
+                                    placeholder="Açıklama ekle (isteğe bağlı, tümüne uygulanır)"
                                     value={caption}
                                     onChange={(e) => setCaption(e.target.value)}
                                     maxLength={200}
+                                    disabled={uploading}
                                     className="rounded-xl border-indigo-100 dark:border-indigo-500/20 focus:ring-indigo-500"
                                 />
 
                                 <div className="flex gap-3">
                                     <Button
-                                        onClick={handleCancel}
+                                        onClick={handleCancelAll}
                                         variant="outline"
                                         className="flex-1 rounded-xl"
                                         disabled={uploading}
@@ -344,7 +461,9 @@ export default function GalleryClient({
                                         ) : (
                                             <>
                                                 <Upload className="w-4 h-4 mr-2" />
-                                                Yükle
+                                                {pendingFiles.length > 1
+                                                    ? `${pendingFiles.length} Fotoğraf Yükle`
+                                                    : "Yükle"}
                                             </>
                                         )}
                                     </Button>
@@ -357,6 +476,7 @@ export default function GalleryClient({
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             onChange={handleFileSelect}
+                            multiple
                             className="hidden"
                         />
                     </div>
