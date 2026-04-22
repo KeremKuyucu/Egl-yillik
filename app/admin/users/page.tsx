@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getCurrentUser } from "@/lib/auth/data"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserManagementClient } from "@/components/admin/user-management-client"
-import { getCurrentPermissions } from "@/lib/auth/permissions"
+import { getCurrentPermissions, hasPermission } from "@/lib/auth/permissions"
+import { PERMS } from "@/lib/auth/permission-constants"
 
 interface Role {
     role_key: string
@@ -15,7 +16,10 @@ interface Role {
 export default async function UsersAdminPage() {
     // Merkezi admin kontrolü
     const currentUser = await getCurrentUser()
-    const permissions = await getCurrentPermissions()
+    const [permissions, canExportResult] = await Promise.all([
+        getCurrentPermissions(),
+        hasPermission(PERMS.ADMIN_TEXTS_READ_CONTENT)
+    ])
     if (!currentUser) {
         return null
     }
@@ -81,6 +85,7 @@ export default async function UsersAdminPage() {
             availableRoles={normalizedRoles}
             availableYears={availableYears}
             permissions={permissions}
+            canExportTexts={canExportResult.ok}
         />
     )
 }

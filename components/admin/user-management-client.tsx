@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useTransition } from "react"
+import { useState, useMemo, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { getFullName, getInitials } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,8 +36,19 @@ import {
     Calendar,
     Trash2,
     Loader2,
-    RotateCcw
+    RotateCcw,
+    Download,
+    FileText,
+    FileJson,
+    Printer
 } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { EditUserButton } from "@/components/admin/admin-actions"
 import { UserRolesDialog } from "@/components/admin/user-roles-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -53,6 +64,10 @@ import { cn } from "@/lib/utils"
 import { adminDeleteAccount, adminRestoreAccount } from "@/app/actions/admin"
 import { PERMS } from "@/lib/auth/permission-constants"
 import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
+import { format } from "date-fns"
+import { tr } from "date-fns/locale"
+import { Table as LucideTable } from "lucide-react"
 
 interface UserProfile {
     id: string
@@ -83,6 +98,7 @@ interface UserManagementClientProps {
     availableRoles: Role[]
     availableYears: number[]
     permissions: string[]
+    canExportTexts: boolean
 }
 
 // Avatar renkleri - isim baş harfine göre
@@ -117,7 +133,8 @@ export function UserManagementClient({
     classes,
     availableRoles,
     availableYears,
-    permissions
+    permissions,
+    canExportTexts
 }: UserManagementClientProps) {
 
     // Local State
@@ -128,6 +145,7 @@ export function UserManagementClient({
     const [copiedId, setCopiedId] = useState<string | null>(null)
     const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
     const [restoringUserId, setRestoringUserId] = useState<string | null>(null)
+    const [exporting, setExporting] = useState(false)
     const [isPending, startTransition] = useTransition()
     const router = useRouter()
 
@@ -268,6 +286,275 @@ export function UserManagementClient({
         setRoleFilter("all")
         setYearFilter("all")
         setSearchQuery("")
+    }
+
+    // ─── Per-User Export ───
+    const downloadBlob = useCallback((blob: Blob, filename: string) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+    }, [])
+
+    const handleUserExport = async (targetUser: UserProfile, exportFormat: 'md' | 'csv' | 'json') => {
+        setExporting(true)
+        try {
+            const supabase = createClient()
+            const { data, error } = await supabase.rpc('get_admin_texts_export')
+            if (error) throw error
+
+            const allData = (data as any[]) || []
+            // Bu kullanıcının yazdığı mesajları filtrele (yazar olarak)
+            const exportData = allData.filter(d => d.author_id === targetUser.id)
+
+            const userName = getFullName(targetUser.first_name, targetUser.last_name)
+            const safeFileName = `${targetUser.school_number}_${targetUser.first_name}_${targetUser.last_name}`.replace(/\s+/g, '_')
+
+            if (!exportData.length) {
+                toast.error(`${userName} için dışa aktarılacak mesaj bulunamadı`)
+                setExporting(false)
+                return
+            }
+
+            const timestamp = format(new Date(), 'yyyyMMdd_HHmm')
+
+            if (exportFormat === 'json') {
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+                downloadBlob(blob, `mesajlar_${safeFileName}_${timestamp}.json`)
+            } else if (exportFormat === 'csv') {
+                const headers = ['Alıcı Sınıf', 'Alıcı No', 'Alıcı Adı', 'Mesaj', 'Anonim mi', 'Tarih']
+                const rows = exportData.map(d => [
+                    d.recipient_class || 'Bilinmiyor',
+                    d.recipient_school_number || '',
+                    `"${(d.recipient_name || '').replace(/"/g, '""')}"`,
+                    `"${(d.content || '').replace(/"/g, '""')}"`,
+                    d.is_anonymous ? 'Evet' : 'Hayır',
+                    format(new Date(d.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })
+                ])
+                const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+                downloadBlob(blob, `mesajlar_${safeFileName}_${timestamp}.csv`)
+            } else if (exportFormat === 'md') {
+                let mdContent = `# ${userName} — Yazdığı Mesajlar\n`
+                mdContent += `> Sınıf: ${targetUser.class} | No: ${targetUser.school_number}\n`
+                mdContent += `> Dışa aktarma tarihi: ${format(new Date(), 'dd.MM.yyyy HH:mm', { locale: tr })}\n\n`
+                mdContent += `---\n\n`
+
+                exportData.forEach((msg: any) => {
+                    mdContent += `**Alıcı:** ${msg.recipient_name} (${msg.recipient_class}) ${msg.is_anonymous ? '*(Anonim olarak)*' : ''}\n`
+                    mdContent += `**Tarih:** ${format(new Date(msg.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })}\n\n`
+                    mdContent += `> ${msg.content.split('\n').join('\n> ')}\n\n`
+                    mdContent += `---\n\n`
+                })
+                const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' })
+                downloadBlob(blob, `mesajlar_${safeFileName}_${timestamp}.md`)
+            }
+            toast.success(`${userName} için ${exportData.length} mesaj dışa aktarıldı`)
+        } catch (err) {
+            console.error('Export error:', err)
+            toast.error('Dışa aktarma başarısız!')
+        } finally {
+            setExporting(false)
+        }
+    }
+
+    const handleUserPrintPreview = async (targetUser: UserProfile) => {
+        setExporting(true)
+        try {
+            const supabase = createClient()
+            const { data, error } = await supabase.rpc('get_admin_texts_export')
+            if (error) throw error
+
+            const allData = (data as any[]) || []
+            const exportData = allData.filter(d => d.author_id === targetUser.id)
+            const userName = getFullName(targetUser.first_name, targetUser.last_name)
+
+            if (!exportData.length) {
+                toast.error(`${userName} için dışa aktarılacak mesaj bulunamadı`)
+                setExporting(false)
+                return
+            }
+
+            const timestamp = format(new Date(), 'dd.MM.yyyy HH:mm')
+
+            const escapeHtml = (str: string) =>
+                (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+            const rows = exportData.map((d: any, i: number) => `
+                <tr class="${i % 2 === 0 ? 'even' : 'odd'}">
+                    <td>${i + 1}</td>
+                    <td>${escapeHtml(d.recipient_class || 'Bilinmiyor')}</td>
+                    <td>${escapeHtml(d.recipient_name)}</td>
+                    <td class="content-cell">${escapeHtml(d.content)}</td>
+                    <td>${d.is_anonymous ? 'Evet' : 'Hayır'}</td>
+                    <td>${format(new Date(d.created_at), 'dd.MM.yyyy HH:mm', { locale: tr })}</td>
+                </tr>
+            `).join('')
+
+            const htmlContent = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(userName)} — Mesajlar</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #1e293b;
+            padding: 24px;
+            background: #fff;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #6366f1;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #312e81;
+        }
+        .header .subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .header .meta {
+            text-align: right;
+            color: #64748b;
+            font-size: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        th {
+            background: #4338ca;
+            color: #fff;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            word-break: break-word;
+        }
+        tr.even { background: #f8fafc; }
+        tr.odd { background: #fff; }
+        tr:hover { background: #eef2ff !important; }
+        .content-cell {
+            max-width: 400px;
+            white-space: pre-wrap;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+        .footer {
+            margin-top: 16px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 9px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+        .print-hint {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 12px;
+        }
+        .print-hint kbd {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        @media print {
+            .print-hint { display: none !important; }
+            body { padding: 8px; font-size: 9px; }
+            th { background: #4338ca !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr.even { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            table { font-size: 8px; }
+            td { padding: 3px 5px; }
+            .content-cell { max-width: 300px; font-size: 8px; }
+            .footer { font-size: 8px; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-hint">
+        📄 PDF olarak kaydetmek için <kbd>Ctrl</kbd> + <kbd>P</kbd> tuşlarına basın ve hedefi <strong>"PDF olarak kaydet"</strong> seçin.
+    </div>
+    <div class="header">
+        <div>
+            <h1>📋 ${escapeHtml(userName)} — Yazdığı Mesajlar</h1>
+            <div class="subtitle">Sınıf: ${escapeHtml(targetUser.class)} | No: ${escapeHtml(targetUser.school_number)}</div>
+        </div>
+        <div class="meta">
+            <div>${timestamp}</div>
+            <div><strong>${exportData.length}</strong> mesaj</div>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Alıcı Sınıf</th>
+                <th>Alıcı</th>
+                <th>Mesaj</th>
+                <th>Anonim</th>
+                <th>Tarih</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+    </table>
+    <div class="footer">
+        <span>EGL Yıllık — ${escapeHtml(userName)} Mesaj Raporu</span>
+        <span>Toplam: ${exportData.length} mesaj</span>
+    </div>
+</body>
+</html>`
+
+            const printWindow = window.open('', '_blank')
+            if (printWindow) {
+                printWindow.document.write(htmlContent)
+                printWindow.document.close()
+                toast.success('Yazdırma önizlemesi yeni sekmede açıldı')
+            } else {
+                toast.error('Yeni sekme açılamadı. Pop-up engelleyiciyi kontrol edin.')
+            }
+        } catch (err) {
+            console.error('Print preview error:', err)
+            toast.error('Önizleme oluşturulamadı!')
+        } finally {
+            setExporting(false)
+        }
     }
 
     return (
@@ -518,6 +805,39 @@ export function UserManagementClient({
                                                             availableRoles={availableRoles}
                                                         />
                                                         <EditUserButton user={user} />
+                                                        {canExportTexts && (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950"
+                                                                        disabled={exporting}
+                                                                    >
+                                                                        {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                                                                    <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                                                                        Mesajları dışa aktar
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem onClick={() => handleUserPrintPreview(user)} className="gap-2 cursor-pointer">
+                                                                        <Printer className="h-4 w-4" /> PDF / Yazdır
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator />
+                                                                    <DropdownMenuItem onClick={() => handleUserExport(user, 'md')} className="gap-2 cursor-pointer">
+                                                                        <FileText className="h-4 w-4" /> Markdown (.md)
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={() => handleUserExport(user, 'csv')} className="gap-2 cursor-pointer">
+                                                                        <LucideTable className="h-4 w-4" /> Excel / CSV (.csv)
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={() => handleUserExport(user, 'json')} className="gap-2 cursor-pointer">
+                                                                        <FileJson className="h-4 w-4" /> JSON (.json)
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
                                                         {canDeleteAccount && !isCurrentUser && isDeleted && (
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
